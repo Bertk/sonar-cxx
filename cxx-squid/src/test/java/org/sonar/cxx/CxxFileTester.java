@@ -19,6 +19,8 @@
  */
 package org.sonar.cxx;
 
+import java.nio.file.Path;
+
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 
@@ -26,5 +28,7 @@ public class CxxFileTester {
 
   public InputFile cxxFile;
   public SensorContextTester sensorContext;
+
+  public Path baseDir;
 
 }
