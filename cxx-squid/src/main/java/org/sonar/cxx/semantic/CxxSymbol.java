@@ -27,7 +27,9 @@ public interface CxxSymbol {
 
   String name();
 
-  String fullname();
+  String fullyQualifiedName();
+  
+  String unqualifiedId();
   
   int line();
   
