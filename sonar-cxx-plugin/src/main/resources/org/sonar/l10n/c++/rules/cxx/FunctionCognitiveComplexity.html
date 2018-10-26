@@ -1,5 +1,25 @@
-<p>Cognitive Complexity is a measure of how hard the control flow of a function is to understand. Functions with high Cognitive Complexity will be difficult to maintain.</p>
-<h2>See</h2>
-<ul>
-  <li> <a href="http://redirect.sonarsource.com/doc/cognitive-complexity.html">Cognitive Complexity</a> </li>
-</ul>
+<p>Cognitive Complexity score is assessed according to three basic rules:
+  <ol>
+    <li>Ignore structures that allow multiple statements to be readably shorthanded into one</li>
+    <li>Increment (add one) for each break in the linear flow of the code</li>
+    <li>Increment when flow-breaking structures are nested</li>
+  </ol>
+</p>
+<p>Additionally, a complexity score is made up of four different types of increments:
+  <ol type="A">
+    <li>Nesting - assessed for nesting control flow structures inside each other</li>
+    <li>Structural - assessed on control flow structures that are subject to a nesting increment, and that increase the nesting
+      count
+    </li>
+    <li>Fundamental - assessed on statements not subject to a nesting increment</li>
+    <li>Hybrid - assessed on control flow structures that are not subject to a nesting increment, but which do increase the nesting
+      count
+    </li>
+  </ol>
+</p>
+<p>
+  For more information read the <a href="https://blog.sonarsource.com/cognitive-complexity-because-testability-understandability">
+  Sonarsource blog</a>
+</p>
+
+

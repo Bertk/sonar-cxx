@@ -10,12 +10,10 @@
 
   <artifactId>sonar-cxx-plugin</artifactId>
   <packaging>sonar-plugin</packaging>
-
   <name>Cxx :: Sonar Plugin</name>
   <inceptionYear>2010</inceptionYear>
   <description>Enable analysis and reporting on c++ projects.</description>
   <url>https://github.com/SonarOpenCommunity/sonar-cxx/wiki</url>
-
   <properties>
     <sonar.artifact.path>target/${project.artifactId}-${project.version}.jar</sonar.artifact.path>
     <sonar.pluginClass>org.sonar.plugins.cxx.CxxPlugin</sonar.pluginClass>
@@ -28,12 +26,6 @@
       <artifactId>sonar-plugin-api</artifactId>
       <scope>provided</scope>
     </dependency>
-<!--
-    <dependency>
-      <groupId>org.sonarsource.dotnet</groupId>
-      <artifactId>sonar-dotnet-tests-library</artifactId>
-    </dependency>
--->
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>cxx-squid</artifactId>

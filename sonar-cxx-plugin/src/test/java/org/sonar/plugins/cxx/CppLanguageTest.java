@@ -47,9 +47,9 @@ public class CppLanguageTest {
   public void shouldReturnDefaultFileSuffixes() {
     CppLanguage cxx = new CppLanguage(settings.asConfig());
 
-    String[] expectedSources = {".cxx", ".cpp", ".cc", ".c"};
-    String[] expectedHeaders = {".hxx", ".hpp", ".hh", ".h"};
-    String[] expectedAll = {".cxx", ".cpp", ".cc", ".c", ".hxx", ".hpp", ".hh", ".h"};
+    String[] expectedSources = {".cxx", ".cpp", ".cc", ".c", ".cu"};
+    String[] expectedHeaders = {".hxx", ".hpp", ".hh", ".h", ".cuh", ".inl", ".inc", ".cuinc", ".txx"};
+    String[] expectedAll = {".cxx", ".cpp", ".cc", ".c", ".cu", ".hxx", ".hpp", ".hh", ".h", ".cuh", ".inl", ".inc", ".cuinc", ".txx"};
 
     assertThat(cxx.getFileSuffixes(), is(expectedAll));
     assertThat(cxx.getSourceFileSuffixes(), is(expectedSources));
@@ -62,8 +62,8 @@ public class CppLanguageTest {
     CppLanguage cxx = new CppLanguage(settings.asConfig());
 
     String[] expectedSources = {".C", ".c"};
-    String[] expectedHeaders = {".hxx", ".hpp", ".hh", ".h"};
-    String[] expectedAll = {".C", ".c", ".hxx", ".hpp", ".hh", ".h"};
+    String[] expectedHeaders = {".hxx", ".hpp", ".hh", ".h", ".cuh", ".inl", ".inc", ".cuinc", ".txx"};
+    String[] expectedAll = {".C", ".c", ".hxx", ".hpp", ".hh", ".h", ".cuh", ".inl", ".inc", ".cuinc", ".txx"};
 
     assertThat(cxx.getFileSuffixes(), is(expectedAll));
     assertThat(cxx.getSourceFileSuffixes(), is(expectedSources));
@@ -75,9 +75,9 @@ public class CppLanguageTest {
     settings.setProperty(CxxPlugin.HEADER_FILE_SUFFIXES_KEY, ".H,.h");
     CppLanguage cxx = new CppLanguage(settings.asConfig());
 
-    String[] expectedSources = {".cxx", ".cpp", ".cc", ".c"};
+    String[] expectedSources = {".cxx", ".cpp", ".cc", ".c", ".cu"};
     String[] expectedHeaders = {".H", ".h"};
-    String[] expectedAll = {".cxx", ".cpp", ".cc", ".c", ".H", ".h"};
+    String[] expectedAll = {".cxx", ".cpp", ".cc", ".c", ".cu", ".H", ".h"};
 
     assertThat(cxx.getFileSuffixes(), is(expectedAll));
     assertThat(cxx.getSourceFileSuffixes(), is(expectedSources));

@@ -44,6 +44,8 @@ public class SwitchLastCaseIsDefaultCheckTest {
       .next().atLine(33).withMessage("Add a default case to this switch.")
       .next().atLine(43).withMessage("Add a default case to this switch.")
       .next().atLine(48).withMessage("Move this default to the end of the switch.");
+//      .next().atLine(70).withMessage("Add a default case to this switch.")
+//      .noMore();
   }
 
 }

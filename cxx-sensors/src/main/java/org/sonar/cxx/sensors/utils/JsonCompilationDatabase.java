@@ -26,8 +26,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.CxxCompilationUnitSettings;
@@ -112,7 +113,7 @@ public class JsonCompilationDatabase {
     boolean nextInclude = false;
     boolean nextDefine = false;
     List<String> includes = new ArrayList<>();
-    HashMap<String, String> defines = new HashMap<>();
+    ConcurrentHashMap<String, String> defines = new ConcurrentHashMap<>();
 
     // Capture defines and includes from command line
     for (String arg : args) {

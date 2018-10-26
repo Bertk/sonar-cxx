@@ -22,9 +22,9 @@ package org.sonar.cxx.sensors.utils;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * JsonCompilationDatabaseCommandObject
@@ -41,7 +41,7 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
   /**
    * Extension to define defines
    */
-  private HashMap<String, String> defines;
+  private ConcurrentHashMap<String,String> defines;
 
   /**
    * Extension to define include directories
@@ -57,7 +57,7 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
     this.command = "";
     this.arguments = "";
     this.output = "";
-    this.defines = new HashMap<>();
+    this.defines = new ConcurrentHashMap<>();
     this.includes = new ArrayList<>();
   }
 
@@ -125,12 +125,13 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
   /**
    * Extension to define defines
    */
-  public Map<String, String> getDefines() {
+  public ConcurrentMap<String, String> getDefines() {
     return defines;
   }
 
-  public void setDefines(Map<String, String> defines) {
-    this.defines = new HashMap<>(defines);
+
+  public void setDefines(ConcurrentMap<String, String> defines) {
+    this.defines = new ConcurrentHashMap<>(defines);
   }
 
   /**

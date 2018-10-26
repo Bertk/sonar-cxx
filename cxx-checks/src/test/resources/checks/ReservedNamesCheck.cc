@@ -25,6 +25,14 @@ public:
 /*#define TRUE this is not an error...*/
 #define _ ks._
 
+
+// #define _APS_NEXT_COMMAND_VALUE         32771
+// #define _APS_NEXT_CONTROL_VALUE         8000
+// #define _APS_NEXT_SYMED_VALUE           8000
+// #define _APS_NEXT_RESOURCE_VALUE        8000
+
+// #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS      // some CString constructors will be explicit
+
 int main()
 {
 }

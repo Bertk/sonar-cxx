@@ -9,7 +9,16 @@ target
 *.log
 \#*\#
 *.pyc
-
+*.suo
+*.obj
+*.tlog
+*.idb
+*.pdb
+*.ipch
+*.filters
+*.sdf
+*.opensdf
+*.vcxproj.user
 *.java.orig
 **/.sonarqube/*
 **/Debug/**

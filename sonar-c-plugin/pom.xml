@@ -7,11 +7,8 @@
     <artifactId>cxx</artifactId>
     <version>1.2.1-SNAPSHOT</version>
   </parent>
-
-  
   <artifactId>sonar-c-plugin</artifactId>
   <packaging>sonar-plugin</packaging>
-
   <name>Cxx :: Sonar C Plugin</name>
   <inceptionYear>2010</inceptionYear>
   <description>Enable analysis and reporting on c projects.</description>
@@ -29,12 +26,7 @@
       <artifactId>sonar-plugin-api</artifactId>
       <scope>provided</scope>
     </dependency>
-<!--
-    <dependency>
-      <groupId>org.sonarsource.dotnet</groupId>
-      <artifactId>sonar-dotnet-tests-library</artifactId>
-    </dependency>
--->
+
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>cxx-squid</artifactId>

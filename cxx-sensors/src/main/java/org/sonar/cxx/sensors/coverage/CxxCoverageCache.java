@@ -19,9 +19,10 @@
  */
 package org.sonar.cxx.sensors.coverage;
 
-import java.util.HashMap;
 import java.util.Map;
 import org.sonar.api.batch.ScannerSide;
+import java.util.concurrent.ConcurrentHashMap;
+
 
 /**
  *
@@ -30,11 +31,14 @@ import org.sonar.api.batch.ScannerSide;
 @ScannerSide
 public class CxxCoverageCache {
 
-  private static final Map<String, Map<String, CoverageMeasures>> CACHE_UNIT = new HashMap<>();
+  private static final ConcurrentHashMap<String, Map<String, CoverageMeasures>> CACHE_UNIT = new ConcurrentHashMap<>();
 
   public CxxCoverageCache() {
   }
 
+  /**
+   * @return cached coverage for input file 
+   */
   public Map<String, Map<String, CoverageMeasures>> unitCoverageCache() {
     return CACHE_UNIT;
   }

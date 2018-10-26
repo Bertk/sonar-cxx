@@ -22,8 +22,9 @@ package org.sonar.cxx.checks;
 import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.Grammar;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
@@ -33,6 +34,10 @@ import org.sonar.squidbridge.annotations.ActivatedByDefault;
 import org.sonar.squidbridge.annotations.SqaleConstantRemediation;
 import org.sonar.squidbridge.checks.SquidCheck;
 
+/**
+ * checker for duplicate literals
+ *
+ */
 @Rule(
   key = "StringLiteralDuplicated",
   name = "String literals should not be duplicated",
@@ -42,18 +47,18 @@ import org.sonar.squidbridge.checks.SquidCheck;
 )
 @ActivatedByDefault
 @SqaleConstantRemediation("5min")
-public class StringLiteralDuplicatedCheck extends SquidCheck<Grammar> {
-
+public class StringLiteralDuplicatedCheck extends SquidCheck<Grammar> { 
   private static final int MINIMAL_LITERAL_LENGTH = 7;
   private static final String[] ALLOWED_LITERAL_NAMES = {"nullptr"};
+
   @RuleProperty(
     key = "minimalLiteralLength",
     description = "The minimal literal length",
     defaultValue = "" + MINIMAL_LITERAL_LENGTH)
   public int minimalLiteralLength = MINIMAL_LITERAL_LENGTH;
 
-  private final Map<String, Integer> firstOccurrence = new HashMap<>();
-  private final Map<String, Integer> literalsOccurrences = new HashMap<>();
+  private final Map<String, Integer> firstOccurrence = new ConcurrentHashMap<>();
+  private final Map<String, Integer> literalsOccurrences = new ConcurrentHashMap<>();
 
   @Override
   public void init() {

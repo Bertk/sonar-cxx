@@ -21,27 +21,28 @@ package org.sonar.cxx;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import javax.annotation.Nullable;
 
 /**
  * CxxCompilationUnitSettings
  */
 public class CxxCompilationUnitSettings {
-
-  private Map<String, String> defines = new ConcurrentHashMap<>();
+  private ConcurrentHashMap<String, String> defines = new ConcurrentHashMap<>();
   private List<String> includes = new ArrayList<>();
 
-  public Map<String, String> getDefines() {
+  public ConcurrentMap<String, String> getDefines() {
     return defines;
   }
 
-  public void setDefines(@Nullable Map<String, String> defines) {
+  public void setDefines(@Nullable ConcurrentMap<String, String> defines) {
     if (defines != null) {
-      this.defines = defines;
+      this.defines = (ConcurrentHashMap<String, String>) defines;
     }
   }
+
 
   public List<String> getIncludes() {
     return new ArrayList<>(includes);
@@ -54,3 +55,4 @@ public class CxxCompilationUnitSettings {
   }
 
 }
+

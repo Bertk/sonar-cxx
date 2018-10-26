@@ -31,14 +31,14 @@ public class CheckerData {
   private String id = "";
   private String templateId = "";
   private boolean enabled = true;
-  private HashMap<String, String> parameterData = new HashMap<>();
+  private Map<String, String> parameterData = new HashMap<>();
 
   public Map<String, String> getParameterData() {
     return parameterData;
   }
 
   public void setParameterData(Map<String, String> parameterData) {
-    this.parameterData = (HashMap<String, String>) parameterData;
+    this.parameterData = parameterData;
   }
 
   public String getId() {
@@ -66,3 +66,4 @@ public class CheckerData {
   }
 
 }
+
