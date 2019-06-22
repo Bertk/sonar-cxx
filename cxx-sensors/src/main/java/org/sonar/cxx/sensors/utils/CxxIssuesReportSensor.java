@@ -51,7 +51,6 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
 
   private static final Logger LOG = Loggers.get(CxxIssuesReportSensor.class);
 
-  private final Set<String> notFoundFiles = new HashSet<>();
   private final Set<CxxReportIssue> uniqueIssues = new HashSet<>();
   private final Map<InputFile, Integer> violationsPerFileCount = new HashMap<>();
   private int violationsPerModuleCount;
@@ -66,7 +65,7 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
   }
 
   private static NewIssueLocation createNewIssueLocationModule(SensorContext sensorContext, NewIssue newIssue,
-    CxxReportLocation location) {
+          CxxReportLocation location) {
     return newIssue.newLocation().on(sensorContext.module()).message(location.getInfo());
   }
 
@@ -78,12 +77,11 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
    * {@inheritDoc}
    */
   @Override
-  public void execute(SensorContext context) {
+  public void executeImpl(SensorContext context) {
     try {
       LOG.info("Searching reports by relative path with basedir '{}' and search prop '{}'",
-        context.fileSystem().baseDir(), getReportPathKey());
+              context.fileSystem().baseDir(), getReportPathKey());
       List<File> reports = getReports(context.config(), context.fileSystem().baseDir(), getReportPathKey());
-      notFoundFiles.clear();
       violationsPerFileCount.clear();
       violationsPerModuleCount = 0;
 
@@ -98,10 +96,10 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
 
       for (Map.Entry<InputFile, Integer> entry : violationsPerFileCount.entrySet()) {
         context.<Integer>newMeasure()
-          .forMetric(metric)
-          .on(entry.getKey())
-          .withValue(entry.getValue())
-          .save();
+                .forMetric(metric)
+                .on(entry.getKey())
+                .withValue(entry.getValue())
+                .save();
       }
 
       // this sensor could be executed on module without any files
@@ -110,17 +108,17 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
       // let AggregateMeasureComputer calculate the correct value
       if (violationsPerModuleCount != 0) {
         context.<Integer>newMeasure()
-          .forMetric(metric)
-          .on(context.module())
-          .withValue(violationsPerModuleCount)
-          .save();
+                .forMetric(metric)
+                .on(context.module())
+                .withValue(violationsPerModuleCount)
+                .save();
       }
     } catch (Exception e) {
       String msg = new StringBuilder(256)
-        .append("Cannot feed the data into sonar, details: '")
-        .append(CxxUtils.getStackTrace(e))
-        .append("'")
-        .toString();
+              .append("Cannot feed the data into sonar, details: '")
+              .append(CxxUtils.getStackTrace(e))
+              .append("'")
+              .toString();
       LOG.error(msg);
       CxxUtils.validateRecovery(e, getLanguage());
     }
@@ -138,76 +136,6 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
     }
   }
 
-  private InputFile getInputFileTryRealPath(SensorContext sensorContext, String path) {
-    final Path absolutePath = sensorContext.fileSystem().baseDir().toPath().resolve(path);
-    Path realPath;
-    try {
-      realPath = absolutePath.toRealPath(LinkOption.NOFOLLOW_LINKS);
-    } catch (IOException | RuntimeException e) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Unable to get the real path: module '{}', baseDir '{}', path '{}', exception '{}'",
-            sensorContext.module().key(), sensorContext.fileSystem().baseDir(), path, e.getMessage());
-      }
-      return null;
-    }
-
-    // if the real path is equal to the given one - skip search; we already
-    // tried such path
-    //
-    // IMPORTANT: don't use Path::equals(), since it's dependent on a file-system.
-    // SonarQube plugin API works with string paths, so the equality of strings
-    // is important
-    final String realPathString = realPath.toString();
-    if (absolutePath.toString().equals(realPathString)) {
-      return null;
-    }
-
-    return sensorContext.fileSystem()
-        .inputFile(sensorContext.fileSystem().predicates().hasAbsolutePath(realPathString));
-  }
-
-  public InputFile getInputFileIfInProject(SensorContext sensorContext, String path) {
-    if (notFoundFiles.contains(path)) {
-      return null;
-    }
-
-    // 1. try the most generic search predicate first; usually it's the right
-    // one
-    InputFile inputFile = sensorContext.fileSystem()
-        .inputFile(sensorContext.fileSystem().predicates().hasPath(path));
-
-    // 2. if there was nothing found, try to normalize the path by means of
-    // Path::toRealPath(). This helps if some 3rd party tools obfuscate the
-    // paths. E.g. the MS VC compiler tends to transform file paths to the lower
-    // case in its logs.
-    //
-    // IMPORTANT: SQ plugin API allows creation of NewIssue only on locations,
-    // which belong to the module. This internal check is performed by means
-    // of comparison of the paths. The paths which are managed by the framework
-    // (the reference paths) are NOT stored in the canonical form.
-    // E.g. the plugin API neither resolves symbolic links nor performs
-    // case-insensitive path normalization (could be relevant on Windows)
-    //
-    // Normalization by means of File::getCanonicalFile() or Path::toRealPath()
-    // can produce paths, which don't pass the mentioned check. E.g. resolution
-    // of symbolic links or letter case transformation
-    // might lead to the paths, which don't belong to the module's base
-    // directory (at least not in terms of parent-child semantic). This is the
-    // reason why we should avoid the resolution of symbolic links and not use
-    // the Path::toRealPath() as the only search predicate.
-
-    if (inputFile == null) {
-      inputFile = getInputFileTryRealPath(sensorContext, path);
-    }
-
-    if (inputFile == null) {
-      LOG.warn("Cannot find the file '{}' in module '{}' base dir '{}', skipping violations.",
-        path, sensorContext.module().key(), sensorContext.fileSystem().baseDir());
-      notFoundFiles.add(path);
-    }
-    return inputFile;
-  }
-
   /**
    * @param context
    * @param report
@@ -220,7 +148,7 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
       if (LOG.isDebugEnabled()) {
         Metric<Integer> metric = getLanguage().getMetric(this.getMetricKey());
         LOG.debug("{} processed = {}", metric.getKey(),
-          violationsPerModuleCount - prevViolationsCount);
+                violationsPerModuleCount - prevViolationsCount);
       }
     } catch (EmptyReportException e) {
       LOG.warn("The report '{}' seems to be empty, ignoring.", report);
@@ -230,13 +158,13 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
   }
 
   private NewIssueLocation createNewIssueLocationFile(SensorContext sensorContext, NewIssue newIssue,
-    CxxReportLocation location, Set<InputFile> affectedFiles) {
+          CxxReportLocation location, Set<InputFile> affectedFiles) {
     InputFile inputFile = getInputFileIfInProject(sensorContext, location.getFile());
     if (inputFile != null) {
       int lines = inputFile.lines();
       int lineNr = Integer.max(1, getLineAsInt(location.getLine(), lines));
       NewIssueLocation newIssueLocation = newIssue.newLocation().on(inputFile).at(inputFile.selectLine(lineNr))
-        .message(location.getInfo());
+              .message(location.getInfo());
       affectedFiles.add(inputFile);
       return newIssueLocation;
     }
@@ -253,11 +181,12 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
 
     Set<InputFile> affectedFiles = new HashSet<>();
     List<NewIssueLocation> newIssueLocations = new ArrayList<>();
+    List<NewIssueLocation> newIssueFlow = new ArrayList<>();
 
     for (CxxReportLocation location : issue.getLocations()) {
       if (location.getFile() != null && !location.getFile().isEmpty()) {
         NewIssueLocation newIssueLocation = createNewIssueLocationFile(sensorContext, newIssue, location,
-          affectedFiles);
+                affectedFiles);
         if (newIssueLocation != null) {
           newIssueLocations.add(newIssueLocation);
         }
@@ -267,11 +196,27 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
       }
     }
 
+    for (CxxReportLocation location : issue.getFlow()) {
+      NewIssueLocation newIssueLocation = createNewIssueLocationFile(sensorContext, newIssue, location, affectedFiles);
+      if (newIssueLocation != null) {
+        newIssueFlow.add(newIssueLocation);
+      } else {
+        LOG.debug("Failed to create new issue location from flow location {}", location);
+        newIssueFlow.clear();
+        break;
+      }
+    }
+
     if (!newIssueLocations.isEmpty()) {
       try {
         newIssue.at(newIssueLocations.get(0));
         for (int i = 1; i < newIssueLocations.size(); i++) {
           newIssue.addLocation(newIssueLocations.get(i));
+        }
+        // paths with just one element are not reported as flows to avoid
+        // presenting 1-element flows in SonarQube UI
+        if (newIssueFlow.size() > 1) {
+          newIssue.addFlow(newIssueFlow);
         }
         newIssue.save();
 
