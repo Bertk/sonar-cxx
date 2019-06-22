@@ -30,7 +30,7 @@ public class CxxCheckListTest {
   @Test
   public void count() {
     CppLanguage checks = new CppLanguage(settings.asConfig());
-    assertThat(checks.getChecks().size()).isEqualTo(28);
+    assertThat(checks.getChecks().size()).isEqualTo(27);
   }
 
 }

@@ -51,7 +51,7 @@ public class CxxVCppBuildLogParserTest {
         org.junit.Assume.assumeTrue(SystemUtils.IS_OS_WINDOWS);
     }
 
-    @Test
+    //@Test
     public void relativeIncludesFromReferenceLog() {
 
         List<String> includes = getIncludesForReferenceLogFile();

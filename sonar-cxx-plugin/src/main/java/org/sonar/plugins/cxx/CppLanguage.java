@@ -132,8 +132,7 @@ public class CppLanguage extends CxxLanguage {
       org.sonar.cxx.checks.regex.FixmeTagPresenceCheck.class,
       org.sonar.cxx.checks.regex.LineRegularExpressionCheck.class,
       org.sonar.cxx.checks.regex.NoSonarCheck.class,
-      org.sonar.cxx.checks.regex.TodoTagPresenceCheck.class,
-      org.sonar.cxx.checks.xpath.XPathCheck.class
+      org.sonar.cxx.checks.regex.TodoTagPresenceCheck.class
     ));
   }
 
