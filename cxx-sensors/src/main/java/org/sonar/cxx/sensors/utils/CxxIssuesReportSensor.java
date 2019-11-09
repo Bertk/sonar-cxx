@@ -20,9 +20,6 @@
 package org.sonar.cxx.sensors.utils;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -213,11 +210,11 @@ public abstract class CxxIssuesReportSensor extends CxxReportSensor {
         for (int i = 1; i < newIssueLocations.size(); i++) {
           newIssue.addLocation(newIssueLocations.get(i));
         }
-        // paths with just one element are not reported as flows to avoid
-        // presenting 1-element flows in SonarQube UI
-        if (newIssueFlow.size() > 1) {
+
+        if (!newIssueFlow.isEmpty()) {
           newIssue.addFlow(newIssueFlow);
         }
+
         newIssue.save();
 
         for (InputFile affectedFile : affectedFiles) {

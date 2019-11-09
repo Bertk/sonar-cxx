@@ -4,9 +4,15 @@ Feature: Importing Cppcheck reports
   In order to have all static code checking results in one place,
   work with them, filter them etc. and derive metrics from them.
 
-  @SqApi67 @SqApi75 @SqApi76
+  @SqApi67 @SqApi75 @SqApi76 @SqApi78 @SqApi79
   Scenario: The reports are missing
     Given the project "cppcheck_project"
+    And rule "cppcheck:unusedVariable" is enabled
+    And rule "cppcheck:unreadVariable" is enabled
+    And rule "cppcheck:deallocDealloc" is enabled
+    And rule "cppcheck:doubleFree" is enabled    
+    And rule "cppcheck:uninitvar" is enabled
+    And rule "cppcheck:unusedFunction" is enabled    
     When I run "sonar-scanner -X -Dsonar.cxx.cppcheck.reportPath=empty.xml"
     Then the analysis finishes successfully
     And the analysis in server has completed
@@ -30,9 +36,15 @@ Feature: Importing Cppcheck reports
       """
     And the number of violations fed is 0
 
-  @SqApi67 @SqApi75 @SqApi76
+  @SqApi67 @SqApi75 @SqApi76 @SqApi78 @SqApi79
   Scenario: The reports use paths relative to directories listed in sonar.sources
     Given the project "cppcheck_project"
+    And rule "cppcheck:unusedVariable" is enabled
+    And rule "cppcheck:unreadVariable" is enabled
+    And rule "cppcheck:deallocDealloc" is enabled
+    And rule "cppcheck:doubleFree" is enabled    
+    And rule "cppcheck:uninitvar" is enabled
+    And rule "cppcheck:unusedFunction" is enabled
     When I run "sonar-scanner -X -Dsonar.cxx.cppcheck.reportPath=relative-to-src.xml"
     Then the analysis finishes successfully
     And the analysis in server has completed
@@ -43,9 +55,15 @@ Feature: Importing Cppcheck reports
       """
     And the number of violations fed is 0
 
-  @SqApi67 @SqApi75 @SqApi76
+  @SqApi67 @SqApi75 @SqApi76 @SqApi78 @SqApi79
   Scenario: The reports and issues in the reports have absolute paths
     Given the project "cppcheck_with_absolute_paths_project"
+    And rule "cppcheck:unusedVariable" is enabled
+    And rule "cppcheck:unreadVariable" is enabled
+    And rule "cppcheck:deallocDealloc" is enabled
+    And rule "cppcheck:doubleFree" is enabled    
+    And rule "cppcheck:uninitvar" is enabled
+    And rule "cppcheck:unusedFunction" is enabled    
     And platform is not "Windows"
     When I run "sonar-scanner -X"
     Then the analysis finishes successfully
@@ -53,9 +71,15 @@ Feature: Importing Cppcheck reports
     And the server log (if locatable) contains no error/warning messages
     And the number of violations fed is 6
 
-  @SqApi67 @SqApi75 @SqApi76
+  @SqApi67 @SqApi75 @SqApi76 @SqApi78 @SqApi79
   Scenario Outline: The reports are invalid
     Given the project "cppcheck_project"
+    And rule "cppcheck:unusedVariable" is enabled
+    And rule "cppcheck:unreadVariable" is enabled
+    And rule "cppcheck:deallocDealloc" is enabled
+    And rule "cppcheck:doubleFree" is enabled    
+    And rule "cppcheck:uninitvar" is enabled
+    And rule "cppcheck:unusedFunction" is enabled    
     When I run "sonar-scanner -X -Dsonar.cxx.cppcheck.reportPath=<reportpath>"
     Then the analysis finishes successfully
     And the analysis in server has completed
@@ -70,9 +94,15 @@ Feature: Importing Cppcheck reports
       | unparsable.xml      | 0          |
       | wrongly_encoded.xml | 0          |
 
-  @SqApi67 @SqApi75 @SqApi76
+  @SqApi67 @SqApi75 @SqApi76 @SqApi78 @SqApi79
   Scenario Outline: Importing Cppcheck reports
     Given the project "cppcheck_project"
+    And rule "cppcheck:unusedVariable" is enabled
+    And rule "cppcheck:unreadVariable" is enabled
+    And rule "cppcheck:deallocDealloc" is enabled
+    And rule "cppcheck:doubleFree" is enabled    
+    And rule "cppcheck:uninitvar" is enabled
+    And rule "cppcheck:unusedFunction" is enabled    
     When I run "sonar-scanner -X -Dsonar.cxx.cppcheck.reportPath=<reportpath>"
     Then the analysis finishes successfully
     And the analysis in server has completed
@@ -86,22 +116,3 @@ Feature: Importing Cppcheck reports
       | reportpath      | violations |
       | cppcheck-v1.xml | 6          |
       | cppcheck-v2.xml | 6          |
-
-
-   # This doesnt work. We dont support reports outside of the projects directory,
-   # although there is no good reason for that(??)
-   #
-   # Scenario: The reports are outside the project directory
-   #   Given the project "cppcheck_project"
-   #       And a report outside the projects directory, e.g. "/tmp/cppcheck-v1.xml"
-   #   When I run "sonar-scanner -X -Dsonar.cxx.cppcheck.reportPath=/tmp/cppcheck-v1.xml"
-   #   Then the analysis finishes successfully
-   #       And the analysis in server has completed
-   #       And the server log (if locatable) contains no error/warning messages
-   #       And the analysis log contains no error/warning messages
-   #       And the number of violations fed is 7
-
-   # TOTEST:
-   # - behaviour on windows (windows paths in the reports,
-   # windows paths in the config pattern...)
-   # - custom rules scenario (precondition: we're able to register such a rule automaticly)

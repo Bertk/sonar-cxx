@@ -1,10 +1,16 @@
-@SqApi67 @SqApi75 @SqApi76
+@SqApi67 @SqApi75 @SqApi76 @SqApi78 @SqApi79
 Feature: Importing Cppcheck ANSI-C reports
 
   Scenario Outline: Importing cppcheck issues when c language issues are in report.
     Given the project "cppcheck_project_c_cpp"
     And declared header extensions of language c++ are ".hpp,.hh"
     And declared source extensions of language c++ are ".cpp,.cc"
+    And rule "cppcheck:unusedVariable" is enabled
+    And rule "cppcheck:unreadVariable" is enabled
+    And rule "cppcheck:deallocDealloc" is enabled
+    And rule "cppcheck:doubleFree" is enabled    
+    And rule "cppcheck:uninitvar" is enabled
+    And rule "cppcheck:unusedFunction" is enabled    
     When I run "sonar-scanner -X -Dsonar.cxx.cppcheck.reportPath=<reportpath>"
     Then the analysis finishes successfully
     And the analysis in server has completed

@@ -1,12 +1,17 @@
-@SqApi67 @SqApi75 @SqApi76
+@SqApi67 @SqApi75 @SqApi76 @SqApi78 @SqApi79
 Feature: GoogleTestWithBullseyeAndVsProject
   This test verifies that analysis is able to import bullseye coverage reports and import custom rules reports.
   Custom rules are created using Rest API, after test ends rules are deleted.
   Bullseye reports need to be created before running the test.
 
   Scenario: GoogleTestWithBullseyeAndVsProject
-    Given the project "googletest_bullseye_vs_project"
+    Given the project "googletest_bullseye_vs_project"    
+    And rule "cppcheck:unreadVariable" is enabled
+    And rule "cppcheck:missingInclude" is enabled
     And rule "rats:getenv" is enabled
+    And rule "vera++:T013" is enabled
+    And rule "vera++:L003" is enabled
+    And rule "vera++:T008" is enabled
     And rule "cpplint_legal_copyright_0" is created based on "other:CustomRuleTemplate" in repository "other"
     And rule "cpplint_build_header_guard_0" is created based on "other:CustomRuleTemplate" in repository "other"
     And rule "cpplint_whitespace_indent_2" is created based on "other:CustomRuleTemplate" in repository "other"
