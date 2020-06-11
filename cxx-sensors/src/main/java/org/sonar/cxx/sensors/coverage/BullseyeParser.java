@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -75,15 +75,14 @@ public class BullseyeParser extends CxxCoverageParser {
    * {@inheritDoc}
    */
   @Override
-  public void processReport(File report, final Map<String, CoverageMeasures> coverageData)
-    throws XMLStreamException {
-    LOG.debug("Parsing 'Bullseye' format");
-    StaxParser topLevelparser = new StaxParser((SMHierarchicCursor rootCursor) -> {
+  public void parse(File report, final Map<String, CoverageMeasures> coverageData) throws XMLStreamException {
+    LOG.debug("Processing 'Bullseye Coverage' format");
+    var topLevelparser = new StaxParser((SMHierarchicCursor rootCursor) -> {
       rootCursor.advance();
       collectCoverageLeafNodes(rootCursor.getAttrValue("dir"), rootCursor.childElementCursor("src"), coverageData);
     });
 
-    StaxParser parser = new StaxParser((SMHierarchicCursor rootCursor) -> {
+    var parser = new StaxParser((SMHierarchicCursor rootCursor) -> {
       rootCursor.advance();
       collectCoverage2(rootCursor.getAttrValue("dir"), rootCursor.childElementCursor("folder"), coverageData);
     });
@@ -98,19 +97,19 @@ public class BullseyeParser extends CxxCoverageParser {
   }
 
   private void collectCoverageLeafNodes(String refPath, SMInputCursor folder,
-    final Map<String, CoverageMeasures> coverageData)
+                                        final Map<String, CoverageMeasures> coverageData)
     throws XMLStreamException {
 
     String correctPath = ensureRefPathIsCorrect(refPath);
 
     while (folder.getNext() != null) {
-      File fileName = new File(correctPath, folder.getAttrValue("name"));
+      var fileName = new File(correctPath, folder.getAttrValue("name"));
       recTreeTopWalk(fileName, folder, coverageData);
     }
   }
 
   private void recTreeTopWalk(File fileName, SMInputCursor folder,
-    final Map<String, CoverageMeasures> coverageData)
+                              final Map<String, CoverageMeasures> coverageData)
     throws XMLStreamException {
     SMInputCursor child = folder.childElementCursor();
     while (child.getNext() != null) {
@@ -122,12 +121,12 @@ public class BullseyeParser extends CxxCoverageParser {
   }
 
   private void collectCoverage2(String refPath, SMInputCursor folder,
-    final Map<String, CoverageMeasures> coverageData)
+                                final Map<String, CoverageMeasures> coverageData)
     throws XMLStreamException {
 
     String correctPath = ensureRefPathIsCorrect(refPath);
 
-    LinkedList<String> path = new LinkedList<>();
+    var path = new LinkedList<String>();
     while (folder.getNext() != null) {
       String folderName = folder.getAttrValue("name");
       path.add(folderName);
@@ -163,7 +162,7 @@ public class BullseyeParser extends CxxCoverageParser {
   }
 
   private void recTreeWalk(String refPath, SMInputCursor folder, List<String> path,
-    final Map<String, CoverageMeasures> coverageData)
+                           final Map<String, CoverageMeasures> coverageData)
     throws XMLStreamException {
 
     String correctPath = ensureRefPathIsCorrect(refPath);
@@ -177,10 +176,8 @@ public class BullseyeParser extends CxxCoverageParser {
         String filePath = buildPath(path, correctPath);
         CoverageMeasures fileMeasuresBuilderIn = CoverageMeasures.create();
         fileWalk(child, fileMeasuresBuilderIn);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("lines covered: '{}':'{}'", filePath, fileMeasuresBuilderIn.getCoveredLines());
-          LOG.debug("condition covered: '{}':'{}'", filePath, fileMeasuresBuilderIn.getCoveredConditions());
-        }
+        LOG.debug("lines covered: '{}':'{}'", filePath, fileMeasuresBuilderIn.getCoveredLines());
+        LOG.debug("condition covered: '{}':'{}'", filePath, fileMeasuresBuilderIn.getCoveredConditions());
         coverageData.put(filePath, fileMeasuresBuilderIn);
       } else {
         recTreeWalk(correctPath, child, path, coverageData);

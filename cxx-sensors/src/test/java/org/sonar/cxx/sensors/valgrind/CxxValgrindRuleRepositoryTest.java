@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -29,33 +29,30 @@ import static org.mockito.Mockito.spy;
 import org.sonar.api.platform.ServerFileSystem;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
-import org.sonar.cxx.CxxLanguage;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class CxxValgrindRuleRepositoryTest {
 
   @Test
   public void shouldContainProperNumberOfRules() {
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    CxxValgrindRuleRepository def = new CxxValgrindRuleRepository(mock(ServerFileSystem.class), new RulesDefinitionXmlLoader(), language);
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var def = new CxxValgrindRuleRepository(mock(ServerFileSystem.class), new RulesDefinitionXmlLoader());
+    var context = new RulesDefinition.Context();
     def.define(context);
-    RulesDefinition.Repository repo = context.repository(CxxValgrindRuleRepository.getRepositoryKey(language));
+    RulesDefinition.Repository repo = context.repository(CxxValgrindRuleRepository.KEY);
     assertEquals(16, repo.rules().size());
   }
 
   @Test
   public void containsValidFormatInExtensionRulesOldFormat() {
     ServerFileSystem filesystem = mock(ServerFileSystem.class);
-    ArrayList<File> extensionFile = new ArrayList<>();
+    var extensionFile = new ArrayList<File>();
     extensionFile.add(TestUtils.loadResource("/org/sonar/cxx/sensors/rules-repository/CustomRulesOldFormat.xml"));
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    CxxValgrindRuleRepository obj = new CxxValgrindRuleRepository(filesystem, new RulesDefinitionXmlLoader(), language);
+    var obj = new CxxValgrindRuleRepository(filesystem, new RulesDefinitionXmlLoader());
     CxxValgrindRuleRepository def = spy(obj);
-    final String repositoryKey = CxxValgrindRuleRepository.getRepositoryKey(language);
+    final String repositoryKey = CxxValgrindRuleRepository.KEY;
     doReturn(extensionFile).when(def).getExtensions(repositoryKey, "xml");
 
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
     RulesDefinition.Repository repo = context.repository(repositoryKey);
     assertEquals(18, repo.rules().size());
@@ -64,15 +61,14 @@ public class CxxValgrindRuleRepositoryTest {
   @Test
   public void containsValidFormatInExtensionRulesNewFormat() {
     ServerFileSystem filesystem = mock(ServerFileSystem.class);
-    ArrayList<File> extensionFile = new ArrayList<>();
+    var extensionFile = new ArrayList<File>();
     extensionFile.add(TestUtils.loadResource("/org/sonar/cxx/sensors/rules-repository/CustomRulesNewFormat.xml"));
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    CxxValgrindRuleRepository obj = new CxxValgrindRuleRepository(filesystem, new RulesDefinitionXmlLoader(), language);
+    var obj = new CxxValgrindRuleRepository(filesystem, new RulesDefinitionXmlLoader());
     CxxValgrindRuleRepository def = spy(obj);
-    final String repositoryKey = CxxValgrindRuleRepository.getRepositoryKey(language);
+    final String repositoryKey = CxxValgrindRuleRepository.KEY;
     doReturn(extensionFile).when(def).getExtensions(repositoryKey, "xml");
 
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
     RulesDefinition.Repository repo = context.repository(repositoryKey);
     assertEquals(17, repo.rules().size());
@@ -81,15 +77,14 @@ public class CxxValgrindRuleRepositoryTest {
   @Test //@todo check if new behaviour is ok: Exception is replaced by error message in LOG file
   public void containsInvalidFormatInExtensionRulesNewFormat() {
     ServerFileSystem filesystem = mock(ServerFileSystem.class);
-    ArrayList<File> extensionFile = new ArrayList<>();
+    var extensionFile = new ArrayList<File>();
     extensionFile.add(TestUtils.loadResource("/org/sonar/cxx/sensors/rules-repository/CustomRulesInvalid.xml"));
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    CxxValgrindRuleRepository obj = new CxxValgrindRuleRepository(filesystem, new RulesDefinitionXmlLoader(), language);
+    var obj = new CxxValgrindRuleRepository(filesystem, new RulesDefinitionXmlLoader());
     CxxValgrindRuleRepository def = spy(obj);
-    final String repositoryKey = CxxValgrindRuleRepository.getRepositoryKey(language);
+    final String repositoryKey = CxxValgrindRuleRepository.KEY;
     doReturn(extensionFile).when(def).getExtensions(repositoryKey, "xml");
 
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
     RulesDefinition.Repository repo = context.repository(repositoryKey);
     assertEquals(16, repo.rules().size());
@@ -98,15 +93,14 @@ public class CxxValgrindRuleRepositoryTest {
   @Test //@todo check if new behaviour is ok: Exception is replaced by error message in LOG file
   public void containsEmptyExtensionRulesFile() {
     ServerFileSystem filesystem = mock(ServerFileSystem.class);
-    ArrayList<File> extensionFile = new ArrayList<>();
+    var extensionFile = new ArrayList<File>();
     extensionFile.add(TestUtils.loadResource("/org/sonar/cxx/sensors/rules-repository/CustomRulesEmptyFile.xml"));
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    CxxValgrindRuleRepository obj = new CxxValgrindRuleRepository(filesystem, new RulesDefinitionXmlLoader(), language);
+    var obj = new CxxValgrindRuleRepository(filesystem, new RulesDefinitionXmlLoader());
     CxxValgrindRuleRepository def = spy(obj);
-    final String repositoryKey = CxxValgrindRuleRepository.getRepositoryKey(language);
+    final String repositoryKey = CxxValgrindRuleRepository.KEY;
     doReturn(extensionFile).when(def).getExtensions(repositoryKey, "xml");
 
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
     RulesDefinition.Repository repo = context.repository(repositoryKey);
     assertEquals(16, repo.rules().size());

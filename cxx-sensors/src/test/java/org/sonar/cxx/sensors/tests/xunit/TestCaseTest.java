@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,6 @@
  */
 package org.sonar.cxx.sensors.tests.xunit;
 
-import java.util.HashMap;
-import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -28,18 +26,17 @@ public class TestCaseTest {
 
   @Test
   public void rendersRightDetails() {
-    Map<String, TestCase> ioMap = new HashMap<>();
-
-    ioMap.put("<testcase status=\"ok\" time=\"1\" name=\"name\"/>",
-      new TestCase("name", 1, "ok", "", "", "", "", "", ""));
-    ioMap.put("<testcase status=\"error\" time=\"1\" name=\"name\"><error message=\"errmsg\"><![CDATA[stack]]></error></testcase>",
-      new TestCase("name", 1, "error", "stack", "errmsg", "", "", "", ""));
-    ioMap.put("<testcase status=\"failure\" time=\"1\" name=\"name\"><failure message=\"errmsg\"><![CDATA[stack]]></failure></testcase>",
-      new TestCase("name", 1, "failure", "stack", "errmsg", "", "", "", ""));
-
-    for (Map.Entry<String, TestCase> entry : ioMap.entrySet()) {
-      assertEquals(entry.getKey(), entry.getValue().getDetails());
-    }
+    var testCase = new TestCase("testCaseName", 1, "ok", "stack", "msg", "classname", "filename", "testSuiteName");
+    assertEquals("classname", testCase.getClassname());
+    assertEquals("testSuiteName:testCaseName", testCase.getFullname());
+    assertEquals("filename", testCase.getFilename());
+    assertEquals(true, testCase.isOk());
+    assertEquals(false, testCase.isError());
+    assertEquals(false, testCase.isFailure());
+    assertEquals(false, testCase.isSkipped());
+    assertEquals("msg", testCase.getErrorMessage());
+    assertEquals("stack", testCase.getStackTrace());
+    assertEquals(1, testCase.getExecutionTime());
   }
 
 }

@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,102 +21,85 @@ package org.sonar.cxx.sensors.other;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
-import static org.mockito.Mockito.when;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.api.server.rule.RulesDefinition.Rule;
 import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class CxxOtherRepositoryTest {
 
-  String profile1 = "<?xml version=\"1.0\" encoding=\"ASCII\"?>\n"
-    + "<rules>\n"
-    + "    <rule key=\"cpplint.readability/nolint-0\">\n"
-    + "        <name><![CDATA[ Unknown NOLINT error category: %s  % category]]></name>\n"
-    + "        <configKey><![CDATA[cpplint.readability/nolint-0@CPP_LINT]]></configKey>\n"
-    + "        <category name=\"readability\" />\n"
-    + "        <description><![CDATA[  Unknown NOLINT error category: %s  % category ]]></description>\n"
-    + "    </rule>\n"
-    + "    <rule key=\"cpplint.readability/fn_size-0\">\n"
-    + "        <name>name</name>\n"
-    + "        <configKey>key</configKey>\n"
-    + "        <category name=\"readability\" />\n"
-    + "        <description>descr</description>\n"
-    + "    </rule></rules>";
+  private final MapSettings settings = new MapSettings();
 
-  String profile2 = "<?xml version=\"1.0\" encoding=\"ASCII\"?>\n"
-    + "<rules>\n"
-    + "    <rule key=\"key\">\n"
-    + "        <name><![CDATA[name]]></name>\n"
-    + "        <configKey><![CDATA[configKey]]></configKey>\n"
-    + "        <category name=\"category\" />\n"
-    + "        <description><![CDATA[description]]></description>\n"
-    + "    </rule>\n"
-    + "</rules>";
+  private final String profile1 = "<?xml version=\"1.0\" encoding=\"ASCII\"?>\n"
+                                    + "<rules>\n"
+                                    + "    <rule key=\"cpplint.readability/nolint-0\">\n"
+                                    + "        <name><![CDATA[ Unknown NOLINT error category: %s  % category]]></name>\n"
+                                  + "        <configKey><![CDATA[cpplint.readability/nolint-0@CPP_LINT]]></configKey>\n"
+                                    + "        <category name=\"readability\" />\n"
+                                    + "        <description><![CDATA[  Unknown NOLINT error category: %s  % category ]]></description>\n"
+                                  + "    </rule>\n"
+                                    + "    <rule key=\"cpplint.readability/fn_size-0\">\n"
+                                    + "        <name>name</name>\n"
+                                    + "        <configKey>key</configKey>\n"
+                                    + "        <category name=\"readability\" />\n"
+                                    + "        <description>descr</description>\n"
+                                    + "    </rule></rules>";
+
+  private final String profile2 = "<?xml version=\"1.0\" encoding=\"ASCII\"?>\n"
+                                    + "<rules>\n"
+                                    + "    <rule key=\"key\">\n"
+                                    + "        <name><![CDATA[name]]></name>\n"
+                                    + "        <configKey><![CDATA[configKey]]></configKey>\n"
+                                    + "        <category name=\"category\" />\n"
+                                    + "        <description><![CDATA[description]]></description>\n"
+                                    + "    </rule>\n"
+                                    + "</rules>";
 
   @Test
   public void verifyTemplateRuleIsFound() {
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    when(language.getStringArrayOption(CxxOtherRepository.RULES_KEY))
-      .thenReturn(new String[]{null});
+    settings.setProperty(CxxOtherSensor.RULES_KEY, "");
+    var def = new CxxOtherRepository(settings.asConfig(), new RulesDefinitionXmlLoader());
 
-    CxxOtherRepository def = new CxxOtherRepository(
-      new RulesDefinitionXmlLoader(), language);
-
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
 
-    RulesDefinition.Repository repo = context.repository(CxxOtherRepository.getRepositoryKey(language));
+    RulesDefinition.Repository repo = context.repository(CxxOtherRepository.KEY);
     assertThat(repo.rules()).hasSize(1);
   }
 
   @Test
   public void createNonEmptyRulesTest() {
+    settings.setProperty(CxxOtherSensor.RULES_KEY, profile1);
+    var def = new CxxOtherRepository(settings.asConfig(), new RulesDefinitionXmlLoader());
 
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    when(language.getStringArrayOption(CxxOtherRepository.RULES_KEY))
-      .thenReturn(new String[]{profile1});
-
-    CxxOtherRepository def = new CxxOtherRepository(
-      new RulesDefinitionXmlLoader(), language);
-
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
 
-    RulesDefinition.Repository repo = context.repository(CxxOtherRepository.getRepositoryKey(language));
+    RulesDefinition.Repository repo = context.repository(CxxOtherRepository.KEY);
     assertThat(repo.rules()).hasSize(3);
   }
 
   @Test
   public void createNullRulesTest() {
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    when(language.getStringArrayOption(CxxOtherRepository.RULES_KEY))
-      .thenReturn(new String[]{null});
+    settings.setProperty(CxxOtherSensor.RULES_KEY, "");
+    var def = new CxxOtherRepository(settings.asConfig(), new RulesDefinitionXmlLoader());
 
-    CxxOtherRepository def = new CxxOtherRepository(
-      new RulesDefinitionXmlLoader(), language);
-
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
 
-    RulesDefinition.Repository repo = context.repository(CxxOtherRepository.getRepositoryKey(language));
+    RulesDefinition.Repository repo = context.repository(CxxOtherRepository.KEY);
     assertThat(repo.rules()).hasSize(1);
   }
 
   @Test
   public void verifyRuleValuesTest() {
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-    when(language.getStringArrayOption(CxxOtherRepository.RULES_KEY))
-      .thenReturn(new String[]{profile2});
+    settings.setProperty(CxxOtherSensor.RULES_KEY, profile2);
+    var def = new CxxOtherRepository(settings.asConfig(), new RulesDefinitionXmlLoader());
 
-    CxxOtherRepository def = new CxxOtherRepository(
-      new RulesDefinitionXmlLoader(), language);
-
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
 
-    RulesDefinition.Repository repo = context.repository(CxxOtherRepository.getRepositoryKey(language));
+    RulesDefinition.Repository repo = context.repository(CxxOtherRepository.KEY);
     Rule rule = repo.rule("key");
     assertThat(rule).isNotNull();
 

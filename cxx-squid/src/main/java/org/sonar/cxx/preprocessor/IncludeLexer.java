@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ import com.sonar.sslr.impl.Lexer;
 import com.sonar.sslr.impl.channel.BlackHoleChannel;
 import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.ANY_CHAR;
 import static com.sonar.sslr.impl.channel.RegexpChannelBuilder.commentRegexp;
-import org.sonar.cxx.CxxConfiguration;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.channels.PreprocessorChannel;
 
 public final class IncludeLexer {
@@ -33,19 +33,19 @@ public final class IncludeLexer {
   }
 
   public static Lexer create(Preprocessor... preprocessors) {
-    return create(new CxxConfiguration(), preprocessors);
+    return create(new CxxSquidConfiguration(), preprocessors);
   }
 
-  public static Lexer create(CxxConfiguration conf, Preprocessor... preprocessors) {
+  public static Lexer create(CxxSquidConfiguration squidConfig, Preprocessor... preprocessors) {
     Lexer.Builder builder = Lexer.builder()
-      .withCharset(conf.getCharset())
+      .withCharset(squidConfig.getCharset())
       .withFailIfNoChannelToConsumeOneCharacter(true)
       .withChannel(new BlackHoleChannel("\\s"))
       .withChannel(new PreprocessorChannel())
       .withChannel(commentRegexp("/\\*", ANY_CHAR + "*?", "\\*/"))
       .withChannel(new BlackHoleChannel(".*"));
 
-    for (Preprocessor preprocessor : preprocessors) {
+    for (var preprocessor : preprocessors) {
       builder.withPreprocessor(preprocessor);
     }
 

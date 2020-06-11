@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,14 +20,12 @@
 package org.sonar.cxx.visitors;
 
 import java.io.IOException;
-import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Test;
-import static org.mockito.Mockito.when;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.CxxFileTester;
 import org.sonar.cxx.CxxFileTesterHelper;
-import org.sonar.cxx.CxxLanguage;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.squidbridge.api.SourceFile;
 
@@ -36,14 +34,14 @@ public class CxxFunctionSizeVisitorTest {
   @Test
   public void testPublishMeasuresForFile() throws IOException {
 
-    CxxLanguage language = CxxFileTesterHelper.mockCxxLanguage();
-    when(language.getIntegerOption(CxxFunctionSizeVisitor.FUNCTION_SIZE_THRESHOLD_KEY)).thenReturn(Optional.of(5));
+    CxxSquidConfiguration squidConfig = new CxxSquidConfiguration();
+    squidConfig.setFunctionSizeThreshold(5);
 
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/metrics/FunctionComplexity.cc",
-      ".", "");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, language);
+                                                                   ".", "");
+    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig);
 
-    SoftAssertions softly = new SoftAssertions();
+    var softly = new SoftAssertions();
     softly.assertThat(file.getInt(CxxMetric.BIG_FUNCTIONS)).isEqualTo(4);
     softly.assertThat(file.getInt(CxxMetric.LOC_IN_FUNCTIONS)).isEqualTo(55);
     softly.assertThat(file.getInt(CxxMetric.BIG_FUNCTIONS_LOC)).isEqualTo(44);
@@ -52,11 +50,10 @@ public class CxxFunctionSizeVisitorTest {
 
   @Test
   public void testPublishMeasuresForEmptyFile() throws IOException {
-    CxxLanguage language = CxxFileTesterHelper.mockCxxLanguage();
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/metrics/EmptyFile.cc", ".", "");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, language);
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile());
 
-    SoftAssertions softly = new SoftAssertions();
+    var softly = new SoftAssertions();
     softly.assertThat(file.getInt(CxxMetric.BIG_FUNCTIONS)).isEqualTo(0);
     softly.assertThat(file.getInt(CxxMetric.BIG_FUNCTIONS_LOC)).isEqualTo(0);
     softly.assertAll();

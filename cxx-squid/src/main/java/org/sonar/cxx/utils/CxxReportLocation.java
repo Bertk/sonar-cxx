@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@ package org.sonar.cxx.utils;
 
 import java.util.Objects;
 import javax.annotation.Nullable;
+import org.sonar.api.utils.PathUtils;
 
 /**
  * Each issues in SonarQube might have multiple locations; Encapsulate its properties in this structure
@@ -33,7 +34,8 @@ public class CxxReportLocation {
 
   public CxxReportLocation(@Nullable String file, @Nullable String line, String info) {
     super();
-    this.file = file;
+    // normalize file, removing double and single dot path steps => avoids duplicates
+    this.file = PathUtils.sanitize(file);
     this.line = line;
     this.info = info;
   }

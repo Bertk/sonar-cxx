@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,49 +20,29 @@
 package org.sonar.cxx.sensors.tests.dotnet;
 
 import org.sonar.api.config.Configuration;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
 
 public class UnitTestConfiguration {
 
-  public static final String VISUAL_STUDIO_TEST_RESULTS_PROPERTY_KEY = "vstest.reportsPaths";
-  public static final String XUNIT_TEST_RESULTS_PROPERTY_KEY = "xunit.reportsPaths";
-  public static final String NUNIT_TEST_RESULTS_PROPERTY_KEY = "nunit.reportsPaths";
-  private static final String EXIST_CONFIGURATION_PARAMETER = "Exist configuration parameter: '{}':'{}'";
-  private static final Logger LOG = Loggers.get(UnitTestConfiguration.class);
+  public static final String VISUAL_STUDIO_TEST_RESULTS_PROPERTY_KEY = "sonar.cxx.vstest.reportsPaths";
+  public static final String XUNIT_TEST_RESULTS_PROPERTY_KEY = "sonar.cxx.xunit.reportsPaths";
+  public static final String NUNIT_TEST_RESULTS_PROPERTY_KEY = "sonar.cxx.nunit.reportsPaths";
 
   private final Configuration config;
-  private final String vsKeyEffective;
-  private final String xUnitKeyEffective;
-  private final String nUnitKeyEffective;
 
-  public UnitTestConfiguration(CxxLanguage language, Configuration config) {
+  public UnitTestConfiguration(Configuration config) {
     this.config = config;
-    vsKeyEffective = language.getPluginProperty(VISUAL_STUDIO_TEST_RESULTS_PROPERTY_KEY);
-    xUnitKeyEffective = language.getPluginProperty(XUNIT_TEST_RESULTS_PROPERTY_KEY);
-    nUnitKeyEffective = language.getPluginProperty(NUNIT_TEST_RESULTS_PROPERTY_KEY);
   }
 
   boolean hasVisualStudioTestResultsFile() {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(EXIST_CONFIGURATION_PARAMETER, vsKeyEffective, config.hasKey(vsKeyEffective));
-    }
-    return config.hasKey(vsKeyEffective);
+    return config.hasKey(VISUAL_STUDIO_TEST_RESULTS_PROPERTY_KEY);
   }
 
   boolean hasXUnitTestResultsFile() {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(EXIST_CONFIGURATION_PARAMETER, xUnitKeyEffective, config.hasKey(xUnitKeyEffective));
-    }
-    return config.hasKey(xUnitKeyEffective);
+    return config.hasKey(XUNIT_TEST_RESULTS_PROPERTY_KEY);
   }
 
   boolean hasNUnitTestResultsFile() {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(EXIST_CONFIGURATION_PARAMETER, nUnitKeyEffective, config.hasKey(nUnitKeyEffective));
-    }
-    return config.hasKey(nUnitKeyEffective);
+    return config.hasKey(NUNIT_TEST_RESULTS_PROPERTY_KEY);
   }
 
   boolean hasUnitTestResultsProperty() {
@@ -70,15 +50,15 @@ public class UnitTestConfiguration {
   }
 
   String[] getVisualStudioTestResultsFiles() {
-    return config.getStringArray(vsKeyEffective);
+    return config.getStringArray(VISUAL_STUDIO_TEST_RESULTS_PROPERTY_KEY);
   }
 
   String[] getXUnitTestResultsFiles() {
-    return config.getStringArray(xUnitKeyEffective);
+    return config.getStringArray(XUNIT_TEST_RESULTS_PROPERTY_KEY);
   }
 
   String[] getNUnitTestResultsFiles() {
-    return config.getStringArray(nUnitKeyEffective);
+    return config.getStringArray(NUNIT_TEST_RESULTS_PROPERTY_KEY);
   }
 
 }

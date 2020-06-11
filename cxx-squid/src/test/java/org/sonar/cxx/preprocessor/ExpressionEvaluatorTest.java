@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -29,14 +29,13 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.sonar.cxx.CxxConfiguration;
-import org.sonar.cxx.CxxFileTesterHelper;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.squidbridge.SquidAstVisitorContext;
 
 public class ExpressionEvaluatorTest {
 
   static boolean eval(String constExpr, CxxPreprocessor pp) {
-    return ExpressionEvaluator.eval(mock(CxxConfiguration.class), pp, constExpr);
+    return ExpressionEvaluator.eval(mock(CxxSquidConfiguration.class), pp, constExpr);
   }
 
   static boolean eval(String constExpr) {
@@ -258,7 +257,7 @@ public class ExpressionEvaluatorTest {
     CxxPreprocessor pp = mock(CxxPreprocessor.class);
     when(pp.valueOf("A")).thenReturn("A");
 
-    SoftAssertions softly = new SoftAssertions();
+    var softly = new SoftAssertions();
     softly.assertThat(eval("A", pp)).isTrue();
     softly.assertThat(eval("A && A", pp)).isTrue();
     softly.assertThat(eval("A && !A", pp)).isFalse();
@@ -303,7 +302,7 @@ public class ExpressionEvaluatorTest {
     when(pp.valueOf("x")).thenReturn("(4 + y)");
     when(pp.valueOf("y")).thenReturn("(2 * x)");
 
-    SoftAssertions softly = new SoftAssertions();
+    var softly = new SoftAssertions();
     softly.assertThat(eval("x", pp)).isTrue();
     softly.assertThat(eval("y", pp)).isTrue();
     softly.assertAll();
@@ -396,7 +395,7 @@ public class ExpressionEvaluatorTest {
 
   @Test
   public void std_macro_evaluated_as_expected() {
-    CxxPreprocessor pp = new CxxPreprocessor(mock(SquidAstVisitorContext.class), CxxFileTesterHelper.mockCxxLanguage());
+    var pp = new CxxPreprocessor(mock(SquidAstVisitorContext.class));
 
     assertTrue(eval("__LINE__", pp));
     assertTrue(eval("__STDC__", pp));

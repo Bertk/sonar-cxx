@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,6 @@
  */
 package org.sonar.cxx;
 
-import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.sonar.api.ce.measure.Component;
@@ -29,75 +28,71 @@ import org.sonar.api.ce.measure.test.TestComponent.FileAttributesImpl;
 import org.sonar.api.ce.measure.test.TestMeasureComputerContext;
 import org.sonar.api.ce.measure.test.TestMeasureComputerDefinition.MeasureComputerDefinitionBuilderImpl;
 import org.sonar.api.ce.measure.test.TestSettings;
-import org.sonar.api.measures.Metric;
 
 public class AggregateMeasureComputerTest {
 
-  static final Map<CxxMetricsFactory.Key, Metric<?>> METRICS = CxxMetricsFactory.generateMap("c++", "cxx");
-  static final String KEY = METRICS.get(CxxMetricsFactory.Key.PUBLIC_API_KEY).key();
-
   private static TestMeasureComputerContext createContext(AggregateMeasureComputer aggregator, Component component) {
     return new TestMeasureComputerContext(component, new TestSettings(),
-      new MeasureComputerDefinitionBuilderImpl().setInputMetrics(aggregator.getAggregatedMetrics())
-        .setOutputMetrics(aggregator.getAggregatedMetrics()).build());
+                                          new MeasureComputerDefinitionBuilderImpl().setInputMetrics(aggregator
+                                            .getAggregatedMetrics())
+                                            .setOutputMetrics(aggregator.getAggregatedMetrics()).build());
   }
 
   @Test
   public void metricsNumber() {
-    final AggregateMeasureComputer aggregator = new AggregateMeasureComputer("c++", "cxx");
-    assertThat(aggregator.getAggregatedMetrics().length).isEqualTo(19);
+    var aggregator = new AggregateMeasureComputer();
+    assertThat(aggregator.getAggregatedMetrics().length).isEqualTo(7);
   }
 
   @Test
   public void ignoreFiles() {
+    var aggregator = new AggregateMeasureComputer();
 
-    final AggregateMeasureComputer aggregator = new AggregateMeasureComputer("c++", "cxx");
-
-    TestComponent file = new TestComponent("file", Type.FILE, new FileAttributesImpl("c++", false));
+    var file = new TestComponent("file", Type.FILE, new FileAttributesImpl("cxx", false));
     TestMeasureComputerContext context = createContext(aggregator, file);
 
-    context.addChildrenMeasures(KEY, 4, 3, 2, 1);
+    context.addChildrenMeasures(CxxMetrics.PUBLIC_API_KEY, 4, 3, 2, 1);
     aggregator.compute(context);
 
-    assertThat(context.getMeasure(KEY)).isNull();
+    assertThat(context.getMeasure(CxxMetrics.PUBLIC_API_KEY)).isNull();
   }
 
   @Test
   public void ignoreAlreadyAggregatedMetric() {
-    final AggregateMeasureComputer aggregator = new AggregateMeasureComputer("c++", "cxx");
+    var aggregator = new AggregateMeasureComputer();
 
-    TestComponent module = new TestComponent("module0", Type.MODULE, null);
+    var module = new TestComponent("module0", Type.MODULE, null);
     TestMeasureComputerContext context = createContext(aggregator, module);
 
-    context.addMeasure(KEY, 42);
-    context.addChildrenMeasures(KEY, 1, 2, 3, 4);
+    context.addMeasure(CxxMetrics.PUBLIC_API_KEY, 42);
+    context.addChildrenMeasures(CxxMetrics.PUBLIC_API_KEY, 1, 2, 3, 4);
     aggregator.compute(context);
 
-    assertThat(context.getMeasure(KEY).getIntValue()).isEqualTo(42);
+    assertThat(context.getMeasure(CxxMetrics.PUBLIC_API_KEY).getIntValue()).isEqualTo(42);
   }
 
   @Test
   public void ignoreIfNothingToAggregate() {
-    final AggregateMeasureComputer aggregator = new AggregateMeasureComputer("c++", "cxx");
+    var aggregator = new AggregateMeasureComputer();
 
-    TestComponent module = new TestComponent("module0", Type.MODULE, null);
+    var module = new TestComponent("module0", Type.MODULE, null);
     TestMeasureComputerContext context = createContext(aggregator, module);
 
     aggregator.compute(context);
 
-    assertThat(context.getMeasure(KEY)).isNull();
+    assertThat(context.getMeasure(CxxMetrics.PUBLIC_API_KEY)).isNull();
   }
 
   @Test
   public void aggregate() {
-    final AggregateMeasureComputer aggregator = new AggregateMeasureComputer("c++", "cxx");
+    var aggregator = new AggregateMeasureComputer();
 
-    TestComponent module = new TestComponent("module0", Type.MODULE, null);
+    var module = new TestComponent("module0", Type.MODULE, null);
     TestMeasureComputerContext context = createContext(aggregator, module);
-    context.addChildrenMeasures(KEY, 1, 2, 3, 4);
+    context.addChildrenMeasures(CxxMetrics.PUBLIC_API_KEY, 1, 2, 3, 4);
     aggregator.compute(context);
 
-    assertThat(context.getMeasure(KEY).getIntValue()).isEqualTo(10);
+    assertThat(context.getMeasure(CxxMetrics.PUBLIC_API_KEY).getIntValue()).isEqualTo(10);
   }
 
 }

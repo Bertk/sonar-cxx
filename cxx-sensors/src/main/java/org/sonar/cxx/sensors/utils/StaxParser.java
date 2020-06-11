@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -122,7 +122,9 @@ public class StaxParser {
    */
   public void parse(URL xmlUrl) throws XMLStreamException {
     try {
-      parse(xmlUrl.openStream());
+      try (var xml = xmlUrl.openStream()) {
+        parse(xml);
+      }
     } catch (IOException e) {
       throw new XMLStreamException(e);
     }
@@ -141,7 +143,7 @@ public class StaxParser {
     @Override
     public Object resolveEntity(String arg0, String arg1, String fileName, String undeclaredEntity)
       throws XMLStreamException {
-      // avoid problems with XML docs containing undeclared entities.. 
+      // avoid problems with XML docs containing undeclared entities..
       // return the entity under its raw form if not an unicode expression
       String undeclared = undeclaredEntity;
       if (StringUtils.startsWithIgnoreCase(undeclared, "u") && undeclared.length() == 5) {
@@ -161,6 +163,16 @@ public class StaxParser {
     public ISOControlCharAwareInputStream(InputStream inputToCheck) {
       super();
       this.inputToCheck = inputToCheck;
+    }
+
+    private static void checkBufferForISOControlChars(byte[] buffer, int off, int len) {
+      for (var i = off; i < len; i++) {
+        char streamChar = (char) buffer[i];
+        if (Character.isISOControl(streamChar) && streamChar != '\n') {
+          // replace control chars by a simple space
+          buffer[i] = ' ';
+        }
+      }
     }
 
     @Override
@@ -212,15 +224,6 @@ public class StaxParser {
       return inputToCheck.skip(n);
     }
 
-    private static void checkBufferForISOControlChars(byte[] buffer, int off, int len) {
-      for (int i = off; i < len; i++) {
-        char streamChar = (char) buffer[i];
-        if (Character.isISOControl(streamChar) && streamChar != '\n') {
-          // replace control chars by a simple space
-          buffer[i] = ' ';
-        }
-      }
-    }
   }
 
   /**

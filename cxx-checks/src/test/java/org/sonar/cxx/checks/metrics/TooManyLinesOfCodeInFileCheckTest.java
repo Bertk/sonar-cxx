@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -37,10 +37,11 @@ public class TooManyLinesOfCodeInFileCheckTest {
   public void test() throws UnsupportedEncodingException, IOException {
     check.setMax(1);
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/complexity.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
-      .next().withMessage("This file has 22 lines of code, which is greater than 1 authorized. Split it into smaller files.")
+      .next().withMessage(
+        "This file has 22 lines of code, which is greater than 1 authorized. Split it into smaller files.")
       .noMore();
   }
 
@@ -48,7 +49,7 @@ public class TooManyLinesOfCodeInFileCheckTest {
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void test2() throws UnsupportedEncodingException, IOException {
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/complexity.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .noMore();

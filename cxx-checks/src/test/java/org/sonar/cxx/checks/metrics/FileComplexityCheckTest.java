@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -37,22 +37,22 @@ public class FileComplexityCheckTest {
 
   @Test
   public void check() throws UnsupportedEncodingException, IOException {
-    FileComplexityCheck check = new FileComplexityCheck();
+    var check = new FileComplexityCheck();
     check.setMaxComplexity(1);
 
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/functions.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
 
     Set<CxxReportIssue> issues = MultiLocatitionSquidCheck.getMultiLocationCheckMessages(file);
     assertThat(issues).isNotNull();
-    SoftAssertions softly = new SoftAssertions();
+    var softly = new SoftAssertions();
     softly.assertThat(issues).hasSize(1);
 
     CxxReportIssue actualIssue = issues.iterator().next();
     softly.assertThat(actualIssue.getRuleId()).isEqualTo("FileComplexity");
     softly.assertThat(actualIssue.getLocations()).containsOnly(
       new CxxReportLocation(null, "1",
-        "The Cyclomatic Complexity of this file is 2 which is greater than 1 authorized."),
+                            "The Cyclomatic Complexity of this file is 2 which is greater than 1 authorized."),
       new CxxReportLocation(null, "3", "+1: function definition"),
       new CxxReportLocation(null, "5", "+1: function definition"));
     softly.assertAll();

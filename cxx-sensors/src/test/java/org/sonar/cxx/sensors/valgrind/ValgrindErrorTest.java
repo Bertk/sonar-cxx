@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,9 +27,9 @@ import org.junit.Test;
 
 public class ValgrindErrorTest {
 
-  ValgrindError error;
-  ValgrindError equalError;
-  ValgrindError otherError;
+  private ValgrindError error;
+  private ValgrindError equalError;
+  private ValgrindError otherError;
 
   @Before
   public void setUp() {

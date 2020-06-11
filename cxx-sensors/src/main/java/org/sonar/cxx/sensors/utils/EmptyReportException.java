@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ package org.sonar.cxx.sensors.utils;
  * EmptyReportException is thrown when an empty report is detected
  */
 @SuppressWarnings("serial")
-public class EmptyReportException extends RuntimeException {
+public class EmptyReportException extends ReportException {
 
   public EmptyReportException() {
   }

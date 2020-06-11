@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@ package org.sonar.cxx.sensors.valgrind;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
@@ -32,10 +31,6 @@ import org.sonar.cxx.sensors.utils.StaxParser;
 
 class ValgrindReportParser {
 
-  public ValgrindReportParser() {
-    // do nothing - just for reference
-  }
-
   /**
    * Parses given valgrind report
    *
@@ -43,7 +38,7 @@ class ValgrindReportParser {
    * @return Set<ValgrindError>
    * @exception XMLStreamException javax.xml.stream.XMLStreamException
    */
-  public Set<ValgrindError> processReport(File report) throws XMLStreamException {
+  public Set<ValgrindError> parse(File report) throws XMLStreamException {
     ValgrindReportStreamHandler streamHandler = new ValgrindReportStreamHandler();
     new StaxParser(streamHandler).parse(report);
     return streamHandler.valgrindErrors;
@@ -51,8 +46,10 @@ class ValgrindReportParser {
 
   private static class ValgrindReportStreamHandler implements StaxParser.XmlStreamHandler {
 
+    private final Set<ValgrindError> valgrindErrors = new HashSet<>();
+
     private static ValgrindStack parseStackTag(SMInputCursor child) throws XMLStreamException {
-      ValgrindStack stack = new ValgrindStack();
+      var stack = new ValgrindStack();
       SMInputCursor frameCursor = child.childElementCursor("frame");
       while (frameCursor.getNext() != null) {
 
@@ -93,8 +90,8 @@ class ValgrindReportParser {
 
       String kind = null;
       String text = null;
-      List<String> details = new ArrayList<>();
-      List<ValgrindStack> stacks = new ArrayList<>();
+      var details = new ArrayList<String>();
+      var stacks = new ArrayList<ValgrindStack>();
       while (child.getNext() != null) {
         String tagName = child.getLocalName();
         if ("kind".equalsIgnoreCase(tagName)) {
@@ -121,7 +118,6 @@ class ValgrindReportParser {
 
       return new ValgrindError(kind, text, stacks);
     }
-    private final Set<ValgrindError> valgrindErrors = new HashSet<>();
 
     /**
      * {@inheritDoc}
@@ -130,8 +126,8 @@ class ValgrindReportParser {
     public void stream(SMHierarchicCursor rootCursor) throws XMLStreamException {
       try {
         rootCursor.advance();
-      } catch (com.ctc.wstx.exc.WstxEOFException eofExc) {
-        throw new EmptyReportException("Cannot read Valgrind report", eofExc);
+      } catch (com.ctc.wstx.exc.WstxEOFException e) {
+        throw new EmptyReportException("The 'Valgrind' report is empty", e);
       }
 
       SMInputCursor errorCursor = rootCursor.childElementCursor("error");

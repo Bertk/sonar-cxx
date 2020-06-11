@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,79 +19,30 @@
  */
 package org.sonar.cxx.sensors.utils;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
 import org.junit.Test;
-import org.sonar.api.config.Configuration;
-import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.measures.Metric;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
+import org.sonar.cxx.CxxMetrics;
 
 public class CxxMetricsTest {
 
-  private CxxLanguage language;
-
-  @Before
-  public void setUp() {
-    language = new CxxLanguageImpl(new MapSettings().asConfig());
-  }
-
   @Test
   public void getMetricsTest() {
-    List<Metric> list = CxxMetricsFactory.generateList(language.getKey(), language.getPropertiesKey());
-    assertThat(list.size()).isEqualTo(24);
-
-    Map<CxxMetricsFactory.Key, Metric<?>> map = CxxMetricsFactory.generateMap(language.getKey(), language.getPropertiesKey());
-    assertThat(map.size()).isEqualTo(24);
+    List<Metric> list = CxxMetrics.getMetrics();
+    assertThat(list.size()).isEqualTo(12);
   }
 
   @Test
   public void getMetricTest() {
-    Metric<Integer> metric0 = language.getMetric(CxxMetricsFactory.Key.PUBLIC_API_KEY);
+    Metric<Integer> metric0 = CxxMetrics.getMetric(CxxMetrics.PUBLIC_API_KEY);
     assertThat(metric0).isNotNull();
 
-    Metric<Integer> metric1 = language.getMetric(CxxMetricsFactory.Key.PUBLIC_UNDOCUMENTED_API_KEY);
+    Metric<Integer> metric1 = CxxMetrics.getMetric(CxxMetrics.PUBLIC_UNDOCUMENTED_API_KEY);
     assertThat(metric1).isNotNull();
 
-    Metric<Double> metric2 = language.getMetric(CxxMetricsFactory.Key.PUBLIC_DOCUMENTED_API_DENSITY_KEY);
+    Metric<Double> metric2 = CxxMetrics.getMetric(CxxMetrics.PUBLIC_DOCUMENTED_API_DENSITY_KEY);
     assertThat(metric2).isNotNull();
-  }
-
-  public class CxxLanguageImpl extends CxxLanguage {
-
-    public CxxLanguageImpl(Configuration settings) {
-      super("c++", "c++", "cxx", settings);
-    }
-
-    @Override
-    public String[] getFileSuffixes() {
-      return new String[]{};
-    }
-
-    @Override
-    public String[] getSourceFileSuffixes() {
-      return new String[]{};
-    }
-
-    @Override
-    public String[] getHeaderFileSuffixes() {
-      return new String[]{};
-    }
-
-    @Override
-    public List<Class> getChecks() {
-      return new ArrayList<>();
-    }
-
-    @Override
-    public String getRepositoryKey() {
-      return "cxx";
-    }
-
   }
 
 }

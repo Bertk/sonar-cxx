@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
@@ -37,34 +40,33 @@ import org.sonar.api.utils.log.Loggers;
 public class SourceCodeProvider {
 
   private static final Logger LOG = Loggers.get(SourceCodeProvider.class);
-  private final List<File> includeRoots = new LinkedList<>();
+  private final List<Path> includeRoots = new LinkedList<>();
 
-  public void setIncludeRoots(List<String> includeRoots, String baseDir) {
-    for (String tmp : includeRoots) {
-
-      File includeRoot = new File(tmp);
-      if (!includeRoot.isAbsolute()) {
-        includeRoot = new File(baseDir, tmp);
-      }
-
+  public void setIncludeRoots(List<Path> includeRoots, String baseDir) {
+    for (var includeRoot : includeRoots) {
       try {
-        includeRoot = includeRoot.getCanonicalFile();
-      } catch (java.io.IOException io) {
-        LOG.error("cannot get canonical form of: '{}'", includeRoot, io);
-      }
+        if (!includeRoot.isAbsolute()) {
+          includeRoot = Paths.get(baseDir).resolve(includeRoot);
+        }
+        includeRoot = includeRoot.toRealPath();
 
-      if (includeRoot.isDirectory()) {
-        LOG.debug("storing include root: '{}'", includeRoot);
-        this.includeRoots.add(includeRoot);
-      } else {
-        LOG.warn("the include root '{}' doesn't exist", includeRoot.getAbsolutePath());
+        if (Files.isDirectory(includeRoot)) {
+          LOG.debug("storing include root: '{}'", includeRoot.toString());
+          this.includeRoots.add(includeRoot);
+        } else {
+          LOG.warn("include root '{}' is not a directory", includeRoot.toString());
+        }
+
+      } catch (IOException | InvalidPathException e) {
+        LOG.error("cannot get absolute path of include root '{}'", includeRoot.toString());
       }
     }
   }
 
+  @CheckForNull
   public File getSourceCodeFile(String filename, String cwd, boolean quoted) {
     File result = null;
-    File file = new File(filename);
+    var file = new File(filename);
 
     // If the file name is fully specified for an include file that has a path that
     // includes a colon (for example, F:\MSVC\SPECIAL\INCL\TEST.H), the preprocessor
@@ -81,7 +83,7 @@ public class SourceCodeProvider {
         // 2) In the directories of the currently opened include files, in the reverse
         // order in which they were opened. The search begins in the directory of the parent
         // include file and continues upward through the directories of any grandparent include files.
-        File abspath = new File(new File(cwd), file.getPath());
+        var abspath = new File(new File(cwd), file.getPath());
         if (abspath.isFile()) {
           result = abspath;
         } else {
@@ -94,10 +96,10 @@ public class SourceCodeProvider {
       // The quoted case falls back to this, if its special handling wasn't
       // successful.
       if (result == null) {
-        for (File folder : includeRoots) {
-          File abspath = new File(folder.getPath(), filename);
-          if (abspath.isFile()) {
-            result = abspath;
+        for (var path : includeRoots) {
+          Path abspath = path.resolve(filename);
+          if (Files.isRegularFile(abspath)) {
+            result = abspath.toFile();
             break;
           }
         }
@@ -107,8 +109,8 @@ public class SourceCodeProvider {
     if (result != null) {
       try {
         result = result.getCanonicalFile();
-      } catch (java.io.IOException io) {
-        LOG.error("cannot get canonical form of: '{}'", result, io);
+      } catch (java.io.IOException e) {
+        LOG.error("cannot get canonical form of: '{}'", result, e);
       }
     }
 

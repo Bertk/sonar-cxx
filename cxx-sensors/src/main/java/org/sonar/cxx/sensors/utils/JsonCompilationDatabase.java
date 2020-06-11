@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,11 +27,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.stream.Collectors;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.CxxCompilationUnitSettings;
-import org.sonar.cxx.CxxConfiguration;
+import org.sonar.cxx.CxxSquidConfiguration;
 
 /**
  * JsonCompilationDatabase
@@ -45,116 +45,139 @@ public class JsonCompilationDatabase {
   }
 
   /**
-   * Set up the given CxxConfiguration from the JSON compilation database
+   * Set up the given CxxSquidConfiguration from the JSON compilation database
    *
-   * @param config
+   * @param squidConfig
    * @param compileCommandsFile
    * @throws IOException
    */
-  public static void parse(CxxConfiguration config, File compileCommandsFile) throws IOException {
+  public static void parse(CxxSquidConfiguration squidConfig, File compileCommandsFile) throws IOException {
 
     LOG.debug("Parsing 'JSON Compilation Database' format");
 
-    ObjectMapper mapper = new ObjectMapper();
+    var mapper = new ObjectMapper();
     mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     mapper.enable(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY);
+    mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
-    JsonCompilationDatabaseCommandObject[] commandObjects = mapper.readValue(compileCommandsFile,
-      JsonCompilationDatabaseCommandObject[].class);
+    JsonCompilationDatabaseCommandObject[] commandObjects
+                                             = mapper.readValue(compileCommandsFile,
+                                                                JsonCompilationDatabaseCommandObject[].class);
+    Path cwd;
 
-    for (JsonCompilationDatabaseCommandObject commandObject : commandObjects) {
-
-      Path cwd = Paths.get(".");
-
+    for (var commandObject : commandObjects) {
       if (commandObject.getDirectory() != null) {
         cwd = Paths.get(commandObject.getDirectory());
+      } else {
+        cwd = Paths.get(".");
       }
 
       Path absPath = cwd.resolve(commandObject.getFile());
+      var settings = new CxxCompilationUnitSettings();
+      parseCommandObject(settings, cwd, commandObject);
 
       if ("__global__".equals(commandObject.getFile())) {
-        CxxCompilationUnitSettings globalSettings = new CxxCompilationUnitSettings();
-
-        parseCommandObject(globalSettings, commandObject);
-
-        config.setGlobalCompilationUnitSettings(globalSettings);
+        squidConfig.setGlobalCompilationUnitSettings(settings);
       } else {
-        CxxCompilationUnitSettings settings = new CxxCompilationUnitSettings();
-
-        parseCommandObject(settings, commandObject);
-
-        config.addCompilationUnitSettings(absPath.toAbsolutePath().normalize().toString(), settings);
+        squidConfig.addCompilationUnitSettings(absPath.toAbsolutePath().normalize().toString(), settings);
       }
     }
   }
 
   private static void parseCommandObject(CxxCompilationUnitSettings settings,
-    JsonCompilationDatabaseCommandObject commandObject) {
+                                         Path cwd, JsonCompilationDatabaseCommandObject commandObject) {
+
     settings.setDefines(commandObject.getDefines());
     settings.setIncludes(commandObject.getIncludes());
 
     // No need to parse command lines as we have needed information
-    if (!commandObject.getDefines().isEmpty() || !commandObject.getIncludes().isEmpty()) {
+    if (commandObject.hasDefines() || commandObject.hasIncludes()) {
       return;
     }
 
     String cmdLine;
 
-    if (!commandObject.getArguments().isEmpty()) {
-      cmdLine = commandObject.getArguments();
-    } else if (!commandObject.getCommand().isEmpty()) {
+    if (commandObject.hasArguments()) {
+      cmdLine = commandObject.getArguments().stream().collect(Collectors.joining(" "));
+    } else if (commandObject.hasCommand()) {
       cmdLine = commandObject.getCommand();
     } else {
       return;
     }
 
     String[] args = tokenizeCommandLine(cmdLine);
-    boolean nextInclude = false;
-    boolean nextDefine = false;
-    List<String> includes = new ArrayList<>();
-    HashMap<String, String> defines = new HashMap<>();
+    ArgNext next = ArgNext.NONE;
 
-    // Capture defines and includes from command line
-    for (String arg : args) {
-      if (nextInclude) {
-        nextInclude = false;
-        includes.add(arg);
-      } else if (nextDefine) {
-        nextDefine = false;
-        String[] define = arg.split("=", 2);
-        if (define.length == 1) {
-          defines.put(define[0], "");
-        } else {
-          defines.put(define[0], define[1]);
-        }
-      } else if ("-I".equals(arg)) {
-        nextInclude = true;
+    var defines = new HashMap<String, String>();
+    var includes = new ArrayList<Path>();
+    var iSystem = new ArrayList<Path>();
+    var iDirAfter = new ArrayList<Path>();
+
+    for (var arg : args) {
+      if (arg.startsWith("-D")) {
+        arg = arg.substring(2);
+        next = ArgNext.DEFINE;
       } else if (arg.startsWith("-I")) {
-        includes.add(arg.substring(2));
-      } else if ("-D".equals(arg)) {
-        nextDefine = true;
-      } else if (arg.startsWith("-D")) {
-        String[] define = arg.substring(2).split("=", 2);
-        if (define.length == 1) {
-          defines.put(define[0], "");
-        } else {
-          defines.put(define[0], define[1]);
+        arg = arg.substring(2);
+        next = ArgNext.INCLUDE;
+      } else if (arg.startsWith("-iquote")) {
+        arg = arg.substring(7);
+        next = ArgNext.INCLUDE;
+      } else if (arg.startsWith("-isystem")) {
+        arg = arg.substring(8);
+        next = ArgNext.ISYSTEM;
+      } else if (arg.startsWith("-idirafter")) {
+        arg = arg.substring(10);
+        next = ArgNext.IDIRAFTER;
+      }
+
+      if ((next != ArgNext.NONE) && !arg.isEmpty()) {
+        switch (next) {
+          case DEFINE:
+            addMacro(arg, defines);
+            break;
+          case INCLUDE:
+          case IQUOTE:
+            includes.add(makeRelativeToCwd(cwd, arg));
+            break;
+          case ISYSTEM:
+            iSystem.add(makeRelativeToCwd(cwd, arg));
+            break;
+          case IDIRAFTER:
+            iDirAfter.add(makeRelativeToCwd(cwd, arg));
+            break;
         }
+        next = ArgNext.NONE;
       }
     }
 
     settings.setDefines(defines);
+    includes.addAll(iSystem);
+    includes.addAll(iDirAfter);
     settings.setIncludes(includes);
   }
 
+  private static void addMacro(String keyValue, HashMap<String, String> defines) {
+    String[] strings = keyValue.split("=", 2);
+    if (strings.length == 1) {
+      defines.put(strings[0], "1");
+    } else {
+      defines.put(strings[0], strings[1]);
+    }
+  }
+
+  private static Path makeRelativeToCwd(Path cwd, String include) {
+    return cwd.resolve(include).normalize();
+  }
+
   private static String[] tokenizeCommandLine(String cmdLine) {
-    List<String> args = new ArrayList<>();
+    var args = new ArrayList<String>();
     boolean escape = false;
     char stringOpen = 0;
-    StringBuilder sb = new StringBuilder(512);
+    var sb = new StringBuilder(512);
 
     // Tokenize command line with support for escaping
-    for (char ch : cmdLine.toCharArray()) {
+    for (var ch : cmdLine.toCharArray()) {
       if (escape) {
         escape = false;
         sb.append(ch);
@@ -168,7 +191,7 @@ public class JsonCompilationDatabase {
           } else if (ch == '\"') {
             stringOpen = '\"';
           } else if ((ch == ' ')
-            && (sb.length() > 0)) {
+                       && (sb.length() > 0)) {
             args.add(sb.toString());
             sb = new StringBuilder(512);
           }
@@ -193,6 +216,10 @@ public class JsonCompilationDatabase {
     }
 
     return args.toArray(new String[0]);
+  }
+
+  private enum ArgNext {
+    NONE, DEFINE, INCLUDE, IQUOTE, ISYSTEM, IDIRAFTER;
   }
 
 }

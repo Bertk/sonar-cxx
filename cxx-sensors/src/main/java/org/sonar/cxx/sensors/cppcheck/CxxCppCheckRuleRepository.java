@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,33 +21,23 @@ package org.sonar.cxx.sensors.cppcheck;
 
 import org.sonar.api.platform.ServerFileSystem;
 import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.sensors.utils.CxxAbstractRuleRepository;
+import org.sonar.cxx.sensors.utils.RulesDefinitionXml;
 
 /**
  * {@inheritDoc}
  */
-public class CxxCppCheckRuleRepository extends CxxAbstractRuleRepository {
+public class CxxCppCheckRuleRepository extends RulesDefinitionXml {
 
-  public static final String CUSTOM_RULES_KEY = "cppcheck.customRules";
-  private static final String KEY = "cppcheck";
+  private static final String LANGUAGE = "cxx";
+  public static final String KEY = "cppcheck";
   private static final String NAME = "Cppcheck";
+  private static final String FILE = "/cppcheck.xml";
 
   /**
    * {@inheritDoc}
    */
-  public CxxCppCheckRuleRepository(ServerFileSystem fileSystem, RulesDefinitionXmlLoader xmlRuleLoader,
-    CxxLanguage language) {
-    super(fileSystem, xmlRuleLoader, KEY, NAME, CUSTOM_RULES_KEY, language);
-  }
-
-  public static String getRepositoryKey(CxxLanguage lang) {
-    return CxxAbstractRuleRepository.getRepositoryKey(KEY, lang);
-  }
-
-  @Override
-  protected String fileName() {
-    return "/cppcheck.xml";
+  public CxxCppCheckRuleRepository(ServerFileSystem fileSystem, RulesDefinitionXmlLoader xmlRuleLoader) {
+    super(fileSystem, xmlRuleLoader, LANGUAGE, KEY, NAME, FILE);
   }
 
 }

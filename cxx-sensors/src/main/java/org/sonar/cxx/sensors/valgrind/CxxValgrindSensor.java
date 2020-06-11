@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,14 +20,20 @@
 package org.sonar.cxx.sensors.valgrind;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
-import org.sonar.api.batch.sensor.SensorContext;
+import javax.annotation.CheckForNull;
+import javax.xml.stream.XMLStreamException;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.config.PropertyDefinition;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.InvalidReportException;
+import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -35,21 +41,26 @@ import org.sonar.cxx.utils.CxxReportIssue;
  */
 public class CxxValgrindSensor extends CxxIssuesReportSensor {
 
-  public static final String REPORT_PATH_KEY = "valgrind.reportPath";
+  public static final String REPORT_PATH_KEY = "sonar.cxx.valgrind.reportPaths";
 
   private static final Logger LOG = Loggers.get(CxxValgrindSensor.class);
 
-  /**
-   * CxxValgrindSensor for Valgrind Sensor
-   *
-   * @param language defines settings C or C++
-   */
-  public CxxValgrindSensor(CxxLanguage language) {
-    super(language, REPORT_PATH_KEY, CxxValgrindRuleRepository.getRepositoryKey(language));
+  public static List<PropertyDefinition> properties() {
+    return Collections.unmodifiableList(Arrays.asList(
+      PropertyDefinition.builder(REPORT_PATH_KEY)
+        .name("Valgrind XML report(s)")
+        .description("Path to <a href='http://valgrind.org/'>Valgrind</a> XML report(s), relative to projects root."
+                       + USE_ANT_STYLE_WILDCARDS)
+        .category("CXX External Analyzers")
+        .subCategory("Valgrind")
+        .onQualifiers(Qualifiers.PROJECT)
+        .multiValues(true)
+        .build()
+    ));
   }
 
   private static String createErrorMsg(ValgrindError error, ValgrindStack stack, int stackNr) {
-    StringBuilder errorMsg = new StringBuilder(512);
+    var errorMsg = new StringBuilder(512);
     errorMsg.append(error.getText());
     if (error.getStacks().size() > 1) {
       errorMsg.append(" (Stack ").append(stackNr).append(")");
@@ -61,17 +72,18 @@ public class CxxValgrindSensor extends CxxIssuesReportSensor {
   @Override
   public void describe(SensorDescriptor descriptor) {
     descriptor
-      .name(getLanguage().getName() + " ValgrindSensor")
-      .onlyOnLanguage(getLanguage().getKey())
+      .name("CXX Valgrind report import")
+      .onlyOnLanguage("cxx")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
-      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathKey()));
+      .onlyWhenConfiguration(conf -> conf.hasKey(REPORT_PATH_KEY));
   }
 
-  private Boolean frameIsInProject(SensorContext context, ValgrindFrame frame) {
-    return frame.isLocationKnown() && (getInputFileIfInProject(context, frame.getPath()) != null);
+  private boolean frameIsInProject(ValgrindFrame frame) {
+    return frame.isLocationKnown() && (getInputFileIfInProject(frame.getPath()) != null);
   }
 
-  private CxxReportIssue createIssue(SensorContext context, ValgrindError error, ValgrindStack stack, int stackNr) {
+  @CheckForNull
+  private CxxReportIssue createIssue(ValgrindError error, ValgrindStack stack, int stackNr) {
     ValgrindFrame lastOwnFrame = stack.getLastOwnFrame(context.fileSystem().baseDir().getPath());
     if (lastOwnFrame == null) {
       LOG.warn("Cannot find a project file to assign the valgrind error '{}' to", error);
@@ -80,11 +92,10 @@ public class CxxValgrindSensor extends CxxIssuesReportSensor {
 
     String errorMsg = createErrorMsg(error, stack, stackNr);
     // set the last own frame as a primary location
-    CxxReportIssue issue = new CxxReportIssue(error.getKind(), lastOwnFrame.getPath(),
-      lastOwnFrame.getLine(), errorMsg);
+    var issue = new CxxReportIssue(error.getKind(), lastOwnFrame.getPath(), lastOwnFrame.getLine(), errorMsg);
     // add all frames as secondary locations
-    for (ValgrindFrame frame : stack.getFrames()) {
-      Boolean frameIsInProject = frameIsInProject(context, frame);
+    for (var frame : stack.getFrames()) {
+      boolean frameIsInProject = frameIsInProject(frame);
       String mappedPath = (frameIsInProject) ? frame.getPath() : lastOwnFrame.getPath();
       String mappedLine = (frameIsInProject) ? frame.getLine() : lastOwnFrame.getLine();
       issue.addLocation(mappedPath, mappedLine, frame.toString());
@@ -93,25 +104,34 @@ public class CxxValgrindSensor extends CxxIssuesReportSensor {
   }
 
   @Override
-  protected void processReport(final SensorContext context, File report)
-    throws javax.xml.stream.XMLStreamException {
-    LOG.debug("Parsing 'Valgrind' format");
-    ValgrindReportParser parser = new ValgrindReportParser();
-    saveErrors(context, parser.processReport(report));
+  protected void processReport(File report) throws ReportException {
+    LOG.debug("Processing 'Valgrind' report '{}'", report.getName());
+
+    try {
+      var parser = new ValgrindReportParser();
+      saveErrors(parser.parse(report));
+    } catch (XMLStreamException e) {
+      throw new InvalidReportException("The 'Valgrind' report is invalid", e);
+    }
   }
 
   @Override
-  protected CxxMetricsFactory.Key getMetricKey() {
-    return CxxMetricsFactory.Key.VALGRIND_SENSOR_KEY;
+  protected String getReportPathsKey() {
+    return REPORT_PATH_KEY;
   }
 
-  void saveErrors(SensorContext context, Set<ValgrindError> valgrindErrors) {
-    for (ValgrindError error : valgrindErrors) {
+  @Override
+  protected String getRuleRepositoryKey() {
+    return CxxValgrindRuleRepository.KEY;
+  }
+
+  void saveErrors(Set<ValgrindError> valgrindErrors) {
+    for (var error : valgrindErrors) {
       int stackNr = 0;
-      for (ValgrindStack stack : error.getStacks()) {
-        CxxReportIssue issue = createIssue(context, error, stack, stackNr);
+      for (var stack : error.getStacks()) {
+        CxxReportIssue issue = createIssue(error, stack, stackNr);
         if (issue != null) {
-          saveUniqueViolation(context, issue);
+          saveUniqueViolation(issue);
         }
         ++stackNr;
       }

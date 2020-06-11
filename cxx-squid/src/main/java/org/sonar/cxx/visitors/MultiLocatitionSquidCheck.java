@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,8 @@ package org.sonar.cxx.visitors;
 import com.sonar.sslr.api.Grammar;
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
 import org.sonar.api.utils.AnnotationUtils;
 import org.sonar.cxx.utils.CxxReportIssue;
 import org.sonar.squidbridge.SquidAstVisitorContext;
@@ -62,7 +64,7 @@ public class MultiLocatitionSquidCheck<G extends Grammar> extends SquidCheck<G> 
     setMultiLocationViolation(sourceFile, null);
   }
 
-  private static void setMultiLocationViolation(SourceFile sourceFile, Set<CxxReportIssue> messages) {
+  private static void setMultiLocationViolation(SourceFile sourceFile, @Nullable Set<CxxReportIssue> messages) {
     sourceFile.addData(DataKey.FILE_VIOLATIONS_WITH_MULTIPLE_LOCATIONS, messages);
   }
 
@@ -74,7 +76,7 @@ public class MultiLocatitionSquidCheck<G extends Grammar> extends SquidCheck<G> 
       return c.peekSourceCode().getParent(SourceFile.class);
     } else {
       throw new IllegalStateException("Unable to get SourceFile on source code '"
-        + (c.peekSourceCode() == null ? "[NULL]" : c.peekSourceCode().getKey()) + "'");
+                                        + (c.peekSourceCode() == null ? "[NULL]" : c.peekSourceCode().getKey()) + "'");
     }
   }
 
@@ -129,6 +131,7 @@ public class MultiLocatitionSquidCheck<G extends Grammar> extends SquidCheck<G> 
     }
 
     @Override
+    @CheckForNull
     public CalculatedMetricFormula getCalculatedMetricFormula() {
       return null;
     }

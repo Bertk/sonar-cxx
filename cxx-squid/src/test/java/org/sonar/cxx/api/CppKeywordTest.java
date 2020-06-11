@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ public class CppKeywordTest {
 
   @Test
   public void test() {
-    SoftAssertions softly = new SoftAssertions();
+    var softly = new SoftAssertions();
     softly.assertThat(CppKeyword.values()).hasSize(14);
     softly.assertThat(CppKeyword.keywordValues()).hasSize(CppKeyword.values().length);
     softly.assertAll();

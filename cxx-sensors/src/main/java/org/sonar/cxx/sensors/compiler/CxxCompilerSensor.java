@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,11 +23,12 @@ import java.io.File;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.sonar.api.batch.sensor.SensorContext;
+import javax.annotation.Nullable;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.InvalidReportException;
+import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -37,26 +38,22 @@ public abstract class CxxCompilerSensor extends CxxIssuesReportSensor {
 
   private static final Logger LOG = Loggers.get(CxxCompilerSensor.class);
 
-  protected CxxCompilerSensor(CxxLanguage language, String propertiesKeyPathToReports, String ruleRepositoryKey) {
-    super(language, propertiesKeyPathToReports, ruleRepositoryKey);
-  }
-
   @Override
-  protected void processReport(final SensorContext context, File report) throws javax.xml.stream.XMLStreamException {
+  protected void processReport(File report) throws ReportException {
 
-    final String reportCharset = getCharset(context);
-    final String reportRegEx = getRegex(context);
+    final String reportCharset = getCharset();
+    final String reportRegEx = getRegex();
 
     if (reportRegEx.isEmpty()) {
       LOG.error("processReport terminated because of empty custom regular expression");
       return;
     }
 
-    LOG.info("Parsing '{}' initialized with report '{}', Charset= '{}'", getCompilerKey(), report, reportCharset);
+    LOG.debug("Processing '{}' report '{}', Charset= '{}'", getCompilerKey(), report, reportCharset);
 
-    try (Scanner scanner = new Scanner(report, reportCharset)) {
+    try ( var scanner = new Scanner(report, reportCharset)) {
       Pattern pattern = Pattern.compile(reportRegEx);
-      LOG.info("Using pattern : '{}'", pattern);
+      LOG.debug("Using pattern : '{}'", pattern);
 
       while (scanner.hasNextLine()) {
         Matcher matcher = pattern.matcher(scanner.nextLine());
@@ -66,18 +63,16 @@ public abstract class CxxCompilerSensor extends CxxIssuesReportSensor {
           String id = alignId(matcher.group("id"));
           String msg = alignMessage(matcher.group("message"));
           if (isInputValid(filename, line, id, msg)) {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Scanner-matches file='{}' line='{}' id='{}' msg={}", filename, line, id, msg);
-            }
-            CxxReportIssue issue = new CxxReportIssue(id, filename, line, msg);
-            saveUniqueViolation(context, issue);
+            LOG.debug("Scanner-matches file='{}' line='{}' id='{}' msg={}", filename, line, id, msg);
+            var issue = new CxxReportIssue(id, filename, line, msg);
+            saveUniqueViolation(issue);
           } else {
-            LOG.warn("Invalid compiler warning: '{}''{}'", id, msg);
+            LOG.warn("Invalid compiler warning: '{}''{}', skipping", id, msg);
           }
         }
       }
     } catch (java.io.FileNotFoundException | java.lang.IllegalArgumentException | java.lang.IllegalStateException e) {
-      LOG.error("processReport Exception: {} - not processed '{}'", report, e);
+      throw new InvalidReportException("The compiler report is invalid", e);
     }
   }
 
@@ -91,25 +86,22 @@ public abstract class CxxCompilerSensor extends CxxIssuesReportSensor {
   /**
    * Character set of the report
    *
-   * @param context current context
    * @return
    */
-  protected abstract String getCharset(final SensorContext context);
+  protected abstract String getCharset();
 
   /**
    * Regular expression to parse the report
    *
-   * @param context current context
    * @return
    */
-  protected abstract String getRegex(final SensorContext context);
+  protected abstract String getRegex();
 
   /**
    * Derived classes can overload this method
-   * 
-   * A valid issue must have an id 
-   * and, if it has a line number, a filename.
-   * 
+   *
+   * A valid issue must have an id and, if it has a line number, a filename.
+   *
    *
    * @param filename
    * @param line
@@ -117,15 +109,15 @@ public abstract class CxxCompilerSensor extends CxxIssuesReportSensor {
    * @param msg
    * @return true, if valid
    */
-	protected boolean isInputValid(String filename, String line, String id, String msg) {
-		if ((id == null) || id.isEmpty()) {
-			return false;
-		}
-		if ((line != null) && !line.isEmpty() && ((filename == null) || filename.isEmpty())) {
-			return false;
-		}
-		return true;
-	}
+  protected boolean isInputValid(@Nullable String filename, @Nullable String line, @Nullable String id, String msg) {
+    if ((id == null) || id.isEmpty()) {
+      return false;
+    }
+    if ((line != null) && !line.isEmpty() && ((filename == null) || filename.isEmpty())) {
+      return false;
+    }
+    return true;
+  }
 
   /**
    * Derived classes can overload this method to align filename

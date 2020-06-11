@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@ package org.sonar.cxx.checks.api;
 import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.api.Token;
-import java.util.Arrays;
 import java.util.List;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -73,8 +72,7 @@ public class UndocumentedApiCheck extends AbstractCxxPublicApiVisitor<Grammar> {
 
   private static final Logger LOG = Loggers.get(UndocumentedApiCheck.class);
 
-  private static final List<String> DEFAULT_NAME_SUFFIX = Arrays.asList(".h",
-    ".hh", ".hpp", ".H");
+  private static final String[] DEFAULT_NAME_SUFFIX = new String[]{".h", ".hh", ".hpp", ".H"};
 
   public UndocumentedApiCheck() {
     super();
@@ -85,9 +83,7 @@ public class UndocumentedApiCheck extends AbstractCxxPublicApiVisitor<Grammar> {
   protected void onPublicApi(AstNode node, String id, List<Token> comments) {
     boolean commented = !comments.isEmpty();
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("node: {} line: {} id: '{}' documented: {}", node.getType(), node.getTokenLine(), id, commented);
-    }
+    LOG.debug("node: {} line: {} id: '{}' documented: {}", node.getType(), node.getTokenLine(), id, commented);
     if (!commented) {
       getContext().createLineViolation(this, "Undocumented API: " + id, node);
     }

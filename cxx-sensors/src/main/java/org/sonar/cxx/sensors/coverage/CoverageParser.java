@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -41,6 +41,6 @@ public interface CoverageParser {
    * some specific module!
    * @throws XMLStreamException javax.xml.stream.XMLStreamException
    */
-  void processReport(File report, Map<String, CoverageMeasures> coverageData) throws XMLStreamException;
+  void parse(File report, Map<String, CoverageMeasures> coverageData) throws XMLStreamException;
 
 }

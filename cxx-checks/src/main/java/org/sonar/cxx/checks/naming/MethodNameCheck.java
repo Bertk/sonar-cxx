@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ import com.sonar.sslr.api.GenericTokenType;
 import com.sonar.sslr.api.Grammar;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
+import javax.annotation.CheckForNull;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
@@ -58,8 +58,8 @@ public class MethodNameCheck extends SquidCheck<Grammar> {
   public String format = DEFAULT;
   private Pattern pattern = null;
 
-  private static @Nullable
-  AstNode getMethodName(AstNode functionDefinition) {
+  @CheckForNull
+  private static AstNode getMethodName(AstNode functionDefinition) {
     AstNode declId = functionDefinition.getFirstDescendant(CxxGrammarImpl.declaratorId);
     AstNode result = null;
     if (declId != null) {
@@ -73,8 +73,8 @@ public class MethodNameCheck extends SquidCheck<Grammar> {
     return result;
   }
 
-  private static @Nullable
-  AstNode getInsideMemberDeclaration(AstNode declId) {
+  @CheckForNull
+  private static AstNode getInsideMemberDeclaration(AstNode declId) {
     AstNode result = null;
     if (declId.hasAncestor(CxxGrammarImpl.memberDeclaration)) {
       AstNode idNode = declId.getLastChild(CxxGrammarImpl.className);
@@ -97,12 +97,12 @@ public class MethodNameCheck extends SquidCheck<Grammar> {
 
   private static Optional<AstNode> getMostNestedTypeName(AstNode nestedNameSpecifier) {
     Optional<AstNode> result = Optional.empty();
-    for (AstNode child : nestedNameSpecifier.getChildren()) {
+    for (var child : nestedNameSpecifier.getChildren()) {
       if ( // type name was recognized by parser (most probably the least nested type)
         child.is(CxxGrammarImpl.typeName)
-        || // type name was recognized as template
+          || // type name was recognized as template
         child.is(CxxGrammarImpl.simpleTemplateId)
-        || // type name was recognized, but not properly typed
+          || // type name was recognized, but not properly typed
         GenericTokenType.IDENTIFIER.equals(child.getToken().getType())) {
         result = Optional.of(child);
       }
@@ -110,8 +110,8 @@ public class MethodNameCheck extends SquidCheck<Grammar> {
     return result;
   }
 
-  private static @Nullable
-  AstNode getOutsideMemberDeclaration(AstNode declId) {
+  @CheckForNull
+  private static AstNode getOutsideMemberDeclaration(AstNode declId) {
     AstNode nestedNameSpecifier = declId.getFirstDescendant(CxxGrammarImpl.nestedNameSpecifier);
     AstNode result = null;
     if (nestedNameSpecifier != null) {
@@ -140,7 +140,8 @@ public class MethodNameCheck extends SquidCheck<Grammar> {
       String identifier = idNode.getTokenValue();
       if (!pattern.matcher(identifier).matches()) {
         getContext().createLineViolation(this,
-          "Rename method \"{0}\" to match the regular expression {1}.", idNode, identifier, format);
+                                         "Rename method \"{0}\" to match the regular expression {1}.", idNode,
+                                         identifier, format);
       }
     }
   }

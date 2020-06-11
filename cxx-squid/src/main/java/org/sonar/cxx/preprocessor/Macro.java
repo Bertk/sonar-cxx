@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,7 @@
  */
 package org.sonar.cxx.preprocessor;
 
-import static org.sonar.cxx.api.CxxTokenType.STRING;
-
+import com.sonar.sslr.api.Token;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,12 +27,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
-
-import com.sonar.sslr.api.Token;
+import static org.sonar.cxx.api.CxxTokenType.STRING;
 
 public final class Macro {
+
+  public static final String CPLUSPLUS = "__cplusplus";
+
+  /**
+   * This is a collection of standard macros according to
+   * http://gcc.gnu.org/onlinedocs/cpp/Standard-Predefined-Macros.html
+   */
+  protected static final Map<String, Macro> STANDARD_MACROS = initStandardMacros();
+
+  /**
+   * Smaller set of defines as rest is provides by compilation unit settings
+   */
+  protected static final Map<String, Macro> UNIT_MACROS = initUnitMacros();
 
   public final String name;
   public final List<Token> params;
@@ -65,13 +75,42 @@ public final class Macro {
     this.name = name;
     this.params = null;
     this.body = Collections.singletonList(Token.builder()
-        .setLine(1)
-        .setColumn(0)
-        .setURI(URI.create(""))
-        .setValueAndOriginalValue(body)
-        .setType(STRING)
-        .build());
+      .setLine(1)
+      .setColumn(0)
+      .setURI(URI.create(""))
+      .setValueAndOriginalValue(body)
+      .setType(STRING)
+      .build());
     this.isVariadic = false;
+  }
+
+  private static Map<String, Macro> initStandardMacros() {
+    var map = new HashMap<String, Macro>();
+    add(map, "__FILE__", "\"file\"");
+    add(map, "__LINE__", "1");
+    // indicates 'date unknown'. should suffice
+    add(map, "__DATE__", "\"??? ?? ????\"");
+    // indicates 'time unknown'. should suffice
+    add(map, "__TIME__", "\"??:??:??\"");
+    add(map, "__STDC__", "1");
+    add(map, "__STDC_HOSTED__", "1");
+    add(map, CPLUSPLUS, "201103L");
+    // __has_include support (C++17)
+    add(map, "__has_include", "1");
+    return Collections.unmodifiableMap(map);
+  }
+
+  private static Map<String, Macro> initUnitMacros() {
+    var map = new HashMap<String, Macro>();
+    add(map, "__FILE__", "\"file\"");
+    add(map, "__LINE__", "1");
+    add(map, "__DATE__", "\"??? ?? ????\"");
+    add(map, "__TIME__", "\"??:??:??\"");
+    return Collections.unmodifiableMap(map);
+  }
+
+  private static void add(Map<String, Macro> map, String name, String body) {
+    map.put(name, new Macro(name, body));
   }
 
   @Override
@@ -91,88 +130,5 @@ public final class Macro {
   public boolean checkArgumentsCount(int count) {
     return isVariadic ? count >= params.size() - 1 : count == params.size();
   }
-
-  private static void add(Map<String, Macro> map, String name, String body) {
-    map.put(name, new Macro(name, body));
-  }
-
-  public static final String CPLUSPLUS = "__cplusplus";
-
-  /**
-   * This is a collection of standard macros according to
-   * http://gcc.gnu.org/onlinedocs/cpp/Standard-Predefined-Macros.html
-   */
-  private static final Map<String, Macro> STANDARD_MACROS_IMPL = new HashMap<>();
-  static {
-
-    add(STANDARD_MACROS_IMPL, "__FILE__", "\"file\"");
-    add(STANDARD_MACROS_IMPL, "__LINE__", "1");
-    // indicates 'date unknown'. should suffice
-    add(STANDARD_MACROS_IMPL, "__DATE__", "\"??? ?? ????\"");
-    // indicates 'time unknown'. should suffice
-    add(STANDARD_MACROS_IMPL, "__TIME__", "\"??:??:??\"");
-    add(STANDARD_MACROS_IMPL, "__STDC__", "1");
-    add(STANDARD_MACROS_IMPL, "__STDC_HOSTED__", "1");
-    add(STANDARD_MACROS_IMPL, CPLUSPLUS, "201103L");
-    // __has_include support (C++17)
-    add(STANDARD_MACROS_IMPL, "__has_include", "1");
-  }
-
-  /**
-   * Smaller set of defines as rest is provides by compilation unit settings
-   */
-  private static final Map<String, Macro> UNIT_MACROS_IMPL = new HashMap<>();
-  static {
-    add(UNIT_MACROS_IMPL, "__FILE__", "\"file\"");
-    add(UNIT_MACROS_IMPL, "__LINE__", "1");
-    add(UNIT_MACROS_IMPL, "__DATE__", "\"??? ?? ????\"");
-    add(UNIT_MACROS_IMPL, "__TIME__", "\"??:??:??\"");
-  }
-
-  /**
-   * Macros to replace C++ keywords when parsing C files
-   */
-  private static Map<String, Macro> COMPATIBILITY_MACROS_IMPL = new HashMap<>();
-  static {
-    // This is a collection of macros used to let C code be parsed by C++ parser
-    add(COMPATIBILITY_MACROS_IMPL, "alignas", "__alignas");
-    add(COMPATIBILITY_MACROS_IMPL, "alignof", "__alignof");
-    add(COMPATIBILITY_MACROS_IMPL, "catch", "__catch");
-    add(COMPATIBILITY_MACROS_IMPL, "class", "__class");
-    add(COMPATIBILITY_MACROS_IMPL, "constexpr", "__constexpr");
-    add(COMPATIBILITY_MACROS_IMPL, "const_cast", "__const_cast");
-    add(COMPATIBILITY_MACROS_IMPL, "decltype", "__decltype");
-    add(COMPATIBILITY_MACROS_IMPL, "delete", "__delete");
-    add(COMPATIBILITY_MACROS_IMPL, "dynamic_cast", "__dynamic_cast");
-    add(COMPATIBILITY_MACROS_IMPL, "explicit", "__explicit");
-    add(COMPATIBILITY_MACROS_IMPL, "export", "__export");
-    add(COMPATIBILITY_MACROS_IMPL, "final", "__final");
-    add(COMPATIBILITY_MACROS_IMPL, "friend", "__friend");
-    add(COMPATIBILITY_MACROS_IMPL, "mutable", "__mutable");
-    add(COMPATIBILITY_MACROS_IMPL, "namespace", "__namespace");
-    add(COMPATIBILITY_MACROS_IMPL, "new", "__new");
-    add(COMPATIBILITY_MACROS_IMPL, "noexcept", "__noexcept");
-    add(COMPATIBILITY_MACROS_IMPL, "nullptr", "__nullptr");
-    add(COMPATIBILITY_MACROS_IMPL, "operator", "__operator");
-    add(COMPATIBILITY_MACROS_IMPL, "override", "__override");
-    add(COMPATIBILITY_MACROS_IMPL, "private", "__private");
-    add(COMPATIBILITY_MACROS_IMPL, "protected", "__protected");
-    add(COMPATIBILITY_MACROS_IMPL, "public", "__public");
-    add(COMPATIBILITY_MACROS_IMPL, "reinterpret_cast", "__reinterpret_cast");
-    add(COMPATIBILITY_MACROS_IMPL, "static_assert", "__static_assert");
-    add(COMPATIBILITY_MACROS_IMPL, "static_cast", "__static_cast");
-    add(COMPATIBILITY_MACROS_IMPL, "thread_local", "__thread_local");
-    add(COMPATIBILITY_MACROS_IMPL, "throw", "__throw");
-    add(COMPATIBILITY_MACROS_IMPL, "try", "__try");
-    add(COMPATIBILITY_MACROS_IMPL, "typeid", "__typeid");
-    add(COMPATIBILITY_MACROS_IMPL, "typename", "__typename");
-    add(COMPATIBILITY_MACROS_IMPL, "using", "__using");
-    add(COMPATIBILITY_MACROS_IMPL, "template", "__template");
-    add(COMPATIBILITY_MACROS_IMPL, "virtual", "__virtual");
-  }
-
-  public static final Map<String, Macro> STANDARD_MACROS = Collections.unmodifiableMap(STANDARD_MACROS_IMPL);
-  public static final Map<String, Macro> UNIT_MACROS = Collections.unmodifiableMap(UNIT_MACROS_IMPL);
-  public static final Map<String, Macro> COMPATIBILITY_MACROS = Collections.unmodifiableMap(COMPATIBILITY_MACROS_IMPL);
 
 }

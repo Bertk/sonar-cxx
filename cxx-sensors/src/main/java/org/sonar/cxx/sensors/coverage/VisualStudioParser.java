@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -65,6 +65,9 @@ public class VisualStudioParser extends CxxCoverageParser {
     while (sourceFile.getNext() != null) {
       String id = sourceFile.getAttrValue("id");
       CoverageMeasures builder = coverageData.remove(id);
+      if (builder == null) {
+        builder = CoverageMeasures.create();
+      }
       // replace id with path
       coverageData.put(sourceFile.getAttrValue("path"), builder);
     }
@@ -112,10 +115,10 @@ public class VisualStudioParser extends CxxCoverageParser {
    * {@inheritDoc}
    */
   @Override
-  public void processReport(File report, final Map<String, CoverageMeasures> coverageData)
+  public void parse(File report, final Map<String, CoverageMeasures> coverageData)
     throws XMLStreamException {
-    LOG.debug("Parsing 'Visual Studio' format");
-    StaxParser parser = new StaxParser((SMHierarchicCursor rootCursor) -> {
+    LOG.debug("Processing 'Visual Studio Coverage' format");
+    var parser = new StaxParser((SMHierarchicCursor rootCursor) -> {
       rootCursor.advance();
       collectModuleMeasures(rootCursor.descendantElementCursor("module"), coverageData);
     });

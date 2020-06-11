@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
  */
 package org.sonar.cxx.sensors.valgrind;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -57,9 +58,9 @@ class ValgrindError {
    */
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder(512);
+    var sb = new StringBuilder(512);
     sb.append("ValgrindError [kind=").append(kind).append(", text=").append(text).append(", stacks=[");
-    for (ValgrindStack stack : stacks) {
+    for (var stack : stacks) {
       sb.append(" ValgrindStack=[").append(stack).append("] ");
     }
     sb.append("] ]");
@@ -99,7 +100,7 @@ class ValgrindError {
   }
 
   public List<ValgrindStack> getStacks() {
-    return stacks;
+    return new ArrayList(stacks);
   }
 
   String getKind() {

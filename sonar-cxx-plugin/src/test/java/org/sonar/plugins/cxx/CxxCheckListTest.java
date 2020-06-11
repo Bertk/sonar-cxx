@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,16 +21,13 @@ package org.sonar.plugins.cxx;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
-import org.sonar.api.config.internal.MapSettings;
+import org.sonar.cxx.checks.CheckList;
 
 public class CxxCheckListTest {
 
-  private final MapSettings settings = new MapSettings();
-
   @Test
   public void count() {
-    CppLanguage checks = new CppLanguage(settings.asConfig());
-    assertThat(checks.getChecks().size()).isEqualTo(27);
+    assertThat(CheckList.getChecks().size()).isEqualTo(27);
   }
 
 }

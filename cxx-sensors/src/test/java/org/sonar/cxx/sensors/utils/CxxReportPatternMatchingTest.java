@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,11 +30,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
 
 public class CxxReportPatternMatchingTest {
 
-  private static final String REPORT_PATH_KEY = "sonar.cxx.cppcheck.reportPath";
+  private static final String REPORT_PATH_KEY = "sonar.cxx.cppcheck.reportPaths";
   @Rule
   public TemporaryFolder base = new TemporaryFolder();
   private final MapSettings settings = new MapSettings();
@@ -65,25 +65,27 @@ public class CxxReportPatternMatchingTest {
   public void getReports_patternMatching() throws java.io.IOException, java.lang.InterruptedException {
     String pattern, expected, allpaths;
     List<File> reports;
-    for (String[] example : examples) {
+    for (var example : examples) {
       pattern = example[0];
       expected = example[1];
       allpaths = String.join(",", Arrays.copyOfRange(example, 1, 3));
       setupExample(allpaths);
 
       settings.setProperty(REPORT_PATH_KEY, pattern);
-      reports = CxxReportSensor.getReports(settings.asConfig(), base.getRoot(), REPORT_PATH_KEY);
+      var context = SensorContextTester.create(base.getRoot());
+      context.setSettings(settings);
+      reports = CxxUtils.getFiles(context, REPORT_PATH_KEY);
       String[] parsedPaths = expected.split(",");
-      List<File> expectedFiles = new LinkedList<>();
-      for (String path : parsedPaths) {
+      var expectedFiles = new LinkedList<File>();
+      for (var path : parsedPaths) {
         path = path.trim();
         if (!path.isEmpty()) {
           expectedFiles.add(new File(base.getRoot(), path));
         }
       }
 
-      Set<File> realSet = new TreeSet<>(reports);
-      Set<File> expectedSet = new TreeSet<>(expectedFiles);
+      var realSet = new TreeSet<File>(reports);
+      var expectedSet = new TreeSet<File>(expectedFiles);
       assertThat(realSet).describedAs("Failed for pattern: {}", pattern).isEqualTo(expectedSet);
       deleteExample(base.getRoot());
     }
@@ -92,7 +94,7 @@ public class CxxReportPatternMatchingTest {
 
   private void setupExample(String pathes) throws java.io.IOException {
     String[] parsedPaths = pathes.split(",");
-    for (String path : parsedPaths) {
+    for (var path : parsedPaths) {
       path = path.trim();
       if (!path.isEmpty()) {
         FileUtils.touch(new File(base.getRoot(), path));

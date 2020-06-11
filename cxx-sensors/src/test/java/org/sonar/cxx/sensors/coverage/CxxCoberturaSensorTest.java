@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -29,14 +29,13 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Mockito.when;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
+import org.sonar.api.utils.PathUtils;
 import org.sonar.api.utils.log.LogTester;
-import org.sonar.cxx.CxxLanguage;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class CxxCoberturaSensorTest {
@@ -44,18 +43,13 @@ public class CxxCoberturaSensorTest {
   @org.junit.Rule
   public LogTester logTester = new LogTester();
 
-  private CxxCoverageSensor sensor;
   private DefaultFileSystem fs;
   private final Map<InputFile, Set<Integer>> linesOfCodeByFile = new HashMap<>();
-  private CxxLanguage language;
   private final MapSettings settings = new MapSettings();
 
   @Before
   public void setUp() {
     fs = TestUtils.mockFileSystem();
-    language = TestUtils.mockCxxLanguage();
-    when(language.getPluginProperty(CxxCoverageSensor.REPORT_PATH_KEY))
-      .thenReturn("sonar.cxx." + CxxCoverageSensor.REPORT_PATH_KEY);
   }
 
   @Test
@@ -151,18 +145,17 @@ public class CxxCoberturaSensorTest {
   @Test
   public void shouldReportCorrectCoverageForAllTypesOfCoverage() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
-
-    sensor = new CxxCoverageSensor(new CxxCoverageCache(), language, context);
-    settings.setProperty(sensor.getReportPathKey(), "coverage-reports/cobertura/coverage-result-cobertura.xml");
-
+    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY, "coverage-reports/cobertura/coverage-result-cobertura.xml");
     context.setSettings(settings);
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/application/main.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
 
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/application/main.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n").build());
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+
+    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
     sensor.execute(context);
 
     assertThat(context.lineHits("ProjectKey:sources/utils/code_chunks.cpp", 1)).isEqualTo(1);
@@ -182,19 +175,17 @@ public class CxxCoberturaSensorTest {
   @Test
   public void shouldReportCorrectCoverageSQ62() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
-//    context.setSonarQubeVersion(SQ_6_2);
-
-    sensor = new CxxCoverageSensor(new CxxCoverageCache(), language, context);
-    settings.setProperty(sensor.getReportPathKey(), "coverage-reports/cobertura/coverage-result-cobertura.xml");
-
+    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY, "coverage-reports/cobertura/coverage-result-cobertura.xml");
     context.setSettings(settings);
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/application/main.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
 
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/application/main.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n").build());
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+
+    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
     sensor.execute(context);
 
     assertThat(context.lineHits("ProjectKey:sources/utils/code_chunks.cpp", 1)).isEqualTo(1);
@@ -206,45 +197,47 @@ public class CxxCoberturaSensorTest {
   @Test
   public void shouldReportNoCoverageSaved() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
-
-    final String reportPathValue = "coverage-reports/cobertura/specific-cases/does-not-exist.xml";
-    settings.setProperty(language.getPluginProperty(CxxCoverageSensor.REPORT_PATH_KEY), reportPathValue);
+    final String reportPathsValue = "coverage-reports/cobertura/specific-cases/does-not-exist.xml";
+    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY, reportPathsValue);
     context.setSettings(settings);
 
-    sensor = new CxxCoverageSensor(new CxxCoverageCache(), language, context);
+    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
     sensor.execute(context);
 
     List<String> log = logTester.logs();
-    assertThat(log).contains("Property 'sonar.cxx.coverage.reportPath': cannot find any files matching the Ant pattern(s) '"
-      + new File(fs.baseDir(), reportPathValue).getAbsolutePath() + "'");
+    assertThat(log).contains(
+      "Property 'sonar.cxx.coverage.reportPaths': cannot find any files matching the Ant pattern(s) '"
+        + PathUtils.sanitize(new File(fs.baseDir(), reportPathsValue).getAbsolutePath()) + "'");
   }
 
   @Test
   public void shouldNotCrashWhenProcessingReportsContainingBigNumberOfHits() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
+    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+                         "coverage-reports/cobertura/specific-cases/cobertura-bignumberofhits.xml");
+    context.setSettings(settings);
 
-    sensor = new CxxCoverageSensor(new CxxCoverageCache(), language, context);
-    settings.setProperty(sensor.getReportPathKey(), "coverage-reports/cobertura/specific-cases/cobertura-bignumberofhits.xml");
-
+    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
     sensor.execute(context);
+
     assertThat(linesOfCodeByFile.isEmpty()).isTrue();
   }
 
   @Test
   public void shouldReportNoCoverageWhenInvalidFilesEmpty() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
-
-    sensor = new CxxCoverageSensor(new CxxCoverageCache(), language, context);
-    settings.setProperty(sensor.getReportPathKey(), "coverage-reports/cobertura/specific-cases/coverage-result-cobertura-empty.xml");
-
+    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+                         "coverage-reports/cobertura/specific-cases/coverage-result-cobertura-empty.xml");
     context.setSettings(settings);
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/application/main.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
-    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
 
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/application/main.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n").build());
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+    context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
+
+    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
     sensor.execute(context);
 
     assertThat(context.lineHits("ProjectKey:sources/application/main.cpp", 1)).isNull();
@@ -255,18 +248,18 @@ public class CxxCoberturaSensorTest {
   @Test
   public void shouldReportNoCoverageWhenFilesInvalid() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
-
-    settings.setProperty(language.getPluginProperty(CxxCoverageSensor.REPORT_PATH_KEY), "coverage-reports/cobertura/specific-cases/coverage-result-invalid.xml");
+    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+                         "coverage-reports/cobertura/specific-cases/coverage-result-invalid.xml");
     context.setSettings(settings);
 
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/application/main.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n").build());
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n").build());
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/utils.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "sources/utils/code_chunks.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
 
-    sensor = new CxxCoverageSensor(new CxxCoverageCache(), language, context);
+    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
     sensor.execute(context);
 
     assertThat(context.lineHits("ProjectKey:sources/application/main.cpp", 1)).isNull();
@@ -277,33 +270,35 @@ public class CxxCoberturaSensorTest {
   @Test
   public void shouldReportCoverageWhenVisualStudioCase() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
-
-    settings.setProperty(language.getPluginProperty(CxxCoverageSensor.REPORT_PATH_KEY), "coverage-reports/cobertura/specific-cases/coverage-result-visual-studio.xml");
+    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+                         "coverage-reports/cobertura/specific-cases/coverage-result-visual-studio.xml");
     context.setSettings(settings);
 
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "project2/source1.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n").build());
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+      .build());
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "project2/source2.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n").build());
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+      .build());
 
-    sensor = new CxxCoverageSensor(new CxxCoverageCache(), language, context);
+    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
     sensor.execute(context);
 
-    int[] oneHitlinesA = new int[]{4, 5, 6, 8, 13, 15, 16, 25};
-    int[] zeroHitlinesA = new int[]{9, 10, 22, 23};
-    for (int zeroHitline : zeroHitlinesA) {
+    var oneHitlinesA = new int[]{4, 5, 6, 8, 13, 15, 16, 25};
+    var zeroHitlinesA = new int[]{9, 10, 22, 23};
+    for (var zeroHitline : zeroHitlinesA) {
       assertThat(context.lineHits("ProjectKey:project2/source1.cpp", zeroHitline)).isEqualTo(0);
     }
-    for (int oneHitline : oneHitlinesA) {
+    for (var oneHitline : oneHitlinesA) {
       assertThat(context.lineHits("ProjectKey:project2/source1.cpp", oneHitline)).isEqualTo(1);
     }
 
-    int[] oneHitlinesB = new int[]{4, 5, 6, 8, 9, 10, 13, 21, 25};
-    int[] zeroHitlinesB = new int[]{15, 16, 22, 23};
-    for (int zeroHitline : zeroHitlinesB) {
+    var oneHitlinesB = new int[]{4, 5, 6, 8, 9, 10, 13, 21, 25};
+    var zeroHitlinesB = new int[]{15, 16, 22, 23};
+    for (var zeroHitline : zeroHitlinesB) {
       assertThat(context.lineHits("ProjectKey:project2/source2.cpp", zeroHitline)).isEqualTo(0);
     }
-    for (int oneHitline : oneHitlinesB) {
+    for (var oneHitline : oneHitlinesB) {
       assertThat(context.lineHits("ProjectKey:project2/source2.cpp", oneHitline)).isEqualTo(1);
     }
 

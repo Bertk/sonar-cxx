@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,15 +21,19 @@ package org.sonar.cxx.sensors.drmemory;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import org.sonar.api.batch.sensor.SensorContext;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.CheckForNull;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.config.PropertyDefinition;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
 import org.sonar.cxx.sensors.drmemory.DrMemoryParser.DrMemoryError;
 import org.sonar.cxx.sensors.drmemory.DrMemoryParser.DrMemoryError.Location;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -42,21 +46,26 @@ import org.sonar.cxx.utils.CxxReportIssue;
  */
 public class CxxDrMemorySensor extends CxxIssuesReportSensor {
 
-  public static final String REPORT_PATH_KEY = "drmemory.reportPath";
+  public static final String REPORT_PATH_KEY = "sonar.cxx.drmemory.reportPaths";
   private static final Logger LOG = Loggers.get(CxxDrMemorySensor.class);
   private static final String DEFAULT_CHARSET_DEF = StandardCharsets.UTF_8.name();
 
-  /**
-   * CxxDrMemorySensor for Doctor Memory Sensor
-   *
-   * @param language defines settings C or C++
-   */
-  public CxxDrMemorySensor(CxxLanguage language) {
-    super(language, REPORT_PATH_KEY, CxxDrMemoryRuleRepository.getRepositoryKey(language));
+  public static List<PropertyDefinition> properties() {
+    return Collections.unmodifiableList(Arrays.asList(
+      PropertyDefinition.builder(REPORT_PATH_KEY)
+        .name("Dr. Memory report(s)")
+        .description("Path to <a href='http://drmemory.org/'>Dr. Memory</a> reports(s), relative to projects root."
+                       + USE_ANT_STYLE_WILDCARDS)
+        .category("CXX External Analyzers")
+        .subCategory("Dr. Memory")
+        .onQualifiers(Qualifiers.PROJECT)
+        .multiValues(true)
+        .build()
+    ));
   }
 
   private static String getFrameText(Location frame, int frameNr) {
-    StringBuilder sb = new StringBuilder(512);
+    var sb = new StringBuilder(512);
     sb.append("#").append(frameNr).append(" ").append(frame.getFile()).append(":").append(frame.getLine());
     return sb.toString();
   }
@@ -64,19 +73,20 @@ public class CxxDrMemorySensor extends CxxIssuesReportSensor {
   @Override
   public void describe(SensorDescriptor descriptor) {
     descriptor
-      .name(getLanguage().getName() + " DrMemorySensor")
-      .onlyOnLanguage(getLanguage().getKey())
+      .name("CXX Dr. Memory report import")
+      .onlyOnLanguage("cxx")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
-      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathKey()));
+      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
-  private Boolean frameIsInProject(SensorContext context, Location frame) {
-    return getInputFileIfInProject(context, frame.getFile()) != null;
+  private boolean frameIsInProject(Location frame) {
+    return getInputFileIfInProject(frame.getFile()) != null;
   }
 
-  private Location getLastOwnFrame(SensorContext context, DrMemoryError error) {
-    for (Location frame : error.getStackTrace()) {
-      if (frameIsInProject(context, frame)) {
+  @CheckForNull
+  private Location getLastOwnFrame(DrMemoryError error) {
+    for (var frame : error.getStackTrace()) {
+      if (frameIsInProject(frame)) {
         return frame;
       }
     }
@@ -84,40 +94,45 @@ public class CxxDrMemorySensor extends CxxIssuesReportSensor {
   }
 
   @Override
-  protected void processReport(final SensorContext context, File report) {
-    LOG.debug("Parsing 'Dr Memory' format");
+  protected void processReport(File report) throws ReportException {
+    LOG.debug("Processing 'Dr. Memory' report '{}'", report.getName());
 
-    for (DrMemoryError error : DrMemoryParser.parse(report, DEFAULT_CHARSET_DEF)) {
+    for (var error : DrMemoryParser.parse(report, DEFAULT_CHARSET_DEF)) {
       if (error.getStackTrace().isEmpty()) {
-        CxxReportIssue moduleIssue = new CxxReportIssue(error.getType().getId(), null,
-          null, error.getMessage());
-        saveUniqueViolation(context, moduleIssue);
+        var moduleIssue = new CxxReportIssue(error.getType().getId(), null, null, error.getMessage());
+        saveUniqueViolation(moduleIssue);
       } else {
-        Location lastOwnFrame = getLastOwnFrame(context, error);
+        Location lastOwnFrame = getLastOwnFrame(error);
         if (lastOwnFrame == null) {
           LOG.warn("Cannot find a project file to assign the DrMemory error '{}' to", error);
           continue;
         }
-        CxxReportIssue fileIssue = new CxxReportIssue(error.getType().getId(),
-          lastOwnFrame.getFile(), lastOwnFrame.getLine().toString(), error.getMessage());
+        var fileIssue = new CxxReportIssue(error.getType().getId(),
+                                       lastOwnFrame.getFile(), lastOwnFrame.getLine().toString(), error
+                                       .getMessage());
 
         // add all frames as secondary locations
         int frameNr = 0;
-        for (Location frame : error.getStackTrace()) {
-          Boolean frameIsInProject = frameIsInProject(context, frame);
+        for (var frame : error.getStackTrace()) {
+          boolean frameIsInProject = frameIsInProject(frame);
           String mappedPath = (frameIsInProject) ? frame.getFile() : lastOwnFrame.getFile();
           Integer mappedLine = (frameIsInProject) ? frame.getLine() : lastOwnFrame.getLine();
           fileIssue.addLocation(mappedPath, mappedLine.toString(), getFrameText(frame, frameNr));
           ++frameNr;
         }
-        saveUniqueViolation(context, fileIssue);
+        saveUniqueViolation(fileIssue);
       }
     }
   }
 
   @Override
-  protected CxxMetricsFactory.Key getMetricKey() {
-    return CxxMetricsFactory.Key.DRMEMORY_SENSOR_ISSUES_KEY;
+  protected String getReportPathsKey() {
+    return REPORT_PATH_KEY;
+  }
+
+  @Override
+  protected String getRuleRepositoryKey() {
+    return CxxDrMemoryRuleRepository.KEY;
   }
 
 }

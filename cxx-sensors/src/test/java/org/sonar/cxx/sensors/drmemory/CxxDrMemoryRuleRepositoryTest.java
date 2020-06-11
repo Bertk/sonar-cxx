@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,23 +27,19 @@ import org.sonar.api.platform.ServerFileSystem;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.api.server.rule.RulesDefinition.Rule;
 import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class CxxDrMemoryRuleRepositoryTest {
 
   @Test
   public void createRulesTest() {
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-
-    CxxDrMemoryRuleRepository def = new CxxDrMemoryRuleRepository(
+    var def = new CxxDrMemoryRuleRepository(
       mock(ServerFileSystem.class),
-      new RulesDefinitionXmlLoader(), language);
+      new RulesDefinitionXmlLoader());
 
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
 
-    RulesDefinition.Repository repo = context.repository(CxxDrMemoryRuleRepository.getRepositoryKey(language));
+    RulesDefinition.Repository repo = context.repository(CxxDrMemoryRuleRepository.KEY);
     List<Rule> rules = repo.rules();
     assertEquals(8, rules.size());
   }

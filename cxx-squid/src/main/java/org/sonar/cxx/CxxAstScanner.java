@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,21 +22,21 @@ package org.sonar.cxx;
 import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.GenericTokenType;
 import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.impl.Parser;
+import java.io.File;
 import static java.lang.Math.min;
 import java.util.Collection;
-import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.parser.CxxGrammarImpl;
 import org.sonar.cxx.parser.CxxParser;
 import org.sonar.cxx.visitors.CxxCharsetAwareVisitor;
 import org.sonar.cxx.visitors.CxxCognitiveComplexityVisitor;
+import org.sonar.cxx.visitors.CxxCpdVisitor;
 import org.sonar.cxx.visitors.CxxCyclomaticComplexityVisitor;
+import org.sonar.cxx.visitors.CxxFileLinesVisitor;
 import org.sonar.cxx.visitors.CxxFileVisitor;
 import org.sonar.cxx.visitors.CxxFunctionComplexityVisitor;
 import org.sonar.cxx.visitors.CxxFunctionSizeVisitor;
+import org.sonar.cxx.visitors.CxxHighlighterVisitor;
 import org.sonar.cxx.visitors.CxxLinesOfCodeInFunctionBodyVisitor;
 import org.sonar.cxx.visitors.CxxLinesOfCodeVisitor;
 import org.sonar.cxx.visitors.CxxParseErrorLoggerVisitor;
@@ -66,38 +66,33 @@ public final class CxxAstScanner {
    * Helper method for testing checks without having to deploy them on a Sonar instance.
    *
    * @param file is the file to be checked
-   * @param sensorContext SQ API batch side context
    * @param visitors AST checks and visitors to use
-   * @param language CxxLanguage to use
    * @return file checked with measures and issues
    */
   @SafeVarargs
-  public static SourceFile scanSingleFile(InputFile file, SensorContext sensorContext, CxxLanguage language,
-    SquidAstVisitor<Grammar>... visitors) {
-    return scanSingleFileConfig(language, file, new CxxConfiguration(sensorContext.fileSystem().encoding()),
-      visitors);
+  public static SourceFile scanSingleFile(File file, SquidAstVisitor<Grammar>... visitors) {
+    return scanSingleFileConfig(file, new CxxSquidConfiguration(), visitors);
   }
 
   /**
    * Helper method for scanning a single file
    *
    * @param file is the file to be checked
-   * @param cxxConfig the plugin configuration
+   * @param squidConfig the Squid configuration
    * @param visitors AST checks and visitors to use
-   * @param language for sensor
    * @return file checked with measures and issues
    */
-  public static SourceFile scanSingleFileConfig(CxxLanguage language, InputFile file, CxxConfiguration cxxConfig,
-    SquidAstVisitor<Grammar>... visitors) {
+  public static SourceFile scanSingleFileConfig(File file, CxxSquidConfiguration squidConfig,
+                                                SquidAstVisitor<Grammar>... visitors) {
     if (!file.isFile()) {
       throw new IllegalArgumentException("File '" + file + "' not found.");
     }
-    AstScanner<Grammar> scanner = create(language, cxxConfig, visitors);
-    scanner.scanFile(file.file());
+    AstScanner<Grammar> scanner = create(squidConfig, visitors);
+    scanner.scanFile(file);
     Collection<SourceCode> sources = scanner.getIndex().search(new QueryByType(SourceFile.class));
     if (sources.size() != 1) {
       throw new IllegalStateException("Only one SourceFile was expected whereas "
-        + sources.size() + " has been returned.");
+                                        + sources.size() + " has been returned.");
     }
     return (SourceFile) sources.iterator().next();
   }
@@ -105,19 +100,15 @@ public final class CxxAstScanner {
   /**
    * Create scanner for language
    *
-   * @param language for sensor
-   * @param conf settings for sensor
+   * @param squidConfig the Squid configuration
    * @param visitors visitors AST checks and visitors to use
    * @return scanner for the given parameters
    */
   @SafeVarargs
-  public static AstScanner<Grammar> create(CxxLanguage language, CxxConfiguration conf,
-    SquidAstVisitor<Grammar>... visitors) {
-    final SquidAstVisitorContextImpl<Grammar> context
-      = new SquidAstVisitorContextImpl<>(new SourceProject("Cxx Project"));
-    final Parser<Grammar> parser = CxxParser.create(context, conf, language);
-
-    AstScanner.Builder<Grammar> builder = AstScanner.<Grammar>builder(context).setBaseParser(parser);
+  public static AstScanner<Grammar> create(CxxSquidConfiguration squidConfig, SquidAstVisitor<Grammar>... visitors) {
+    var context = new SquidAstVisitorContextImpl<>(new SourceProject("Cxx Project"));
+    var parser = CxxParser.create(context, squidConfig);
+    var builder = AstScanner.<Grammar>builder(context).setBaseParser(parser);
 
     /* Metrics */
     builder.withMetrics(CxxMetric.values());
@@ -130,7 +121,7 @@ public final class CxxAstScanner {
       new CommentAnalyser() {
       @Override
       public boolean isBlank(String line) {
-        for (int i = 0; i < line.length(); i++) {
+        for (var i = 0; i < line.length(); i++) {
           if (Character.isLetterOrDigit(line.charAt(i))) {
             return false;
           }
@@ -140,23 +131,23 @@ public final class CxxAstScanner {
 
       @Override
       public String getContents(String comment) {
-        final int HEADER_LEN = 2;
+        var HEADER_LEN = 2;
         return "/*".equals(comment.substring(0, HEADER_LEN))
-          ? comment.substring(HEADER_LEN, comment.length() - HEADER_LEN)
-          : comment.substring(HEADER_LEN);
+                 ? comment.substring(HEADER_LEN, comment.length() - HEADER_LEN)
+                 : comment.substring(HEADER_LEN);
       }
     });
 
     /* Functions */
     builder.withSquidAstVisitor(new SourceCodeBuilderVisitor<>((SourceCode parentSourceCode, AstNode astNode) -> {
-      StringBuilder sb = new StringBuilder(512);
-      for (Token token : astNode.getFirstDescendant(CxxGrammarImpl.declaratorId).getTokens()) {
+      var sb = new StringBuilder(512);
+      for (var token : astNode.getFirstDescendant(CxxGrammarImpl.declaratorId).getTokens()) {
         sb.append(token.getValue());
       }
-      String functionName = sb.toString();
+      var functionName = sb.toString();
       sb.setLength(0);
       // todo: check if working with nested-namespace-definition
-      AstNode namespace = astNode.getFirstAncestor(CxxGrammarImpl.namedNamespaceDefinition);
+      var namespace = astNode.getFirstAncestor(CxxGrammarImpl.namedNamespaceDefinition);
       while (namespace != null) {
         if (sb.length() > 0) {
           sb.insert(0, "::");
@@ -165,9 +156,9 @@ public final class CxxAstScanner {
         // todo: check if working with nested-namespace-definition
         namespace = namespace.getFirstAncestor(CxxGrammarImpl.namedNamespaceDefinition);
       }
-      String namespaceName = sb.length() > 0 ? sb.toString() + "::" : "";
-      SourceFunction function = new SourceFunction(intersectingConcatenate(namespaceName, functionName)
-        + ":" + astNode.getToken().getLine());
+      var namespaceName = sb.length() > 0 ? sb.toString() + "::" : "";
+      var function = new SourceFunction(intersectingConcatenate(namespaceName, functionName)
+                                      + ":" + astNode.getToken().getLine());
       function.setStartAtLine(astNode.getTokenLine());
       return function;
     }, CxxGrammarImpl.functionDefinition));
@@ -179,9 +170,9 @@ public final class CxxAstScanner {
 
     /* Classes */
     builder.withSquidAstVisitor(new SourceCodeBuilderVisitor<>((SourceCode parentSourceCode, AstNode astNode) -> {
-      AstNode classNameAst = astNode.getFirstDescendant(CxxGrammarImpl.className);
-      String className = classNameAst == null ? "" : classNameAst.getFirstChild().getTokenValue();
-      SourceClass cls = new SourceClass(className + ":" + astNode.getToken().getLine(), className);
+      var classNameAst = astNode.getFirstDescendant(CxxGrammarImpl.className);
+      var className = classNameAst == null ? "" : classNameAst.getFirstChild().getTokenValue();
+      var cls = new SourceClass(className + ":" + astNode.getToken().getLine(), className);
       cls.setStartAtLine(astNode.getTokenLine());
       return cls;
     }, CxxGrammarImpl.classSpecifier));
@@ -193,13 +184,12 @@ public final class CxxAstScanner {
 
     /* Metrics */
     builder.withSquidAstVisitor(new LinesVisitor<>(CxxMetric.LINES));
-    builder.withSquidAstVisitor(new CxxLinesOfCodeVisitor<>(CxxMetric.LINES_OF_CODE));
+    builder.withSquidAstVisitor(new CxxLinesOfCodeVisitor<>());
     builder.withSquidAstVisitor(new CxxLinesOfCodeInFunctionBodyVisitor<>());
-    builder.withSquidAstVisitor(new CxxPublicApiVisitor<>(language));
-
+    builder.withSquidAstVisitor(new CxxPublicApiVisitor<>(squidConfig));
     builder.withSquidAstVisitor(CommentsVisitor.<Grammar>builder().withCommentMetric(CxxMetric.COMMENT_LINES)
       .withNoSonar(true)
-      .withIgnoreHeaderComment(conf.getIgnoreHeaderComments())
+      .withIgnoreHeaderComment(squidConfig.getIgnoreHeaderComments())
       .build());
 
     /* Statements */
@@ -208,15 +198,14 @@ public final class CxxAstScanner {
       .subscribeTo(CxxGrammarImpl.statement)
       .build());
 
-    builder.withSquidAstVisitor(new CxxCyclomaticComplexityVisitor<Grammar>(ComplexityVisitor.<Grammar>builder()
+    builder.withSquidAstVisitor(new CxxCyclomaticComplexityVisitor<>(ComplexityVisitor.<Grammar>builder()
       .setMetricDef(CxxMetric.COMPLEXITY)
       .subscribeTo(CxxComplexityConstants.getCyclomaticComplexityTypes())
       .build()));
 
     builder.withSquidAstVisitor(new CxxCognitiveComplexityVisitor<>());
-
-    builder.withSquidAstVisitor(new CxxFunctionComplexityVisitor<>(language));
-    builder.withSquidAstVisitor(new CxxFunctionSizeVisitor<>(language));
+    builder.withSquidAstVisitor(new CxxFunctionComplexityVisitor<>(squidConfig));
+    builder.withSquidAstVisitor(new CxxFunctionSizeVisitor<>(squidConfig));
 
     // to emit a 'new file' event to the internals of the plugin
     builder.withSquidAstVisitor(new CxxFileVisitor<>());
@@ -224,10 +213,19 @@ public final class CxxAstScanner {
     // log syntax errors
     builder.withSquidAstVisitor(new CxxParseErrorLoggerVisitor<>());
 
+    /* Highlighter */
+    builder.withSquidAstVisitor(new CxxHighlighterVisitor());
+
+    /* CPD */
+    builder.withSquidAstVisitor(new CxxCpdVisitor(squidConfig));
+
+    /* NCLOC & EXECUTABLE_LINES */
+    builder.withSquidAstVisitor(new CxxFileLinesVisitor());
+
     /* External visitors (typically Check ones) */
-    for (SquidAstVisitor<Grammar> visitor : visitors) {
+    for (var visitor : visitors) {
       if (visitor instanceof CxxCharsetAwareVisitor) {
-        ((CxxCharsetAwareVisitor) visitor).setCharset(conf.getCharset());
+        ((CxxCharsetAwareVisitor) visitor).setCharset(squidConfig.getCharset());
       }
       builder.withSquidAstVisitor(visitor);
     }
@@ -240,12 +238,12 @@ public final class CxxAstScanner {
   public static String intersectingConcatenate(String a, String b) {
 
     // find length of maximum possible match
-    int lenOfA = a.length();
-    int lenOfB = b.length();
-    int minIntersectionLen = min(lenOfB, lenOfA);
+    var lenOfA = a.length();
+    var lenOfB = b.length();
+    var minIntersectionLen = min(lenOfB, lenOfA);
 
     // search down from maximum match size, to get longest possible intersection
-    for (int size = minIntersectionLen; size > 0; size--) {
+    for (var size = minIntersectionLen; size > 0; size--) {
       if (a.regionMatches(lenOfA - size, b, 0, size)) {
         return a + b.substring(size, lenOfB);
       }

@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ import java.io.UnsupportedEncodingException;
 import static org.hamcrest.Matchers.containsString;
 import org.junit.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.CxxConfiguration;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.checks.CxxFileTester;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
 import org.sonar.squidbridge.api.SourceFile;
@@ -35,11 +35,11 @@ public class ParsingErrorCheckTest {
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void test_syntax_error_recognition() throws UnsupportedEncodingException, IOException {
-    CxxConfiguration config = new CxxConfiguration();
-    config.setErrorRecoveryEnabled(false);
+    var squidConfig = new CxxSquidConfiguration();
+    squidConfig.setErrorRecoveryEnabled(false);
 
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/parsingError1.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(CxxFileTesterHelper.mockCxxLanguage(), tester.cxxFile, config, new ParsingErrorCheck());
+    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig, new ParsingErrorCheck());
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().atLine(4).withMessageThat(containsString("Parse error"))
@@ -49,11 +49,11 @@ public class ParsingErrorCheckTest {
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void test_syntax_error_pperror() throws UnsupportedEncodingException, IOException {
-    CxxConfiguration config = new CxxConfiguration();
-    config.setErrorRecoveryEnabled(false);
+    var squidConfig = new CxxSquidConfiguration();
+    squidConfig.setErrorRecoveryEnabled(false);
 
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/parsingError2.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(CxxFileTesterHelper.mockCxxLanguage(), tester.cxxFile, config, new ParsingErrorCheck());
+    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig, new ParsingErrorCheck());
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().atLine(2).withMessageThat(containsString("Parse error"))

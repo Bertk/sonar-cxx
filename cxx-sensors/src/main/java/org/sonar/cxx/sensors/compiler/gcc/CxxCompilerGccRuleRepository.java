@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,33 +21,23 @@ package org.sonar.cxx.sensors.compiler.gcc;
 
 import org.sonar.api.platform.ServerFileSystem;
 import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.sensors.utils.CxxAbstractRuleRepository;
+import org.sonar.cxx.sensors.utils.RulesDefinitionXml;
 
 /**
  * {@inheritDoc}
  */
-public class CxxCompilerGccRuleRepository extends CxxAbstractRuleRepository {
+public class CxxCompilerGccRuleRepository extends RulesDefinitionXml {
 
-  public static final String CUSTOM_RULES_KEY = "compiler-gcc.customRules";
-  private static final String KEY = "compiler-gcc";
+  private static final String LANGUAGE = "cxx";
+  public static final String KEY = "compiler-gcc";
   private static final String NAME = "Compiler-GCC";
+  private static final String FILE = "/compiler-gcc.xml";
 
   /**
    * {@inheritDoc}
    */
-  public CxxCompilerGccRuleRepository(ServerFileSystem fileSystem, RulesDefinitionXmlLoader xmlRuleLoader,
-    CxxLanguage language) {
-    super(fileSystem, xmlRuleLoader, KEY, NAME, CUSTOM_RULES_KEY, language);
-  }
-
-  public static String getRepositoryKey(CxxLanguage lang) {
-    return CxxAbstractRuleRepository.getRepositoryKey(KEY, lang);
-  }
-
-  @Override
-  protected String fileName() {
-    return "/compiler-gcc.xml";
+  public CxxCompilerGccRuleRepository(ServerFileSystem fileSystem, RulesDefinitionXmlLoader xmlRuleLoader) {
+    super(fileSystem, xmlRuleLoader, LANGUAGE, KEY, NAME, FILE);
   }
 
 }

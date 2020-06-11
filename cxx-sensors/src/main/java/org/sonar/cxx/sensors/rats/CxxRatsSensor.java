@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,19 +20,24 @@
 package org.sonar.cxx.sensors.rats;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
+import javax.xml.XMLConstants;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.input.sax.XMLReaders;
-import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.config.PropertyDefinition;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
-import org.sonar.cxx.sensors.utils.CxxUtils;
+import org.sonar.cxx.sensors.utils.InvalidReportException;
+import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -40,18 +45,23 @@ import org.sonar.cxx.utils.CxxReportIssue;
  */
 public class CxxRatsSensor extends CxxIssuesReportSensor {
 
-  public static final String REPORT_PATH_KEY = "rats.reportPath";
+  public static final String REPORT_PATH_KEY = "sonar.cxx.rats.reportPaths";
 
   private static final Logger LOG = Loggers.get(CxxRatsSensor.class);
   private static final String MISSING_RATS_TYPE = "fixed size global buffer";
 
-  /**
-   * CxxRatsSensor for RATS Sensor
-   *
-   * @param language defines settings C or C++
-   */
-  public CxxRatsSensor(CxxLanguage language) {
-    super(language, REPORT_PATH_KEY, CxxRatsRuleRepository.getRepositoryKey(language));
+  public static List<PropertyDefinition> properties() {
+    return Collections.unmodifiableList(Arrays.asList(
+      PropertyDefinition.builder(REPORT_PATH_KEY)
+        .name("RATS report(s)")
+        .description("Path to <a href='https://code.google.com/p/rough-auditing-tool-for-security/'>RATS<a/>"
+                       + " reports(s), relative to projects root." + USE_ANT_STYLE_WILDCARDS)
+        .category("CXX External Analyzers")
+        .subCategory("RATS")
+        .onQualifiers(Qualifiers.PROJECT)
+        .multiValues(true)
+        .build()
+    ));
   }
 
   private static String getVulnerabilityType(@Nullable Element child) {
@@ -64,48 +74,54 @@ public class CxxRatsSensor extends CxxIssuesReportSensor {
   @Override
   public void describe(SensorDescriptor descriptor) {
     descriptor
-      .name(getLanguage().getName() + " RatsSensor")
-      .onlyOnLanguage(getLanguage().getKey())
+      .name("CXX RATS report import")
+      .onlyOnLanguage("cxx")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
-      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathKey()));
+      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   @Override
-  protected void processReport(final SensorContext context, File report)
-    throws org.jdom2.JDOMException, java.io.IOException {
-    LOG.debug("Parsing 'RATS' format");
+  protected void processReport(File report) throws ReportException {
+    LOG.debug("Processing 'RATS' report '{}'", report.getName());
 
     try {
-      SAXBuilder builder = new SAXBuilder(XMLReaders.NONVALIDATING);
+      var builder = new SAXBuilder(XMLReaders.NONVALIDATING);
+      builder.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+      builder.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
       Element root = builder.build(report).getRootElement();
+
       List<Element> vulnerabilities = root.getChildren("vulnerability");
-      for (Element vulnerability : vulnerabilities) {
+      for (var vulnerability : vulnerabilities) {
         String type = getVulnerabilityType(vulnerability.getChild("type"));
         String message = vulnerability.getChild("message").getTextTrim();
 
         List<Element> files = vulnerability.getChildren("file");
 
-        for (Element file : files) {
+        for (var file : files) {
           String fileName = file.getChild("name").getTextTrim();
 
           List<Element> lines = file.getChildren("line");
-          for (Element lineElem : lines) {
+          for (var lineElem : lines) {
             String line = lineElem.getTextTrim();
 
-            CxxReportIssue issue = new CxxReportIssue(type, fileName, line, message);
-            saveUniqueViolation(context, issue);
+            var issue = new CxxReportIssue(type, fileName, line, message);
+            saveUniqueViolation(issue);
           }
         }
       }
-    } catch (org.jdom2.input.JDOMParseException e) {
-      // when RATS fails the XML file might be incomplete
-      LOG.error("Ignore incomplete XML output from RATS '{}'", CxxUtils.getStackTrace(e));
+    } catch (JDOMException | IOException e) {
+      throw new InvalidReportException("The 'RATS' report is invalid", e);
     }
   }
 
   @Override
-  protected CxxMetricsFactory.Key getMetricKey() {
-    return CxxMetricsFactory.Key.RATS_SENSOR_ISSUES_KEY;
+  protected String getReportPathsKey() {
+    return REPORT_PATH_KEY;
+  }
+
+  @Override
+  protected String getRuleRepositoryKey() {
+    return CxxRatsRuleRepository.KEY;
   }
 
 }

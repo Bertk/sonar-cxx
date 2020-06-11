@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,9 @@
  */
 package org.sonar.cxx;
 
-import java.util.Map;
 import org.sonar.api.ce.measure.Component;
 import org.sonar.api.ce.measure.Measure;
 import org.sonar.api.ce.measure.MeasureComputer;
-import org.sonar.api.measures.Metric;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
@@ -47,32 +45,18 @@ public class AggregateMeasureComputer implements MeasureComputer {
 
   private final String[] metricKeys;
 
-  public AggregateMeasureComputer(String languageKey, String languagePropsKey) {
-    final Map<CxxMetricsFactory.Key, Metric<?>> metrics = CxxMetricsFactory.generateMap(languageKey, languagePropsKey);
-
+  public AggregateMeasureComputer() {
     metricKeys = new String[]{
       // public API
-      metrics.get(CxxMetricsFactory.Key.PUBLIC_API_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.PUBLIC_UNDOCUMENTED_API_KEY).key(),
-      // sensors
-      metrics.get(CxxMetricsFactory.Key.CLANG_SA_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.CLANG_TIDY_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.VC_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.GCC_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.CPPCHECK_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.DRMEMORY_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.OTHER_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.PCLINT_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.RATS_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.SQUID_SENSOR_ISSUES_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.VALGRIND_SENSOR_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.VERAXX_SENSOR_KEY).key(),
+      CxxMetrics.PUBLIC_API_KEY,
+      CxxMetrics.PUBLIC_UNDOCUMENTED_API_KEY,
       // complexity
-      metrics.get(CxxMetricsFactory.Key.COMPLEX_FUNCTIONS_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.COMPLEX_FUNCTIONS_LOC_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.BIG_FUNCTIONS_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.BIG_FUNCTIONS_LOC_KEY).key(),
-      metrics.get(CxxMetricsFactory.Key.LOC_IN_FUNCTIONS_KEY).key(),};
+      CxxMetrics.COMPLEX_FUNCTIONS_KEY,
+      CxxMetrics.COMPLEX_FUNCTIONS_LOC_KEY,
+      CxxMetrics.BIG_FUNCTIONS_KEY,
+      CxxMetrics.BIG_FUNCTIONS_LOC_KEY,
+      CxxMetrics.LOC_IN_FUNCTIONS_KEY
+    };
   }
 
   private static void compute(MeasureComputerContext context, String metricKey) {
@@ -88,7 +72,7 @@ public class AggregateMeasureComputer implements MeasureComputer {
       // Otherwise there is a chance, that your custom calculation won't work properly for
       // multi-module projects.
       LOG.debug("Component {}: measure {} already calculated, value = {}", component.getKey(), metricKey,
-        existingMeasure.getIntValue());
+                existingMeasure.getIntValue());
       return;
     }
     Iterable<Measure> childrenMeasures = context.getChildrenMeasures(metricKey);
@@ -99,7 +83,7 @@ public class AggregateMeasureComputer implements MeasureComputer {
       return;
     }
     int aggregation = 0;
-    for (Measure childMeasure : childrenMeasures) {
+    for (var childMeasure : childrenMeasures) {
       if (childMeasure != null) {
         aggregation += childMeasure.getIntValue();
       }
@@ -119,7 +103,7 @@ public class AggregateMeasureComputer implements MeasureComputer {
 
   @Override
   public void compute(MeasureComputerContext context) {
-    for (final String metricKey : metricKeys) {
+    for (var metricKey : metricKeys) {
       compute(context, metricKey);
     }
   }

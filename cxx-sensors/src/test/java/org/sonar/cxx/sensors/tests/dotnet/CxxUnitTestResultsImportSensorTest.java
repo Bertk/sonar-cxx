@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,11 +23,9 @@ package org.sonar.cxx.sensors.tests.dotnet;
 // SonarQube .NET Tests Library
 // Copyright (C) 2014-2017 SonarSource SA
 // mailto:info AT sonarsource DOT com
-import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.api.SoftAssertions;
 import static org.assertj.core.groups.Tuple.tuple;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -39,39 +37,27 @@ import static org.mockito.Mockito.when;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.measures.CoreMetrics;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.sensors.cppcheck.CxxCppCheckSensor;
-import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class CxxUnitTestResultsImportSensorTest {
 
   @Rule
   public TemporaryFolder temp = new TemporaryFolder();
 
-  private CxxLanguage language;
-
-  @Before
-  public void setUp() {
-    language = TestUtils.mockCxxLanguage();
-    when(language.getPluginProperty(CxxCppCheckSensor.REPORT_PATH_KEY)).thenReturn("sonar.cxx." + CxxCppCheckSensor.REPORT_PATH_KEY);
-    when(language.IsRecoveryEnabled()).thenReturn(Optional.of(Boolean.TRUE));
-  }
-
   @Test
   public void sensorDescriptor() {
-    DefaultSensorDescriptor descriptor = new DefaultSensorDescriptor();
-    CxxUnitTestResultsImportSensor sensor = new CxxUnitTestResultsImportSensor(mock(CxxUnitTestResultsAggregator.class), language);
+    var descriptor = new DefaultSensorDescriptor();
+    var sensor = new CxxUnitTestResultsImportSensor(mock(CxxUnitTestResultsAggregator.class));
     sensor.describe(descriptor);
 
-    SoftAssertions softly = new SoftAssertions();
-    softly.assertThat(descriptor.name()).isEqualTo(language.getName() + " Unit Test Results Import");
-    softly.assertThat(descriptor.isGlobal()).isTrue();
-    softly.assertThat(descriptor.languages()).containsOnly(language.getKey());
+    var softly = new SoftAssertions();
+    softly.assertThat(descriptor.name()).isEqualTo("CXX VSTest/xUnit/NUnit Test report import");
+    softly.assertThat(descriptor.languages()).containsOnly("cxx");
     softly.assertAll();
   }
 
   @Test
   public void analyze() throws Exception {
+    SensorContextTester context = SensorContextTester.create(temp.newFolder());
     UnitTestResults results = mock(UnitTestResults.class);
     when(results.tests()).thenReturn(42);
     when(results.passedPercentage()).thenReturn(84d);
@@ -81,17 +67,17 @@ public class CxxUnitTestResultsImportSensorTest {
     when(results.executionTime()).thenReturn(321L);
 
     CxxUnitTestResultsAggregator unitTestResultsAggregator = mock(CxxUnitTestResultsAggregator.class);
-    SensorContextTester context = SensorContextTester.create(temp.newFolder());
     UnitTestConfiguration unitTestConf = mock(UnitTestConfiguration.class);
-
     when(unitTestResultsAggregator.aggregate(Mockito.any(WildcardPatternFileProvider.class),
-      Mockito.any(UnitTestResults.class), same(unitTestConf))).thenReturn(results);
+                                             Mockito.any(UnitTestResults.class), same(unitTestConf)))
+      .thenReturn(results);
 
-    new CxxUnitTestResultsImportSensor(unitTestResultsAggregator, language)
-      .analyze(context, results, unitTestConf);
+    var sensor = new CxxUnitTestResultsImportSensor(unitTestResultsAggregator);
+    sensor.execute(context); // set context
+    sensor.analyze(results, unitTestConf);
 
     verify(unitTestResultsAggregator).aggregate(Mockito.any(WildcardPatternFileProvider.class), Mockito.eq(results),
-      same(unitTestConf));
+                                                same(unitTestConf));
 
     assertThat(context.measures("projectKey"))
       .extracting("metric.key", "value")
@@ -116,13 +102,15 @@ public class CxxUnitTestResultsImportSensorTest {
     when(results.errors()).thenReturn(3);
     when(results.executionTime()).thenReturn(null);
     when(unitTestResultsAggregator.aggregate(Mockito.any(WildcardPatternFileProvider.class),
-      Mockito.any(UnitTestResults.class), same(unitTestConf))).thenReturn(results);
+                                             Mockito.any(UnitTestResults.class), same(unitTestConf)))
+      .thenReturn(results);
 
-    new CxxUnitTestResultsImportSensor(unitTestResultsAggregator, language)
-      .analyze(context, results, unitTestConf);
+    var sensor = new CxxUnitTestResultsImportSensor(unitTestResultsAggregator);
+    sensor.execute(context); // set context
+    sensor.analyze(results, unitTestConf);
 
     verify(unitTestResultsAggregator).aggregate(Mockito.any(WildcardPatternFileProvider.class), Mockito.eq(results),
-      same(unitTestConf));
+                                                same(unitTestConf));
 
     assertThat(context.measures("projectKey"))
       .extracting("metric.key", "value")

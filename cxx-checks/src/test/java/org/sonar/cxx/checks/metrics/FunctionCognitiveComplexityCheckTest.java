@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -37,21 +37,23 @@ public class FunctionCognitiveComplexityCheckTest {
 
   @Test
   public void check() throws UnsupportedEncodingException, IOException {
-    FunctionCognitiveComplexityCheck check = new FunctionCognitiveComplexityCheck();
+    var check = new FunctionCognitiveComplexityCheck();
     check.setMaxComplexity(5);
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/FunctionCognitiveComplexity.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
+      "src/test/resources/checks/FunctionCognitiveComplexity.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
     Set<CxxReportIssue> issues = MultiLocatitionSquidCheck.getMultiLocationCheckMessages(file);
     assertThat(issues).isNotNull();
 
-    SoftAssertions softly = new SoftAssertions();
+    var softly = new SoftAssertions();
     softly.assertThat(issues).hasSize(5);
     softly.assertThat(issues).allSatisfy(issue -> "FunctionCognitiveComplexity".equals(issue.getRuleId()));
 
     CxxReportIssue issue0 = issues.stream().filter(issue -> issue.getLocations().get(0).getLine().equals("13"))
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 13"));
     softly.assertThat(issue0.getLocations()).containsOnly(
-      new CxxReportLocation(null, "13", "The Cognitive Complexity of this function is 20 which is greater than 5 authorized."),
+      new CxxReportLocation(null, "13",
+                            "The Cognitive Complexity of this function is 20 which is greater than 5 authorized."),
       new CxxReportLocation(null, "14", "+1: if statement"),
       new CxxReportLocation(null, "15", "+2: if statement (incl 1 for nesting)"),
       new CxxReportLocation(null, "16", "+3: conditional operator (incl 2 for nesting)"),
@@ -66,7 +68,8 @@ public class FunctionCognitiveComplexityCheckTest {
     CxxReportIssue issue1 = issues.stream().filter(issue -> issue.getLocations().get(0).getLine().equals("33"))
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 33"));
     softly.assertThat(issue1.getLocations()).containsOnly(
-      new CxxReportLocation(null, "33", "The Cognitive Complexity of this function is 20 which is greater than 5 authorized."),
+      new CxxReportLocation(null, "33",
+                            "The Cognitive Complexity of this function is 20 which is greater than 5 authorized."),
       new CxxReportLocation(null, "34", "+1: if statement"),
       new CxxReportLocation(null, "35", "+2: if statement (incl 1 for nesting)"),
       new CxxReportLocation(null, "36", "+3: conditional operator (incl 2 for nesting)"),
@@ -81,7 +84,8 @@ public class FunctionCognitiveComplexityCheckTest {
     CxxReportIssue issue2 = issues.stream().filter(issue -> issue.getLocations().get(0).getLine().equals("51"))
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 51"));
     softly.assertThat(issue2.getLocations()).containsOnly(
-      new CxxReportLocation(null, "51", "The Cognitive Complexity of this function is 20 which is greater than 5 authorized."),
+      new CxxReportLocation(null, "51",
+                            "The Cognitive Complexity of this function is 20 which is greater than 5 authorized."),
       new CxxReportLocation(null, "52", "+1: if statement"),
       new CxxReportLocation(null, "53", "+2: if statement (incl 1 for nesting)"),
       new CxxReportLocation(null, "54", "+3: conditional operator (incl 2 for nesting)"),
@@ -96,7 +100,8 @@ public class FunctionCognitiveComplexityCheckTest {
     CxxReportIssue issue3 = issues.stream().filter(issue -> issue.getLocations().get(0).getLine().equals("72"))
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 72"));
     softly.assertThat(issue3.getLocations()).containsOnly(
-      new CxxReportLocation(null, "72", "The Cognitive Complexity of this function is 20 which is greater than 5 authorized."),
+      new CxxReportLocation(null, "72",
+                            "The Cognitive Complexity of this function is 20 which is greater than 5 authorized."),
       new CxxReportLocation(null, "73", "+1: if statement"),
       new CxxReportLocation(null, "74", "+2: if statement (incl 1 for nesting)"),
       new CxxReportLocation(null, "75", "+3: conditional operator (incl 2 for nesting)"),
@@ -111,7 +116,8 @@ public class FunctionCognitiveComplexityCheckTest {
     CxxReportIssue issue4 = issues.stream().filter(issue -> issue.getLocations().get(0).getLine().equals("89"))
       .findFirst().orElseThrow(() -> new AssertionError("No issue at line 89"));
     softly.assertThat(issue4.getLocations()).containsOnly(
-      new CxxReportLocation(null, "89", "The Cognitive Complexity of this function is 18 which is greater than 5 authorized."),
+      new CxxReportLocation(null, "89",
+                            "The Cognitive Complexity of this function is 18 which is greater than 5 authorized."),
       new CxxReportLocation(null, "91", "+1: if statement"),
       new CxxReportLocation(null, "91", "+1: logical operator"),
       new CxxReportLocation(null, "91", "+1: logical operator"),

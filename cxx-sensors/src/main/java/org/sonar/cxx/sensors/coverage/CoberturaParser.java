@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -46,6 +46,37 @@ public class CoberturaParser extends CxxCoverageParser {
     // no operation but necessary for list of coverage parsers
   }
 
+  /**
+   * Join two paths
+   *
+   * path1 | path2 | result ---------|----------|------- empty | empty | empty empty | absolute | absolute path2 empty |
+   * relative | relative path2 absolute | empty | empty relative | empty | empty absolute | absolute | absolute path2
+   * absolute | relative | absolute path1 + relative path2 relative | absolute | absolute path2 relative | relative |
+   * relative path1 + relative path2
+   *
+   * @param path1 first path
+   * @param path2 second path to be joined to first path
+   * @return joined path as string
+   */
+  public static String join(Path path1, Path path2) {
+    if (path2.toString().isEmpty()) {
+      return "";
+    }
+    if (!path1.isAbsolute()) {
+      path1 = Paths.get(".", path1.toString());
+    }
+    if (!path2.isAbsolute()) {
+      path2 = Paths.get(".", path2.toString());
+    }
+
+    Path result = path1.resolve(path2).normalize();
+    if (!result.isAbsolute()) {
+      result = Paths.get(".", result.toString());
+    }
+
+    return result.toString();
+  }
+
   private static void collectFileData(SMInputCursor clazz, CoverageMeasures builder) throws XMLStreamException {
     SMInputCursor line = clazz.childElementCursor("lines").advance().childElementCursor("line");
 
@@ -54,7 +85,7 @@ public class CoberturaParser extends CxxCoverageParser {
       long noHits = Long.parseLong(line.getAttrValue("hits"));
       if (noHits > Integer.MAX_VALUE) {
         LOG.warn("Truncating the actual number of hits ({}) to the maximum number supported by Sonar ({})",
-          noHits, Integer.MAX_VALUE);
+                 noHits, Integer.MAX_VALUE);
         noHits = Integer.MAX_VALUE;
       }
       builder.setHits(lineId, (int) noHits);
@@ -75,18 +106,17 @@ public class CoberturaParser extends CxxCoverageParser {
    * {@inheritDoc}
    */
   @Override
-  public void processReport(File report, final Map<String, CoverageMeasures> coverageData)
-    throws XMLStreamException {
-    LOG.debug("Parsing 'Cobertura' format");
+  public void parse(File report, final Map<String, CoverageMeasures> coverageData) throws XMLStreamException {
+    LOG.debug("Processing 'Cobertura Coverage' format");
     baseDir = Paths.get(".");
 
-    StaxParser sourceParser = new StaxParser((SMHierarchicCursor rootCursor) -> {
+    var sourceParser = new StaxParser((SMHierarchicCursor rootCursor) -> {
       rootCursor.advance();
       readBaseDir(rootCursor.descendantElementCursor("source"));
     });
     sourceParser.parse(report);
 
-    StaxParser packageParser = new StaxParser((SMHierarchicCursor rootCursor) -> {
+    var packageParser = new StaxParser((SMHierarchicCursor rootCursor) -> {
       rootCursor.advance();
       collectPackageMeasures(rootCursor.descendantElementCursor("package"), coverageData);
     });
@@ -116,46 +146,8 @@ public class CoberturaParser extends CxxCoverageParser {
     }
   }
 
-  /**
-   * Join two paths
-   *
-   * path1    | path2    | result
-   * ---------|----------|-------
-   * empty    | empty    | empty
-   * empty    | absolute | absolute path2
-   * empty    | relative | relative path2
-   * absolute | empty    | empty
-   * relative | empty    | empty
-   * absolute | absolute | absolute path2
-   * absolute | relative | absolute path1 + relative path2
-   * relative | absolute | absolute path2
-   * relative | relative | relative path1 + relative path2
-   * 
-   * @param path1 first path
-   * @param path2 second path to be joined to first path
-   * @return joined path as string
-   */
-  public static String join(Path path1, Path path2) {
-    if (path2.toString().isEmpty()) {
-      return "";
-    }
-    if (!path1.isAbsolute()) {
-      path1 = Paths.get(".", path1.toString());
-    }
-    if (!path2.isAbsolute()) {
-      path2 = Paths.get(".", path2.toString());
-    }
-
-    Path result = path1.resolve(path2).normalize();
-    if (!result.isAbsolute()) {
-      result = Paths.get(".", result.toString());
-    }
-
-    return result.toString();
-  }
-
   private void collectFileMeasures(SMInputCursor clazz, Map<String, CoverageMeasures> coverageData)
-          throws XMLStreamException {
+    throws XMLStreamException {
     while (clazz.getNext() != null) {
       String normalPath = join(baseDir, Paths.get(clazz.getAttrValue("filename")));
       if (!normalPath.isEmpty()) {

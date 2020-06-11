@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -58,10 +58,10 @@ public class TestwellCtcTxtParser extends CxxCoverageParser {
    * {@inheritDoc}
    */
   @Override
-  public void processReport(File report, final Map<String, CoverageMeasures> coverageData) {
-    LOG.debug("Parsing 'Testwell CTC++' textual format");
+  public void parse(File report, final Map<String, CoverageMeasures> coverageData) {
+    LOG.debug("Processing 'Testwell CTC++ Coverage' format");
 
-    try (Scanner s = new Scanner(report).useDelimiter(SECTION_SEP)) {
+    try ( var s = new Scanner(report).useDelimiter(SECTION_SEP)) {
       scanner = s;
       Matcher headerMatcher = FILE_HEADER.matcher(scanner.next());
       while (parseUnit(coverageData, headerMatcher)) {
@@ -95,7 +95,7 @@ public class TestwellCtcTxtParser extends CxxCoverageParser {
     } else {
       normalFilename = FilenameUtils.normalize("./" + filename);
     }
-    File file = new File(normalFilename);
+    var file = new File(normalFilename);
     addLines(file, coverageData);
   }
 
@@ -103,7 +103,7 @@ public class TestwellCtcTxtParser extends CxxCoverageParser {
     LOG.debug("Parsing function sections...");
 
     CoverageMeasures coverageMeasures = CoverageMeasures.create();
-    for (String nextLine = scanner.next(); !FILE_RESULT.matcher(nextLine).find(); nextLine = scanner.next()) {
+    for (var nextLine = scanner.next(); !FILE_RESULT.matcher(nextLine).find(); nextLine = scanner.next()) {
       parseLineSection(coverageMeasures, nextLine);
     }
     coverageData.put(file.getPath(), coverageMeasures);

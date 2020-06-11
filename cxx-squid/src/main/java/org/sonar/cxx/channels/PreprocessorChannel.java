@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ public class PreprocessorChannel extends Channel<Lexer> {
   private static final char EOF = (char) -1;
 
   private static String read(CodeReader code) {
-    StringBuilder sb = new StringBuilder(256);
+    var sb = new StringBuilder(256);
     char ch;
 
     while (true) {

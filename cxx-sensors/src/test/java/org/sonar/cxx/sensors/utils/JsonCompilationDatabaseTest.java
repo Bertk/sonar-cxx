@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,131 +27,211 @@ import java.nio.file.Paths;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.sonar.cxx.CxxCompilationUnitSettings;
-import org.sonar.cxx.CxxConfiguration;
+import org.sonar.cxx.CxxSquidConfiguration;
 
 public class JsonCompilationDatabaseTest {
 
   @Test
   public void testGlobalSettings() throws Exception {
-    CxxConfiguration conf = new CxxConfiguration();
+    var squidConfig = new CxxSquidConfiguration();
 
-    File file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
 
-    JsonCompilationDatabase.parse(conf, file);
+    JsonCompilationDatabase.parse(squidConfig, file);
 
-    CxxCompilationUnitSettings cus = conf.getGlobalCompilationUnitSettings();
+    CxxCompilationUnitSettings cus = squidConfig.getGlobalCompilationUnitSettings();
 
     assertThat(cus).isNotNull();
     assertThat(cus.getDefines().containsKey("UNIT_DEFINE")).isFalse();
     assertThat(cus.getDefines().containsKey("GLOBAL_DEFINE")).isTrue();
-    assertThat(cus.getIncludes().contains("/usr/local/include")).isFalse();
-    assertThat(cus.getIncludes().contains("/usr/include")).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/local/include"))).isFalse();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/include"))).isTrue();
   }
 
   @Test
   public void testExtensionSettings() throws Exception {
-    CxxConfiguration conf = new CxxConfiguration();
-    File file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
-    JsonCompilationDatabase.parse(conf, file);
+    var squidConfig = new CxxSquidConfiguration();
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
+    JsonCompilationDatabase.parse(squidConfig, file);
 
     Path cwd = Paths.get(".");
     Path absPath = cwd.resolve("test-extension.cpp");
     String filename = absPath.toAbsolutePath().normalize().toString();
 
-    CxxCompilationUnitSettings cus = conf.getCompilationUnitSettings(filename);
+    CxxCompilationUnitSettings cus = squidConfig.getCompilationUnitSettings(filename);
 
     assertThat(cus).isNotNull();
     assertThat(cus.getDefines().containsKey("UNIT_DEFINE")).isTrue();
     assertThat(cus.getDefines().containsKey("GLOBAL_DEFINE")).isFalse();
-    assertThat(cus.getIncludes().contains("/usr/local/include")).isTrue();
-    assertThat(cus.getIncludes().contains("/usr/include")).isFalse();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/local/include"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/include"))).isFalse();
   }
 
   @Test
   public void testCommandSettings() throws Exception {
-    CxxConfiguration conf = new CxxConfiguration();
+    var squidConfig = new CxxSquidConfiguration();
 
-    File file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
 
-    JsonCompilationDatabase.parse(conf, file);
+    JsonCompilationDatabase.parse(squidConfig, file);
 
     Path cwd = Paths.get(".");
     Path absPath = cwd.resolve("test-with-command.cpp");
     String filename = absPath.toAbsolutePath().normalize().toString();
 
-    CxxCompilationUnitSettings cus = conf.getCompilationUnitSettings(filename);
+    CxxCompilationUnitSettings cus = squidConfig.getCompilationUnitSettings(filename);
 
     assertThat(cus).isNotNull();
     assertThat(cus.getDefines().containsKey("COMMAND_DEFINE")).isTrue();
     assertThat(cus.getDefines().containsKey("COMMAND_SPACE_DEFINE")).isTrue();
     assertThat(cus.getDefines().get("COMMAND_SPACE_DEFINE")).isEqualTo("\" foo 'bar' zoo \"");
     assertThat(cus.getDefines().containsKey("SIMPLE")).isTrue();
-    assertThat(cus.getDefines().get("SIMPLE")).isEqualTo("");
+    assertThat(cus.getDefines().get("SIMPLE")).isEqualTo("1");
     assertThat(cus.getDefines().containsKey("GLOBAL_DEFINE")).isFalse();
-    assertThat(cus.getIncludes().contains("/usr/local/include")).isTrue();
-    assertThat(cus.getIncludes().contains("/another/include/dir")).isTrue();
-    assertThat(cus.getIncludes().contains("/usr/include")).isFalse();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/local/include"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/another/include/dir"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/include"))).isFalse();
+  }
+
+  @Test
+  public void testArgumentParser() throws Exception {
+    var squidConfig = new CxxSquidConfiguration();
+
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
+
+    JsonCompilationDatabase.parse(squidConfig, file);
+
+    Path cwd = Paths.get(".");
+    Path absPath = cwd.resolve("test-argument-parser.cpp");
+    String filename = absPath.toAbsolutePath().normalize().toString();
+
+    CxxCompilationUnitSettings cus = squidConfig.getCompilationUnitSettings(filename);
+
+    assertThat(cus).isNotNull();
+
+    assertThat(cus.getDefines().get("MACRO1")).isEqualTo("1");
+    assertThat(cus.getDefines().get("MACRO2")).isEqualTo("2");
+    assertThat(cus.getDefines().get("MACRO3")).isEqualTo("1");
+    assertThat(cus.getDefines().get("MACRO4")).isEqualTo("4");
+    assertThat(cus.getDefines().get("MACRO5")).isEqualTo("\" a 'b' c \"");
+    assertThat(cus.getDefines().get("MACRO6")).isEqualTo("\"With spaces, quotes and \\-es.\"");
+
+    assertThat(cus.getIncludes().contains(Paths.get("/aaa/bbb"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/ccc/ddd"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/eee/fff"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/ggg/hhh"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/iii/jjj"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/kkk/lll"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/mmm/nnn"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/ooo/ppp"))).isTrue();
   }
 
   @Test
   public void testArgumentSettings() throws Exception {
-    CxxConfiguration conf = new CxxConfiguration();
+    var squidConfig = new CxxSquidConfiguration();
 
-    File file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
 
-    JsonCompilationDatabase.parse(conf, file);
+    JsonCompilationDatabase.parse(squidConfig, file);
 
     Path cwd = Paths.get(".");
     Path absPath = cwd.resolve("test-with-arguments.cpp");
     String filename = absPath.toAbsolutePath().normalize().toString();
 
-    CxxCompilationUnitSettings cus = conf.getCompilationUnitSettings(filename);
+    CxxCompilationUnitSettings cus = squidConfig.getCompilationUnitSettings(filename);
 
     assertThat(cus).isNotNull();
     assertThat(cus.getDefines().containsKey("ARG_DEFINE")).isTrue();
     assertThat(cus.getDefines().containsKey("ARG_SPACE_DEFINE")).isTrue();
     assertThat(cus.getDefines().get("ARG_SPACE_DEFINE")).isEqualTo("\" foo 'bar' zoo \"");
     assertThat(cus.getDefines().containsKey("SIMPLE")).isTrue();
-    assertThat(cus.getDefines().get("SIMPLE")).isEqualTo("");
+    assertThat(cus.getDefines().get("SIMPLE")).isEqualTo("1");
     assertThat(cus.getDefines().containsKey("GLOBAL_DEFINE")).isFalse();
-    assertThat(cus.getIncludes().contains("/usr/local/include")).isTrue();
-    assertThat(cus.getIncludes().contains("/another/include/dir")).isTrue();
-    assertThat(cus.getIncludes().contains("/usr/include")).isFalse();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/local/include"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/another/include/dir"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/include"))).isFalse();
+  }
+
+  @Test
+  public void testRelativeDirectorySettings() throws Exception {
+    var squidConfig = new CxxSquidConfiguration();
+
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
+
+    JsonCompilationDatabase.parse(squidConfig, file);
+
+    Path cwd = Paths.get("src");
+    Path absPath = cwd.resolve("test-with-relative-directory.cpp");
+    String filename = absPath.toAbsolutePath().normalize().toString();
+
+    CxxCompilationUnitSettings cus = squidConfig.getCompilationUnitSettings(filename);
+
+    assertThat(cus).isNotNull();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/local/include"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("src/another/include/dir"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("parent/include/dir"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/include"))).isFalse();
+  }
+
+  @Test
+  public void testArgumentAsListSettings() throws Exception {
+    var squidConfig = new CxxSquidConfiguration();
+
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
+
+    JsonCompilationDatabase.parse(squidConfig, file);
+
+    Path cwd = Paths.get(".");
+    Path absPath = cwd.resolve("test-with-arguments-as-list.cpp");
+    String filename = absPath.toAbsolutePath().normalize().toString();
+
+    CxxCompilationUnitSettings cus = squidConfig.getCompilationUnitSettings(filename);
+
+    assertThat(cus).isNotNull();
+    assertThat(cus.getDefines().containsKey("ARG_DEFINE")).isTrue();
+    assertThat(cus.getDefines().containsKey("ARG_SPACE_DEFINE")).isTrue();
+    assertThat(cus.getDefines().get("ARG_SPACE_DEFINE")).isEqualTo("\" foo 'bar' zoo \"");
+    assertThat(cus.getDefines().containsKey("SIMPLE")).isTrue();
+    assertThat(cus.getDefines().get("SIMPLE")).isEqualTo("1");
+    assertThat(cus.getDefines().containsKey("GLOBAL_DEFINE")).isFalse();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/local/include"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/another/include/dir"))).isTrue();
+    assertThat(cus.getIncludes().contains(Paths.get("/usr/include"))).isFalse();
   }
 
   @Test
   public void testUnknownUnitSettings() throws Exception {
-    CxxConfiguration conf = new CxxConfiguration();
+    var squidConfig = new CxxSquidConfiguration();
 
-    File file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/compile_commands.json");
 
-    JsonCompilationDatabase.parse(conf, file);
+    JsonCompilationDatabase.parse(squidConfig, file);
 
     Path cwd = Paths.get(".");
     Path absPath = cwd.resolve("unknown.cpp");
     String filename = absPath.toAbsolutePath().normalize().toString();
 
-    CxxCompilationUnitSettings cus = conf.getCompilationUnitSettings(filename);
+    CxxCompilationUnitSettings cus = squidConfig.getCompilationUnitSettings(filename);
 
     assertThat(cus).isNull();
   }
 
   @Test(expected = JsonMappingException.class)
   public void testInvalidJson() throws Exception {
-    CxxConfiguration conf = new CxxConfiguration();
+    var squidConfig = new CxxSquidConfiguration();
 
-    File file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/invalid.json");
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/invalid.json");
 
-    JsonCompilationDatabase.parse(conf, file);
+    JsonCompilationDatabase.parse(squidConfig, file);
   }
 
   @Test(expected = FileNotFoundException.class)
   public void testFileNotFound() throws Exception {
-    CxxConfiguration conf = new CxxConfiguration();
+    var squidConfig = new CxxSquidConfiguration();
 
-    File file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/not-found.json");
+    var file = new File("src/test/resources/org/sonar/cxx/sensors/json-compilation-database-project/not-found.json");
 
-    JsonCompilationDatabase.parse(conf, file);
+    JsonCompilationDatabase.parse(squidConfig, file);
   }
 
 }

@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -35,11 +35,19 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
 
   @Override
   public void accept(File file, UnitTestResults unitTestResults) {
-    LOG.info("Parsing the NUnit Test Results file " + file.getAbsolutePath());
+    LOG.info("Parsing the NUnit Test Results file '{}'", file.getAbsolutePath());
     new Parser(file, unitTestResults).parse();
   }
 
   private static class Parser {
+
+    private final File file;
+    private final UnitTestResults unitTestResults;
+
+    Parser(File file, UnitTestResults unitTestResults) {
+      this.file = file;
+      this.unitTestResults = unitTestResults;
+    }
 
     private static boolean checkRootTag(XmlParserHelper xmlParserHelper) {
       try {
@@ -76,16 +84,8 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
       return executionTime;
     }
 
-    private final File file;
-    private final UnitTestResults unitTestResults;
-
-    public Parser(File file, UnitTestResults unitTestResults) {
-      this.file = file;
-      this.unitTestResults = unitTestResults;
-    }
-
     public void parse() {
-      try (XmlParserHelper xmlParserHelper = new XmlParserHelper(file)) {
+      try (var xmlParserHelper = new XmlParserHelper(file)) {
         if (checkRootTag(xmlParserHelper)) {
           handleTestResultsTag(xmlParserHelper);
         }
@@ -108,7 +108,7 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
       Double executionTime = readExecutionTimeFromDirectlyNestedTestSuiteTags(xmlParserHelper);
 
       unitTestResults.add(tests, passed, skipped, failures, errors,
-        executionTime != null ? (long) executionTime.doubleValue() : null);
+                          executionTime != null ? (long) executionTime.doubleValue() : null);
     }
 
   }

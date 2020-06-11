@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,22 +21,18 @@ package org.sonar.plugins.cxx;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
-import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.server.rule.RulesDefinition;
 
 public class CxxRuleRepositoryTest {
 
-  private final MapSettings settings = new MapSettings();
-
   @Test
   public void rulesTest() {
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     assertThat(context.repositories()).isEmpty();
-    CppLanguage checks = new CppLanguage(settings.asConfig());
-    new CxxRuleRepository(checks).define(context);
+    new CxxRuleRepository().define(context);
 
     assertThat(context.repositories()).hasSize(1);
-    assertThat(context.repository(checks.getRepositoryKey()).rules()).hasSize(27);
+    assertThat(context.repository("cxx").rules()).hasSize(27);
   }
 
 }

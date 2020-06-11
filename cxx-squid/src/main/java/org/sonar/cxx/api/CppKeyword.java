@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -51,8 +51,8 @@ public enum CppKeyword implements TokenType {
 
   public static String[] keywordValues() {
     CppKeyword[] keywordsEnum = CppKeyword.values();
-    String[] keywords = new String[keywordsEnum.length];
-    for (int i = 0; i < keywords.length; i++) {
+    var keywords = new String[keywordsEnum.length];
+    for (var i = 0; i < keywords.length; i++) {
       keywords[i] = keywordsEnum[i].getValue();
     }
     return keywords;

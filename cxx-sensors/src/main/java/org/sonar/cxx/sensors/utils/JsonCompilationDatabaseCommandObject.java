@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
 package org.sonar.cxx.sensors.utils;
 
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
   private String directory;
   private String file;
   private String command;
-  private String arguments;
+  private List<String> arguments;
   private String output;
 
   /**
@@ -46,7 +47,7 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
   /**
    * Extension to define include directories
    */
-  private ArrayList<String> includes;
+  private ArrayList<Path> includes;
 
   /**
    * Initialize members
@@ -55,15 +56,17 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
     this.directory = "";
     this.file = "";
     this.command = "";
-    this.arguments = "";
+    this.arguments = new ArrayList<>();
     this.output = "";
     this.defines = new HashMap<>();
     this.includes = new ArrayList<>();
   }
 
   /**
-   * The working directory of the compilation. All paths specified in the command or file fields must be either absolute
+   * The working directory of the compilation.All paths specified in the command or file fields must be either absolute
    * or relative to this directory.
+   *
+   * @return working directory
    */
   public String getDirectory() {
     return directory;
@@ -74,9 +77,11 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
   }
 
   /**
-   * The main translation unit source processed by this compilation step. This is used by tools as the key into the
+   * The main translation unit source processed by this compilation step.This is used by tools as the key into the
    * compilation database. There can be multiple command objects for the same file, for example if the same source file
    * is compiled with different configurations.
+   *
+   * @return main translation unit
    */
   public String getFile() {
     return file;
@@ -87,32 +92,46 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
   }
 
   /**
-   * The compile command executed. After JSON unescaping, this must be a valid command to rerun the exact compilation
+   * The compile command executed.After JSON unescaping, this must be a valid command to rerun the exact compilation
    * step for the translation unit in the environment the build system uses. Parameters use shell quoting and shell
    * escaping of quotes, with ‘"‘ and ‘\‘ being the only special characters. Shell expansion is not supported.
+   *
+   * @return true if compile command available
    */
-  public String getCommand() {
-    return command;
+  public boolean hasCommand() {
+    return !command.isEmpty();
   }
 
   public void setCommand(String command) {
     this.command = command;
   }
 
+  public String getCommand() {
+    return command;
+  }
+
   /**
-   * The compile command executed as list of strings. Either arguments or command is required.
+   * The compile command executed as list of strings.Either arguments or command is required.
+   *
+   * @return true if arguments available
    */
-  public String getArguments() {
-    return arguments;
+  public boolean hasArguments() {
+    return !arguments.isEmpty();
   }
 
-  public void setArguments(String arguments) {
-    this.arguments = arguments;
+  public void setArguments(List<String> arguments) {
+    this.arguments = new ArrayList<>(arguments);
+  }
+
+  public List<String> getArguments() {
+    return new ArrayList<>(arguments);
   }
 
   /**
-   * The name of the output created by this compilation step. This field is optional. It can be used to distinguish
+   * The name of the output created by this compilation step.This field is optional. It can be used to distinguish
    * different processing modes of the same input file.
+   *
+   * @return name of the output
    */
   public String getOutput() {
     return output;
@@ -124,24 +143,36 @@ public class JsonCompilationDatabaseCommandObject implements Serializable {
 
   /**
    * Extension to define defines
+   *
+   * @return true if defines are available
    */
-  public Map<String, String> getDefines() {
-    return defines;
+  public boolean hasDefines() {
+    return !defines.isEmpty();
   }
 
   public void setDefines(Map<String, String> defines) {
     this.defines = new HashMap<>(defines);
   }
 
-  /**
-   * Extension to define include directories
-   */
-  public List<String> getIncludes() {
-    return Collections.unmodifiableList(includes);
+  public Map<String, String> getDefines() {
+    return new HashMap<>(defines);
   }
 
-  public void setIncludes(List<String> includes) {
+  /**
+   * Extension to define include directories
+   *
+   * @return true if include directories available
+   */
+  public boolean hasIncludes() {
+    return !includes.isEmpty();
+  }
+
+  public void setIncludes(List<Path> includes) {
     this.includes = new ArrayList<>(includes);
+  }
+
+  public List<Path> getIncludes() {
+    return Collections.unmodifiableList(includes);
   }
 
 }

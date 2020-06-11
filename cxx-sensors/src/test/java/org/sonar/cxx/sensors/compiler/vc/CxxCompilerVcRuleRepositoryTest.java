@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,23 +25,19 @@ import static org.mockito.Mockito.mock;
 import org.sonar.api.platform.ServerFileSystem;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class CxxCompilerVcRuleRepositoryTest {
 
   @Test
   public void createVcRulesTest() {
-    CxxLanguage language = TestUtils.mockCxxLanguage();
-
-    CxxCompilerVcRuleRepository def = new CxxCompilerVcRuleRepository(
+    var def = new CxxCompilerVcRuleRepository(
       mock(ServerFileSystem.class),
-      new RulesDefinitionXmlLoader(), language);
+      new RulesDefinitionXmlLoader());
 
-    RulesDefinition.Context context = new RulesDefinition.Context();
+    var context = new RulesDefinition.Context();
     def.define(context);
 
-    RulesDefinition.Repository repo = context.repository(CxxCompilerVcRuleRepository.getRepositoryKey(language));
+    RulesDefinition.Repository repo = context.repository(CxxCompilerVcRuleRepository.KEY);
     assertThat(repo.rules()).hasSize(888);
   }
 

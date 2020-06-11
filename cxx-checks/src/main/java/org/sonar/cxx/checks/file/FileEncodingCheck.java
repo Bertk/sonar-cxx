@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -61,9 +61,7 @@ public class FileEncodingCheck extends SquidCheck<Grammar> implements CxxCharset
       getContext().createFileViolation(this,
         "Not all characters of the file can be encoded with the predefined charset "
         + charset.name() + ".");
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Cannot Read File", e);
-      }
+      LOG.debug("Cannot Read File", e);
     }
   }
 

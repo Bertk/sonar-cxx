@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,7 @@ import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.impl.Parser;
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.Collection;
-import org.sonar.cxx.CxxConfiguration;
-import org.sonar.cxx.CxxLanguage;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.lexer.CxxLexer;
 import org.sonar.cxx.preprocessor.CxxPreprocessor;
 import org.sonar.cxx.preprocessor.JoinStringsPreprocessor;
@@ -44,25 +42,20 @@ public final class CxxParser {
     currentPreprocessorInstance.get().finishedPreprocessing(path);
   }
 
-  public static Collection<CxxPreprocessor.Include> getMissingIncludeFiles(File path) {
-    return currentPreprocessorInstance.get().getMissingIncludeFiles(path);
-  }
-
-  public static Parser<Grammar> create(CxxLanguage language) {
+  public static Parser<Grammar> create() {
     return create(new SquidAstVisitorContextImpl<>(new SourceProject("")),
-      new CxxConfiguration(), language);
+                  new CxxSquidConfiguration());
   }
 
-  public static Parser<Grammar> create(CxxLanguage language, SquidAstVisitorContext<Grammar> context) {
-    return create(context, new CxxConfiguration(), language);
+  public static Parser<Grammar> create(SquidAstVisitorContext<Grammar> context) {
+    return create(context, new CxxSquidConfiguration());
   }
 
-  public static Parser<Grammar> create(SquidAstVisitorContext<Grammar> context, CxxConfiguration conf,
-    CxxLanguage language) {
-    final CxxPreprocessor cxxpp = new CxxPreprocessor(context, conf, language);
-    currentPreprocessorInstance = new WeakReference<CxxPreprocessor>(cxxpp);
-    return Parser.builder(CxxGrammarImpl.create(conf))
-      .withLexer(CxxLexer.create(conf, cxxpp, new JoinStringsPreprocessor()))
+  public static Parser<Grammar> create(SquidAstVisitorContext<Grammar> context, CxxSquidConfiguration squidConfig) {
+    var cxxpp = new CxxPreprocessor(context, squidConfig);
+    currentPreprocessorInstance = new WeakReference<>(cxxpp);
+    return Parser.builder(CxxGrammarImpl.create(squidConfig))
+      .withLexer(CxxLexer.create(squidConfig, cxxpp, new JoinStringsPreprocessor()))
       .build();
   }
 

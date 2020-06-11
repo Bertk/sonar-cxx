@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ public final class CxxToolkit {
   }
 
   public static void main(String[] args) {
-    Toolkit toolkit = new Toolkit("SSLR :: Cxx :: Toolkit", new CxxConfigurationModel());
+    var toolkit = new Toolkit("SSLR :: Cxx :: Toolkit", new CxxConfigurationModel());
     toolkit.run();
   }
 

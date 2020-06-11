@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,17 +20,21 @@
 package org.sonar.cxx.sensors.veraxx;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
 import org.codehaus.staxmate.in.SMInputCursor;
-import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.config.PropertyDefinition;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
-import org.sonar.cxx.sensors.utils.CxxUtils;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
+import org.sonar.cxx.sensors.utils.InvalidReportException;
+import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.sensors.utils.StaxParser;
 import org.sonar.cxx.utils.CxxReportIssue;
 
@@ -39,37 +43,42 @@ import org.sonar.cxx.utils.CxxReportIssue;
  */
 public class CxxVeraxxSensor extends CxxIssuesReportSensor {
 
-  public static final String REPORT_PATH_KEY = "vera.reportPath";
+  public static final String REPORT_PATH_KEY = "sonar.cxx.vera.reportPaths";
   private static final Logger LOG = Loggers.get(CxxVeraxxSensor.class);
 
-  /**
-   * CxxVeraxxSensor for C++ Vera Sensor
-   *
-   * @param language defines settings C or C++
-   */
-  public CxxVeraxxSensor(CxxLanguage language) {
-    super(language, REPORT_PATH_KEY, CxxVeraxxRuleRepository.getRepositoryKey(language));
+  public static List<PropertyDefinition> properties() {
+    return Collections.unmodifiableList(Arrays.asList(
+      PropertyDefinition.builder(REPORT_PATH_KEY)
+        .name("Vera++ XML report(s)")
+        .description("Path to <a href='https://bitbucket.org/verateam'>Vera++</a> XML reports(s),"
+                       + " relative to projects root." + USE_ANT_STYLE_WILDCARDS)
+        .category("CXX External Analyzers")
+        .subCategory("Vera++")
+        .onQualifiers(Qualifiers.PROJECT)
+        .multiValues(true)
+        .build()
+    ));
   }
 
   @Override
   public void describe(SensorDescriptor descriptor) {
     descriptor
-      .name(getLanguage().getName() + " VeraxxSensor")
-      .onlyOnLanguage(getLanguage().getKey())
+      .name("CXX Vera++ report import")
+      .onlyOnLanguage("cxx")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
-      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathKey()));
+      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   @Override
-  protected void processReport(final SensorContext context, File report)
-    throws javax.xml.stream.XMLStreamException {
-    LOG.debug("Parsing 'Vera++' format");
+  protected void processReport(File report) throws ReportException {
+    LOG.debug("Processing 'Vera++' report '{}'", report.getName());
+
     try {
-      StaxParser parser = new StaxParser((SMHierarchicCursor rootCursor) -> {
+      var parser = new StaxParser((SMHierarchicCursor rootCursor) -> {
         try {
           rootCursor.advance();
-        } catch (com.ctc.wstx.exc.WstxEOFException eofExc) {
-          throw new EmptyReportException("Cannot read vera++ report ", eofExc);
+        } catch (com.ctc.wstx.exc.WstxEOFException e) {
+          throw new EmptyReportException("The 'Vera++' report is empty", e);
         }
 
         SMInputCursor fileCursor = rootCursor.childElementCursor("file");
@@ -83,28 +92,31 @@ public class CxxVeraxxSensor extends CxxIssuesReportSensor {
               String message = errorCursor.getAttrValue("message");
               String source = errorCursor.getAttrValue("source");
 
-              CxxReportIssue issue = new CxxReportIssue(source, name, line, message);
-              saveUniqueViolation(context, issue);
+              var issue = new CxxReportIssue(source, name, line, message);
+              saveUniqueViolation(issue);
             } else {
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("Error in file '{}', with message '{}'",
-                  name + "(" + errorCursor.getAttrValue("line") + ")",
-                  errorCursor.getAttrValue("message"));
-              }
+              LOG.debug("Error in file '{}', with message '{}'",
+                        name + "(" + errorCursor.getAttrValue("line") + ")",
+                        errorCursor.getAttrValue("message"));
             }
           }
         }
       });
 
       parser.parse(report);
-    } catch (com.ctc.wstx.exc.WstxUnexpectedCharException e) {
-      LOG.error("Ignore XML error from Veraxx '{}'", CxxUtils.getStackTrace(e));
+    } catch (XMLStreamException e) {
+      throw new InvalidReportException("The 'Vera++' report is invalid", e);
     }
   }
 
   @Override
-  protected CxxMetricsFactory.Key getMetricKey() {
-    return CxxMetricsFactory.Key.VERAXX_SENSOR_KEY;
+  protected String getReportPathsKey() {
+    return REPORT_PATH_KEY;
+  }
+
+  @Override
+  protected String getRuleRepositoryKey() {
+    return CxxVeraxxRuleRepository.KEY;
   }
 
 }

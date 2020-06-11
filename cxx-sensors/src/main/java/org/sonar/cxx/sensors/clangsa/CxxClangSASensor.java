@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,14 +26,18 @@ import com.dd.plist.NSObject;
 import com.dd.plist.NSString;
 import com.dd.plist.PropertyListParser;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.Nullable;
-import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.config.PropertyDefinition;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.InvalidReportException;
+import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -42,17 +46,22 @@ import org.sonar.cxx.utils.CxxReportIssue;
  */
 public class CxxClangSASensor extends CxxIssuesReportSensor {
 
-  public static final String REPORT_PATH_KEY = "clangsa.reportPath";
+  public static final String REPORT_PATH_KEY = "sonar.cxx.clangsa.reportPaths";
 
   private static final Logger LOG = Loggers.get(CxxClangSASensor.class);
 
-  /**
-   * CxxClangSASensor for Clang Static Analyzer Sensor
-   *
-   * @param language defines settings C or C++
-   */
-  public CxxClangSASensor(CxxLanguage language) {
-    super(language, REPORT_PATH_KEY, CxxClangSARuleRepository.getRepositoryKey(language));
+  public static List<PropertyDefinition> properties() {
+    return Collections.unmodifiableList(Arrays.asList(
+      PropertyDefinition.builder(REPORT_PATH_KEY)
+        .name("Clang Static Analyzer report(s)")
+        .description("Path to Clang Static Analyzer reports, relative to projects root. If neccessary, "
+                       + "<a href='https://ant.apache.org/manual/dirtasks.html'>Ant-style wildcards</a> are at your service.")
+        .category("External Analyzers")
+        .subCategory("Clang Static Analyzer")
+        .onQualifiers(Qualifiers.PROJECT)
+        .multiValues(true)
+        .build()
+    ));
   }
 
   private static NSObject require(@Nullable NSObject object, String errorMsg) {
@@ -65,17 +74,28 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
   @Override
   public void describe(SensorDescriptor descriptor) {
     descriptor
-      .name(getLanguage().getName() + " ClangSASensor")
-      .onlyOnLanguage(getLanguage().getKey())
+      .name("CXX Clang Static Analyzer report import")
+      .onlyOnLanguage("cxx")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
-      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathKey()));
+      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
+  }
+
+  private void addFlowToIssue(final NSDictionary diagnostic, final NSObject[] sourceFiles, final CxxReportIssue issue) {
+    NSObject[] path = ((NSArray) require(diagnostic.objectForKey("path"), "Missing mandatory entry 'path'")).getArray();
+    for (var pathObject : path) {
+      var pathElement = new PathElement(pathObject);
+      if (pathElement.getKind() != PathElementKind.EVENT) {
+        continue;
+      }
+
+      var event = new PathEvent(pathObject, sourceFiles);
+      issue.addFlowElement(event.getFilePath(), event.getLineNumber(), event.getExtendedMessage());
+    }
   }
 
   @Override
-  protected void processReport(final SensorContext context, File report)
-    throws javax.xml.stream.XMLStreamException {
-
-    LOG.debug("Processing clangsa report '{}''", report.getName());
+  protected void processReport(File report) throws ReportException {
+    LOG.debug("Processing 'Clang Static Analyzer' report '{}''", report.getName());
 
     try {
       File f = new File(report.getPath());
@@ -83,43 +103,48 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
       NSDictionary rootDict = (NSDictionary) PropertyListParser.parse(f);
 
       NSObject[] diagnostics = ((NSArray) require(rootDict.objectForKey("diagnostics"),
-        "Missing mandatory entry 'diagnostics'")).getArray();
+                                                  "Missing mandatory entry 'diagnostics'")).getArray();
       NSObject[] sourceFiles = ((NSArray) require(rootDict.objectForKey("files"),
-        "Missing mandatory entry 'files'")).getArray();
+                                                  "Missing mandatory entry 'files'")).getArray();
 
-      for (NSObject diagnostic : diagnostics) {
+      for (var diagnostic : diagnostics) {
         NSDictionary diag = (NSDictionary) diagnostic;
 
         String description = ((NSString) require(diag.get("description"),
-          "Missing mandatory entry 'diagnostics/description'")).getContent();
+                                                 "Missing mandatory entry 'diagnostics/description'")).getContent();
         String checkerName = ((NSString) require(diag.get("check_name"),
-          "Missing mandatory entry 'diagnostics/check_name'")).getContent();
+                                                 "Missing mandatory entry 'diagnostics/check_name'")).getContent();
         NSDictionary location = (NSDictionary) require(diag.get("location"),
-          "Missing mandatory entry 'diagnostics/location'");
+                                                       "Missing mandatory entry 'diagnostics/location'");
         int line = ((NSNumber) require(location.get("line"),
-          "Missing mandatory entry 'diagnostics/location/line'")).intValue();
+                                       "Missing mandatory entry 'diagnostics/location/line'")).intValue();
         int fileIndex = ((NSNumber) require(location.get("file"),
-          "Missing mandatory entry 'diagnostics/location/file'")).intValue();
+                                            "Missing mandatory entry 'diagnostics/location/file'")).intValue();
 
         if (fileIndex < 0 || fileIndex >= sourceFiles.length) {
           throw new IllegalArgumentException("Invalid file index");
         }
         String filePath = ((NSString) sourceFiles[fileIndex]).getContent();
 
-        CxxReportIssue issue = new CxxReportIssue(checkerName, filePath, Integer.toString(line), description);
+        var issue = new CxxReportIssue(checkerName, filePath, Integer.toString(line), description);
 
         addFlowToIssue(diag, sourceFiles, issue);
 
-        saveUniqueViolation(context, issue);
+        saveUniqueViolation(issue);
       }
     } catch (Exception e) {
-      LOG.error("Failed to parse clangsa report: {}", e.getMessage());
+      throw new InvalidReportException("The 'Clang Static Analyzer' report is invalid", e);
     }
   }
 
   @Override
-  protected CxxMetricsFactory.Key getMetricKey() {
-    return CxxMetricsFactory.Key.CLANG_SA_SENSOR_ISSUES_KEY;
+  protected String getReportPathsKey() {
+    return REPORT_PATH_KEY;
+  }
+
+  @Override
+  protected String getRuleRepositoryKey() {
+    return CxxClangSARuleRepository.KEY;
   }
 
   private enum PathElementKind {
@@ -127,6 +152,7 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
   }
 
   private class PathElement {
+
     private final NSDictionary pathDict;
 
     public PathElement(NSObject pathObject) {
@@ -135,17 +161,23 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
 
     public PathElementKind getKind() {
       String kind = ((NSString) require(pathDict.get("kind"), "Missing mandatory entry 'kind'")).getContent();
-      if ("event".equals(kind)) {
-        return PathElementKind.EVENT;
-      } else if ("control".equals(kind)) {
-        return PathElementKind.CONTROL;
-      } else {
+      if (null == kind) {
         return PathElementKind.UNKNOWN;
+      } else {
+        switch (kind) {
+          case "event":
+            return PathElementKind.EVENT;
+          case "control":
+            return PathElementKind.CONTROL;
+          default:
+            return PathElementKind.UNKNOWN;
+        }
       }
     }
   }
 
   private class PathEvent {
+
     private final NSDictionary eventDict;
     private final NSObject[] sourceFiles;
 
@@ -156,7 +188,7 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
 
     public String getExtendedMessage() {
       return ((NSString) require(eventDict.get("extended_message"), "Missing mandatory entry 'extended_message'"))
-          .getContent();
+        .getContent();
     }
 
     public String getLineNumber() {
@@ -177,16 +209,4 @@ public class CxxClangSASensor extends CxxIssuesReportSensor {
     }
   }
 
-  private void addFlowToIssue(final NSDictionary diagnostic, final NSObject[] sourceFiles, final CxxReportIssue issue) {
-    NSObject[] path = ((NSArray) require(diagnostic.objectForKey("path"), "Missing mandatory entry 'path'")).getArray();
-    for (NSObject pathObject : path) {
-      PathElement pathElement = new PathElement(pathObject);
-      if (pathElement.getKind() != PathElementKind.EVENT) {
-        continue;
-      }
-
-      PathEvent event = new PathEvent(pathObject, sourceFiles);
-      issue.addFlowElement(event.getFilePath(), event.getLineNumber(), event.getExtendedMessage());
-    }
-  }
 }

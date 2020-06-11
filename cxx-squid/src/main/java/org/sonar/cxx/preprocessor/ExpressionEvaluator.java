@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -29,10 +29,11 @@ import java.math.BigInteger;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxConfiguration;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CppPunctuator;
 import org.sonar.cxx.api.CxxTokenType;
 
@@ -44,19 +45,19 @@ public final class ExpressionEvaluator {
   private final CxxPreprocessor preprocessor;
   private final Deque<String> macroEvaluationStack;
 
-  private ExpressionEvaluator(CxxConfiguration conf, CxxPreprocessor preprocessor) {
-    parser = CppParser.createConstantExpressionParser(conf);
+  private ExpressionEvaluator(CxxSquidConfiguration squidConfig, CxxPreprocessor preprocessor) {
+    parser = CppParser.createConstantExpressionParser(squidConfig);
 
     this.preprocessor = preprocessor;
     macroEvaluationStack = new LinkedList<>();
   }
 
-  public static boolean eval(CxxConfiguration conf, CxxPreprocessor preprocessor, String constExpr) {
-    return new ExpressionEvaluator(conf, preprocessor).evalToBoolean(constExpr, null);
+  public static boolean eval(CxxSquidConfiguration squidConfig, CxxPreprocessor preprocessor, String constExpr) {
+    return new ExpressionEvaluator(squidConfig, preprocessor).evalToBoolean(constExpr, null);
   }
 
-  public static boolean eval(CxxConfiguration conf, CxxPreprocessor preprocessor, AstNode constExpr) {
-    return new ExpressionEvaluator(conf, preprocessor).evalToBoolean(constExpr);
+  public static boolean eval(CxxSquidConfiguration squidConfig, CxxPreprocessor preprocessor, AstNode constExpr) {
+    return new ExpressionEvaluator(squidConfig, preprocessor).evalToBoolean(constExpr);
   }
 
   public static BigInteger decode(String number) {
@@ -85,9 +86,9 @@ public final class ExpressionEvaluator {
       }
     }
 
-    StringBuilder sb = new StringBuilder(number.length());
+    var sb = new StringBuilder(number.length());
     boolean suffix = false;
-    for (int index = begin; index < number.length() && !suffix; index++) {
+    for (var index = begin; index < number.length() && !suffix; index++) {
       char c = number.charAt(index);
       switch (c) {
         case '0':
@@ -139,7 +140,7 @@ public final class ExpressionEvaluator {
     BigInteger number;
     try {
       number = decode(intValue);
-    } catch (java.lang.NumberFormatException nfe) {
+    } catch (java.lang.NumberFormatException e) {
       LOG.warn("Cannot decode the number '{}' falling back to value '{}' instead", intValue, BigInteger.ONE);
       number = BigInteger.ONE;
     }
@@ -152,6 +153,7 @@ public final class ExpressionEvaluator {
     return "'\0'".equals(charValue) ? BigInteger.ZERO : BigInteger.ONE;
   }
 
+  @CheckForNull
   private static AstNode getNextOperand(@Nullable AstNode node) {
     AstNode sibling = node;
     if (sibling != null) {
@@ -164,16 +166,16 @@ public final class ExpressionEvaluator {
   }
 
   private BigInteger evalToInt(String constExpr, @Nullable AstNode exprAst) {
-    AstNode constExprAst = null;
+    AstNode constExprAst;
     try {
       constExprAst = parser.parse(constExpr);
-    } catch (com.sonar.sslr.api.RecognitionException re) {
+    } catch (com.sonar.sslr.api.RecognitionException e) {
       if (exprAst != null) {
         LOG.warn("Error evaluating expression '{}' for AstExp '{}', assuming 0", constExpr, exprAst.getToken());
       } else {
         LOG.warn("Error evaluating expression '{}', assuming 0", constExpr);
       }
-      LOG.debug("EvalToInt failed: {}", re);
+      LOG.debug("EvalToInt failed: {}", e);
       return BigInteger.ZERO;
     }
 
@@ -214,10 +216,8 @@ public final class ExpressionEvaluator {
 
       final String id = exprAst.getTokenValue();
       if (macroEvaluationStack.contains(id)) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("ExpressionEvaluator: self-referential macro '{}' detected;"
-            + " assume true; evaluation stack = ['{} <- {}']", id, id, String.join(" <- ", macroEvaluationStack));
-        }
+        LOG.debug("ExpressionEvaluator: self-referential macro '{}' detected;"
+                    + " assume true; evaluation stack = ['{} <- {}']", id, id, String.join(" <- ", macroEvaluationStack));
         return BigInteger.ONE;
       }
       final String value = preprocessor.valueOf(id);
@@ -284,7 +284,7 @@ public final class ExpressionEvaluator {
       return evalHasIncludeExpression(exprAst);
     } else {
       LOG.error("'evalComplexAst' Unknown expression type '" + nodeType + "' for AstExt '"
-        + exprAst.getToken() + "', assuming 0");
+                  + exprAst.getToken() + "', assuming 0");
       return BigInteger.ZERO;
     }
   }
@@ -551,9 +551,7 @@ public final class ExpressionEvaluator {
 
     if (value == null || "".equals(value)) {
       LOG.error("Undefined functionlike macro '{}' assuming 0", macroName);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Token : {}", exprAst.toString());
-      }
+      LOG.debug("Token : {}", exprAst.toString());
       return BigInteger.ZERO;
     }
 

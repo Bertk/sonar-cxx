@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -38,16 +38,16 @@ class CoverageMeasure {
     return this.hits;
   }
 
+  void setHits(int hits) {
+    this.hits += hits;
+  }
+
   int getConditions() {
     return this.conditions;
   }
 
   int getCoveredConditions() {
     return this.coveredConditions;
-  }
-
-  void setHits(int hits) {
-    this.hits += hits;
   }
 
   void setConditions(int totalConditions, int coveredConditions) {

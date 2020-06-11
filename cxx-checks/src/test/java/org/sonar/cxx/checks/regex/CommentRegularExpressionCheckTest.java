@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -33,13 +33,14 @@ public class CommentRegularExpressionCheckTest {
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void test() throws UnsupportedEncodingException, IOException {
-    CommentRegularExpressionCheck check = new CommentRegularExpressionCheck();
+    var check = new CommentRegularExpressionCheck();
     check.regularExpression = "(?i).*TODO.*";
     check.message = "Avoid TODO";
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/commentRegularExpression.cc", ".");
+    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
+      "src/test/resources/checks/commentRegularExpression.cc", ".");
 
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().atLine(3).withMessage("Avoid TODO")
       .next().atLine(5)

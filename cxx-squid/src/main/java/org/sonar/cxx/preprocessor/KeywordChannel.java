@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -39,8 +39,8 @@ public class KeywordChannel extends Channel<Lexer> {
   private final Token.Builder tokenBuilder = Token.builder();
 
   public KeywordChannel(String regexp, TokenType[]... keywordSets) {
-    for (TokenType[] keywords : keywordSets) {
-      for (TokenType keyword : keywords) {
+    for (var keywords : keywordSets) {
+      for (var keyword : keywords) {
         keywordsMap.put(keyword.getValue(), keyword);
       }
     }

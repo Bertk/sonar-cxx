@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ public class FileNameCheckTest {
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void bad_name() throws UnsupportedEncodingException, IOException {
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/badFile_name.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
 
     String format = "(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$";
     String message = "Rename this file to match this regular expression: \"%s\".";
@@ -51,7 +51,7 @@ public class FileNameCheckTest {
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void good_name_camel_case() throws UnsupportedEncodingException, IOException {
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/FileName.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
 
     checkMessagesVerifier.verify(file.getCheckMessages());
   }
@@ -60,7 +60,7 @@ public class FileNameCheckTest {
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void good_name_snake_case() throws UnsupportedEncodingException, IOException {
     CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/file_name.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
 
     checkMessagesVerifier.verify(file.getCheckMessages());
   }

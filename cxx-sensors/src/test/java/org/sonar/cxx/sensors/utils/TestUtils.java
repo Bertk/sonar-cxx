@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,25 +20,19 @@
 package org.sonar.cxx.sensors.utils;
 
 import java.io.File;
-import java.io.Serializable;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import javax.annotation.CheckForNull;
 import org.apache.tools.ant.DirectoryScanner;
-import static org.mockito.ArgumentMatchers.same;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.when;
 import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.measures.Metric;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
+import org.sonar.api.resources.Language;
 
 public class TestUtils {
 
@@ -69,11 +63,12 @@ public class TestUtils {
   /**
    * Mocks the filesystem given the root directory of the project
    *
-   * @param baseDir project root directory
    * @return mocked filesystem
    */
   public static DefaultFileSystem mockFileSystem() {
-    return mockFileSystem(TestUtils.loadResource("/org/sonar/cxx/sensors/reports-project"), Arrays.asList(new File(".")), null);
+    return mockFileSystem(TestUtils.loadResource("/org/sonar/cxx/sensors/reports-project"),
+                          Arrays.asList(new File(".")),
+                          null);
   }
 
   /**
@@ -86,29 +81,21 @@ public class TestUtils {
    * @return mocked filesystem
    */
   public static DefaultFileSystem mockFileSystem(File baseDir,
-    List<File> sourceDirs,
-    List<File> testDirs) {
-    DefaultFileSystem fs = new DefaultFileSystem(baseDir);
+                                                 List<File> sourceDirs,
+                                                 List<File> testDirs) {
+    var fs = new DefaultFileSystem(baseDir);
     fs.setEncoding(StandardCharsets.UTF_8);
     scanDirs(fs, sourceDirs, Type.MAIN);
     scanDirs(fs, testDirs, Type.TEST);
     return fs;
   }
 
-  public static CxxLanguage mockCxxLanguage() {
-    CxxLanguage language = Mockito.mock(CxxLanguage.class);
-    when(language.getKey()).thenReturn("c++");
-    when(language.getName()).thenReturn("c++");
-    when(language.getRepositorySuffix()).thenReturn("");
-    when(language.getRepositoryKey()).thenReturn("cxx");
-    when(language.getPropertiesKey()).thenReturn("cxx");
-    when(language.IsRecoveryEnabled()).thenReturn(Optional.of(Boolean.TRUE));
+  public static Language mockLanguage() {
+    Language language = Mockito.mock(Language.class);
+    when(language.getKey()).thenReturn("cxx");
+    when(language.getName()).thenReturn("CXX");
     when(language.getFileSuffixes())
       .thenReturn(new String[]{".cpp", ".hpp", ".h", ".cxx", ".c", ".cc", ".hxx", ".hh"});
-    when(language.getHeaderFileSuffixes()).thenReturn(new String[]{".hpp", ".h", ".hxx", ".hh"});
-
-    Map<CxxMetricsFactory.Key, Metric<?>> metrics = CxxMetricsFactory.generateMap("cxx", "cxx");
-    metrics.forEach((key, value) -> when(language.getMetric(same(key))).thenReturn((Metric<Serializable>) value));
 
     return language;
   }
@@ -145,23 +132,27 @@ public class TestUtils {
       return;
     }
 
-    String[] suffixes = mockCxxLanguage().getFileSuffixes();
-    String[] includes = new String[suffixes.length];
-    for (int i = 0; i < includes.length; ++i) {
+    String[] suffixes = mockLanguage().getFileSuffixes();
+    var includes = new String[suffixes.length];
+    for (var i = 0; i < includes.length; ++i) {
       includes[i] = "**/*" + suffixes[i];
     }
 
-    DirectoryScanner scanner = new DirectoryScanner();
+    var scanner = new DirectoryScanner();
     scanner.setIncludes(includes);
     File target;
-    for (File dir : dirs) {
+    for (var dir : dirs) {
       scanner.setBasedir(new File(fs.baseDir(), dir.getPath()));
       scanner.scan();
-      for (String path : scanner.getIncludedFiles()) {
+      for (var path : scanner.getIncludedFiles()) {
         target = new File(dir, path);
-        fs.add(TestInputFileBuilder.create("ProjectKey", target.getPath()).setLanguage("cpp").setType(ftype).build());
+        fs.add(TestInputFileBuilder.create("ProjectKey", target.getPath()).setLanguage("cxx").setType(ftype).build());
       }
     }
+  }
+
+  private TestUtils() {
+    // utility class
   }
 
 }

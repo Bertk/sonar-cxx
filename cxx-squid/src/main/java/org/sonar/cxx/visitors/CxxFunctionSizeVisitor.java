@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.Grammar;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.parser.CxxGrammarImpl;
 import org.sonar.squidbridge.SquidAstVisitor;
@@ -32,7 +32,6 @@ import org.sonar.squidbridge.api.SourceFunction;
 
 public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G> {
 
-  public static final String FUNCTION_SIZE_THRESHOLD_KEY = "funcsize.threshold";
   private static final Logger LOG = Loggers.get(CxxFunctionSizeVisitor.class);
 
   private int sizeThreshold = 0;
@@ -41,11 +40,9 @@ public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G
   private int bigFunctionsLoc;
   private int totalLoc;
 
-  public CxxFunctionSizeVisitor(CxxLanguage language) {
-    this.sizeThreshold = language.getIntegerOption(FUNCTION_SIZE_THRESHOLD_KEY).orElse(20);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Function size threshold: " + this.sizeThreshold);
-    }
+  public CxxFunctionSizeVisitor(CxxSquidConfiguration squidConfig) {
+    this.sizeThreshold = squidConfig.getFunctionSizeThreshold();
+    LOG.debug("Function size threshold: " + this.sizeThreshold);
   }
 
   @Override

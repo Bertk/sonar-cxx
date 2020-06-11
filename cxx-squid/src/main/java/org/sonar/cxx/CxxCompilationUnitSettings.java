@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
  */
 package org.sonar.cxx;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,23 +32,23 @@ import javax.annotation.Nullable;
 public class CxxCompilationUnitSettings {
 
   private Map<String, String> defines = new HashMap<>();
-  private List<String> includes = new ArrayList<>();
+  private List<Path> includes = new ArrayList<>();
 
   public Map<String, String> getDefines() {
-    return defines;
+    return new HashMap<>(defines);
   }
 
   public void setDefines(@Nullable Map<String, String> defines) {
     if (defines != null) {
-      this.defines = defines;
+      this.defines = new HashMap<>(defines);
     }
   }
 
-  public List<String> getIncludes() {
+  public List<Path> getIncludes() {
     return new ArrayList<>(includes);
   }
 
-  public void setIncludes(@Nullable List<String> includes) {
+  public void setIncludes(@Nullable List<Path> includes) {
     if (includes != null) {
       this.includes = new ArrayList<>(includes);
     }

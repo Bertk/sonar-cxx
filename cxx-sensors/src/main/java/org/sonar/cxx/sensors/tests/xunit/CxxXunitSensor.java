@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,19 +21,21 @@ package org.sonar.cxx.sensors.tests.xunit;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.stream.StreamSource;
-import org.sonar.api.batch.sensor.SensorContext;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.measures.CoreMetrics;
+import org.sonar.api.measures.Metric;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.CxxUtils;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
@@ -44,57 +46,47 @@ import org.sonar.cxx.sensors.utils.StaxParser;
  */
 public class CxxXunitSensor extends CxxReportSensor {
 
-  public static final String REPORT_PATH_KEY = "xunit.reportPath";
-  public static final String XSLT_URL_KEY = "xunit.xsltURL";
+  public static final String REPORT_PATH_KEY = "sonar.cxx.xunit.reportPaths";
   private static final Logger LOG = Loggers.get(CxxXunitSensor.class);
 
-  private final String xsltURL;
-
-  /**
-   * CxxXunitSensor
-   *
-   * @param language for C or C++
-   */
-  public CxxXunitSensor(CxxLanguage language) {
-    super(language, REPORT_PATH_KEY);
-    xsltURL = language.getStringOption(XSLT_URL_KEY).orElse(null);
+  public static List<PropertyDefinition> properties() {
+    return Collections.unmodifiableList(Arrays.asList(
+      PropertyDefinition.builder(REPORT_PATH_KEY)
+        .name("Unit test execution report(s)")
+        .description("Path to unit test execution report(s), relative to projects root."
+                       + " See <a href='https://github.com/SonarOpenCommunity/sonar-cxx/wiki/Get-test-execution-metrics'>"
+                     + "here</a> for supported formats." + USE_ANT_STYLE_WILDCARDS)
+        .category("CXX External Analyzers")
+        .subCategory("xUnit Test")
+        .onQualifiers(Qualifiers.PROJECT)
+        .multiValues(true)
+        .build()
+    ));
   }
 
   @Override
   public void describe(SensorDescriptor descriptor) {
     descriptor
-      .global()
-      .name(getLanguage().getName() + " XunitSensor")
+      .name("CXX xUnit Test report import")
       //.onlyOnLanguage(getLanguage().getKey())
-      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathKey()));
+      .onlyWhenConfiguration(conf -> conf.hasKey(REPORT_PATH_KEY));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void executeImpl(SensorContext context) {
-    LOG.debug("Root module imports test metrics: Module Key = '{}'", context.module());
-
+  public void executeImpl() {
     try {
-      List<File> reports = getReports(context.config(), context.fileSystem().baseDir(), getReportPathKey());
+      List<File> reports = getReports(REPORT_PATH_KEY);
       if (!reports.isEmpty()) {
         XunitReportParser parserHandler = parseReport(reports);
-        List<TestCase> testcases = parserHandler.getTestCases();
-
-        LOG.info("Parsing 'xUnit' format");
-        simpleMode(context, testcases);
+        save(parserHandler.getTestFiles());
       } else {
-        LOG.debug("No reports found, nothing to process");
+        LOG.debug("No xUnit reports found, nothing to process");
       }
-    } catch (IOException | TransformerException | XMLStreamException e) {
-      String msg = new StringBuilder(256)
-        .append("Cannot feed the data into SonarQube, details: '")
-        .append(e)
-        .append("'")
-        .toString();
-      LOG.error(msg);
-      CxxUtils.validateRecovery(e, getLanguage());
+    } catch (IOException | XMLStreamException e) {
+      CxxUtils.validateRecovery("Invalid xUnit report", e, context.config());
     }
   }
 
@@ -103,127 +95,77 @@ public class CxxXunitSensor extends CxxReportSensor {
    * @return
    * @throws XMLStreamException
    * @throws IOException
-   * @throws TransformerException
    */
-  private XunitReportParser parseReport(List<File> reports)
-    throws XMLStreamException, IOException, TransformerException {
-    XunitReportParser parserHandler = new XunitReportParser();
-    StaxParser parser = new StaxParser(parserHandler, false);
-    for (File report : reports) {
-      LOG.info("Processing report '{}'", report);
+  private XunitReportParser parseReport(List<File> reports) throws XMLStreamException, IOException {
+    var parserHandler = new XunitReportParser(context.fileSystem().baseDir().getPath());
+    var parser = new StaxParser(parserHandler, false);
+    for (var report : reports) {
+      LOG.info("Processing xUnit report '{}'", report);
       try {
-        parser.parse(transformReport(report));
+        parser.parse(report);
       } catch (EmptyReportException e) {
-        LOG.warn("The report '{}' seems to be empty, ignoring.", report);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("{}", e);
-        }
+        LOG.warn("The xUnit report '{}' seems to be empty, ignoring.", report);
+        LOG.debug("{}", e);
       }
     }
     return parserHandler;
   }
 
-  private void simpleMode(final SensorContext context, List<TestCase> testcases) {
+  private void save(Collection<TestFile> testfiles) {
 
     int testsCount = 0;
     int testsSkipped = 0;
     int testsErrors = 0;
     int testsFailures = 0;
     long testsTime = 0;
-    for (TestCase tc : testcases) {
-      if (tc.isSkipped()) {
-        testsSkipped++;
-      } else if (tc.isFailure()) {
-        testsFailures++;
-      } else if (tc.isError()) {
-        testsErrors++;
+    for (var tf : testfiles) {
+      if (!tf.getFilename().isEmpty()) {
+        InputFile inputFile = getInputFileIfInProject(tf.getFilename());
+        if (inputFile != null) {
+          if (inputFile.language() != null && inputFile.type() == Type.TEST) {
+            LOG.debug("Saving xUnit data for '{}': tests={} | errors:{} | failure:{} | skipped:{} | time:{}",
+                      tf.getFilename(), tf.getTests(), tf.getErrors(), tf.getFailures(), tf.getSkipped(),
+                      tf.getExecutionTime());
+            saveMetric(inputFile, CoreMetrics.TESTS, tf.getTests());
+            saveMetric(inputFile, CoreMetrics.TEST_ERRORS, tf.getErrors());
+            saveMetric(inputFile, CoreMetrics.TEST_FAILURES, tf.getFailures());
+            saveMetric(inputFile, CoreMetrics.SKIPPED_TESTS, tf.getSkipped());
+            saveMetric(inputFile, CoreMetrics.TEST_EXECUTION_TIME, tf.getExecutionTime());
+          }
+        }
       }
-      testsCount++;
-      testsTime += tc.getTime();
+      testsTime += tf.getExecutionTime();
+      testsCount += tf.getTests();
+      testsFailures += tf.getFailures();
+      testsErrors += tf.getErrors();
+      testsSkipped += tf.getSkipped();
     }
-    testsCount -= testsSkipped;
 
     if (testsCount > 0) {
-
-      try {
-        context.<Integer>newMeasure()
-          .forMetric(CoreMetrics.TESTS)
-          .on(context.module())
-          .withValue(testsCount)
-          .save();
-      } catch (IllegalArgumentException ex) {
-        LOG.error("Cannot save measure TESTS : '{}', ignoring measure", ex.getMessage());
-        CxxUtils.validateRecovery(ex, getLanguage());
-      }
-
-      try {
-        context.<Integer>newMeasure()
-          .forMetric(CoreMetrics.TEST_ERRORS)
-          .on(context.module())
-          .withValue(testsErrors)
-          .save();
-      } catch (IllegalArgumentException ex) {
-        LOG.error("Cannot save measure TEST_ERRORS : '{}', ignoring measure", ex.getMessage());
-        CxxUtils.validateRecovery(ex, getLanguage());
-      }
-
-      try {
-        context.<Integer>newMeasure()
-          .forMetric(CoreMetrics.TEST_FAILURES)
-          .on(context.module())
-          .withValue(testsFailures)
-          .save();
-      } catch (IllegalArgumentException ex) {
-        LOG.error("Cannot save measure TEST_FAILURES : '{}', ignoring measure", ex.getMessage());
-        CxxUtils.validateRecovery(ex, getLanguage());
-      }
-
-      try {
-        context.<Integer>newMeasure()
-          .forMetric(CoreMetrics.SKIPPED_TESTS)
-          .on(context.module())
-          .withValue(testsSkipped)
-          .save();
-      } catch (IllegalArgumentException ex) {
-        LOG.error("Cannot save measure SKIPPED_TESTS : '{}', ignoring measure", ex.getMessage());
-        CxxUtils.validateRecovery(ex, getLanguage());
-      }
-
-      try {
-        context.<Long>newMeasure()
-          .forMetric(CoreMetrics.TEST_EXECUTION_TIME)
-          .on(context.module())
-          .withValue(testsTime)
-          .save();
-      } catch (IllegalArgumentException ex) {
-        LOG.error("Cannot save measure TEST_EXECUTION_TIME : '{}', ignoring measure", ex.getMessage());
-        CxxUtils.validateRecovery(ex, getLanguage());
-      }
-    } else {
-      LOG.debug("The reports contain no testcases");
+      LOG.debug("Saving xUnit report total data: tests={} | errors:{} | failure:{} | skipped:{} | time:{}",
+                testsCount, testsErrors, testsFailures, testsSkipped, testsTime);
+      saveMetric(CoreMetrics.TESTS, testsCount);
+      saveMetric(CoreMetrics.TEST_ERRORS, testsErrors);
+      saveMetric(CoreMetrics.TEST_FAILURES, testsFailures);
+      saveMetric(CoreMetrics.SKIPPED_TESTS, testsSkipped);
+      saveMetric(CoreMetrics.TEST_EXECUTION_TIME, testsTime);
     }
   }
 
-  File transformReport(File report)
-    throws java.io.IOException, javax.xml.transform.TransformerException {
-    File transformed = report;
-    if (xsltURL != null && report.length() > 0) {
-      LOG.debug("Transforming the report using xslt '{}'", xsltURL);
-      InputStream inputStream = this.getClass().getResourceAsStream("/xsl/" + xsltURL);
-      if (inputStream == null) {
-        LOG.debug("Transforming: try to access external XSLT via URL");
-        URL url = new URL(xsltURL);
-        inputStream = url.openStream();
-      }
+  private <T extends Serializable> void saveMetric(Metric<T> metric, T value) {
+    context.<T>newMeasure()
+      .withValue(value)
+      .forMetric(metric)
+      .on(context.project())
+      .save();
+  }
 
-      Source xsl = new StreamSource(inputStream);
-      transformed = new File(report.getAbsolutePath() + ".after_xslt");
-      CxxUtils.transformFile(xsl, report, transformed);
-    } else {
-      LOG.debug("Transformation skipped: no xslt given");
-    }
-
-    return transformed;
+  private <T extends Serializable> void saveMetric(InputFile file, Metric<T> metric, T value) {
+    context.<T>newMeasure()
+      .withValue(value)
+      .forMetric(metric)
+      .on(file)
+      .save();
   }
 
 }

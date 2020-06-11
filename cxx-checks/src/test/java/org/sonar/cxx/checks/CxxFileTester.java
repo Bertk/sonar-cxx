@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,17 @@
  */
 package org.sonar.cxx.checks;
 
+import java.io.File;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 
 public class CxxFileTester {
 
   public InputFile cxxFile;
-  public SensorContextTester sensorContext;
+  public SensorContextTester context;
+
+  public File asFile() {
+    return new File(cxxFile.uri().getPath());
+  }
 
 }

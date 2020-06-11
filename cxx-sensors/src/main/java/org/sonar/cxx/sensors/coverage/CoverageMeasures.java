@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -55,13 +55,13 @@ public final class CoverageMeasures {
   }
 
   Collection<CoverageMeasure> getCoverageMeasures() {
-    Map<Integer, CoverageMeasure> measures = new HashMap<>();
+    var measures = new HashMap<Integer, CoverageMeasure>();
     measures.putAll(lineMeasures);
     return measures.values();
   }
 
   Set<Integer> getCoveredLines() {
-    Set<Integer> coveredLines = new HashSet();
+    var coveredLines = new HashSet<Integer>();
     lineMeasures.forEach((key, value) -> {
       if (value.getHits() != 0) {
         coveredLines.add(value.getLine());
@@ -71,7 +71,7 @@ public final class CoverageMeasures {
   }
 
   Set<Integer> getCoveredConditions() {
-    Set<Integer> coveredConditionLines = new HashSet();
+    var coveredConditionLines = new HashSet<Integer>();
     lineMeasures.forEach((key, value) -> {
       if (value.getCoveredConditions() != 0) {
         coveredConditionLines.add(value.getLine());

@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,39 +19,34 @@
  */
 package org.sonar.cxx.parser;
 
+import com.sonar.sslr.api.Grammar;
+import com.sonar.sslr.impl.Parser;
+import java.io.File;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import java.io.File;
-
-import org.sonar.cxx.CxxConfiguration;
-import org.sonar.cxx.CxxFileTesterHelper;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.squidbridge.SquidAstVisitorContext;
 import org.sonar.sslr.grammar.GrammarRuleKey;
 
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.impl.Parser;
-
 /**
- * SquidAstVisitorContext is mock with a fake file path. You can use this base
- * class for preprocessing tokens. You shouldn't use it for preprocessing
- * "physical" files.
+ * SquidAstVisitorContext is mock with a fake file path. You can use this base class for preprocessing tokens. You
+ * shouldn't use it for preprocessing "physical" files.
  */
 public class ParserBaseTestHelper {
 
-  protected CxxConfiguration conf = null;
+  protected CxxSquidConfiguration squidConfig = null;
   protected Parser<Grammar> p = null;
   protected Grammar g = null;
 
   public ParserBaseTestHelper() {
-    conf = new CxxConfiguration();
-    conf.setErrorRecoveryEnabled(false);
+    squidConfig = new CxxSquidConfiguration();
+    squidConfig.setErrorRecoveryEnabled(false);
 
-    File file = new File("snippet.cpp").getAbsoluteFile();
+    var file = new File("snippet.cpp").getAbsoluteFile();
     SquidAstVisitorContext<Grammar> context = mock(SquidAstVisitorContext.class);
     when(context.getFile()).thenReturn(file);
 
-    p = CxxParser.create(context, conf, CxxFileTesterHelper.mockCxxLanguage());
+    p = CxxParser.create(context, squidConfig);
     g = p.getGrammar();
   }
 

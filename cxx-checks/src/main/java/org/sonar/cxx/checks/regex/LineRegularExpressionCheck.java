@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -123,8 +123,7 @@ public class LineRegularExpressionCheck extends SquidCheck<Grammar> implements C
   public void visitFile(AstNode fileNode) {
     if (compare(invertFilePattern, matchFile())) {
       // use onMalformedInput(CodingErrorAction.REPLACE) / onUnmappableCharacter(CodingErrorAction.REPLACE)
-      try (BufferedReader br = new BufferedReader(
-        new InputStreamReader(new FileInputStream(getContext().getFile()), charset))) {
+      try (var br = new BufferedReader(new InputStreamReader(new FileInputStream(getContext().getFile()), charset))) {
         String line;
         int nr = 0;
 
@@ -145,7 +144,7 @@ public class LineRegularExpressionCheck extends SquidCheck<Grammar> implements C
     if (!matchFilePattern.isEmpty()) {
       WildcardPattern filePattern = WildcardPattern.create(matchFilePattern);
       String path = PathUtils.sanitize(getContext().getFile().getPath());
-      return filePattern.match(path);
+      return path != null ? filePattern.match(path) : false;
     }
     return true;
   }

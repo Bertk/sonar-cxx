@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,7 +21,7 @@ package org.sonar.cxx.sensors.coverage;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.sonar.api.batch.ScannerSide;
+import org.sonar.api.scanner.ScannerSide;
 
 /**
  *
@@ -31,9 +31,6 @@ import org.sonar.api.batch.ScannerSide;
 public class CxxCoverageCache {
 
   private static final Map<String, Map<String, CoverageMeasures>> CACHE_UNIT = new HashMap<>();
-
-  public CxxCoverageCache() {
-  }
 
   public Map<String, Map<String, CoverageMeasures>> unitCoverageCache() {
     return CACHE_UNIT;

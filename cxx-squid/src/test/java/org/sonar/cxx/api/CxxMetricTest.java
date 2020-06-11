@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,10 +26,10 @@ public class CxxMetricTest {
 
   @Test
   public void test() {
-    SoftAssertions softly = new SoftAssertions();
-    softly.assertThat(CxxMetric.values()).hasSize(17);
+    var softly = new SoftAssertions();
+    softly.assertThat(CxxMetric.values()).hasSize(21);
 
-    for (CxxMetric metric : CxxMetric.values()) {
+    for (var metric : CxxMetric.values()) {
       softly.assertThat(metric.getName()).isEqualTo(metric.name());
       softly.assertThat(metric.isCalculatedMetric()).isFalse();
       softly.assertThat(metric.aggregateIfThereIsAlreadyAValue()).isTrue();

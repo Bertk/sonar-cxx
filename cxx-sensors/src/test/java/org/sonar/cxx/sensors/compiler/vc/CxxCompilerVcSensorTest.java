@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,81 +19,73 @@
  */
 package org.sonar.cxx.sensors.compiler.vc;
 
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Mockito.when;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.sensors.compiler.CxxCompilerSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class CxxCompilerVcSensorTest {
 
   private DefaultFileSystem fs;
-  private CxxLanguage language;
   private final MapSettings settings = new MapSettings();
 
   @Before
   public void setUp() {
     fs = TestUtils.mockFileSystem();
-    language = TestUtils.mockCxxLanguage();
-    when(language.getPluginProperty(CxxCompilerVcSensor.REPORT_PATH_KEY)).thenReturn("sonar.cxx." + CxxCompilerVcSensor.REPORT_PATH_KEY);
-    when(language.getPluginProperty(CxxCompilerVcSensor.REPORT_CHARSET_DEF)).thenReturn("sonar.cxx." + CxxCompilerVcSensor.REPORT_CHARSET_DEF);
-    when(language.getPluginProperty(CxxCompilerVcSensor.REPORT_REGEX_DEF)).thenReturn("sonar.cxx." + CxxCompilerVcSensor.REPORT_REGEX_DEF);
   }
 
   @Test
   public void sensorDescriptorVc() {
-    DefaultSensorDescriptor descriptor = new DefaultSensorDescriptor();
-    CxxCompilerVcSensor sensor = new CxxCompilerVcSensor(language);
+    var descriptor = new DefaultSensorDescriptor();
+    var sensor = new CxxCompilerVcSensor();
     sensor.describe(descriptor);
-    SoftAssertions softly = new SoftAssertions();
-    softly.assertThat(descriptor.name()).isEqualTo(language.getName() + " CxxCompilerVcSensor");
-    softly.assertThat(descriptor.languages()).containsOnly(language.getKey());
+    var softly = new SoftAssertions();
+    softly.assertThat(descriptor.name()).isEqualTo("CXX Visual Studio compiler report import");
+    softly.assertThat(descriptor.languages()).containsOnly("cxx");
     softly.assertThat(descriptor.ruleRepositories())
-      .containsOnly(CxxCompilerVcRuleRepository.getRepositoryKey(language));
+      .containsOnly(CxxCompilerVcRuleRepository.KEY);
     softly.assertAll();
   }
 
   @Test
   public void shouldReportACorrectVcViolations() {
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
-
-    settings.setProperty(language.getPluginProperty(CxxCompilerVcSensor.REPORT_PATH_KEY), "compiler-reports/BuildLog.htm");
-    settings.setProperty(language.getPluginProperty(CxxCompilerVcSensor.REPORT_CHARSET_DEF), "UTF-16");
+    settings.setProperty(CxxCompilerVcSensor.REPORT_PATH_KEY,
+                         "compiler-reports/BuildLog.htm");
+    settings.setProperty(CxxCompilerVcSensor.REPORT_CHARSET_DEF, StandardCharsets.UTF_16.name());
     context.setSettings(settings);
 
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "zipmanager.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
 
-    CxxCompilerSensor sensor = new CxxCompilerVcSensor(language);
+    var sensor = new CxxCompilerVcSensor();
     sensor.execute(context);
+
     assertThat(context.allIssues()).hasSize(9);
   }
 
   @Test
   public void shouldReportBCorrectVcViolations() {
-    when(language.getStringOption(language.getPluginProperty(CxxCompilerVcSensor.REPORT_CHARSET_DEF))).thenReturn(Optional.of("UTF-8"));
     SensorContextTester context = SensorContextTester.create(fs.baseDir());
-
-    settings.setProperty(language.getPluginProperty(CxxCompilerVcSensor.REPORT_PATH_KEY), "compiler-reports/VC-report.vclog");
-    settings.setProperty(language.getPluginProperty(CxxCompilerVcSensor.REPORT_CHARSET_DEF), "UTF-8");
-    settings.setProperty(language.getPluginProperty(CxxCompilerVcSensor.REPORT_REGEX_DEF),
-      ".*>(?<file>.*)\\((?<line>\\d+)\\):\\x20warning\\x20(?<id>C\\d+):(?<message>.*)");
+    settings.setProperty(CxxCompilerVcSensor.REPORT_PATH_KEY, "compiler-reports/VC-report.vclog");
+    settings.setProperty(CxxCompilerVcSensor.REPORT_CHARSET_DEF, StandardCharsets.UTF_8.name());
+    settings.setProperty(CxxCompilerVcSensor.REPORT_REGEX_DEF,
+                         ".*>(?<file>.*)\\((?<line>\\d+)\\):\\x20warning\\x20(?<id>C\\d+):(?<message>.*)");
     context.setSettings(settings);
 
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "Server/source/zip/zipmanager.cpp")
-      .setLanguage("cpp").initMetadata("asd\nasdas\nasda\n").build());
+      .setLanguage("cxx").initMetadata("asd\nasdas\nasda\n").build());
 
-    CxxCompilerSensor sensor = new CxxCompilerVcSensor(language);
+    var sensor = new CxxCompilerVcSensor();
     sensor.execute(context);
+
     assertThat(context.allIssues()).hasSize(9);
   }
 

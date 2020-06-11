@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,6 @@
 package org.sonar.cxx.sensors.tests.xunit;
 
 import java.io.File;
-import java.util.Map;
 import java.util.TreeMap;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -29,14 +28,16 @@ import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class XunitReportParserTest {
 
-  XunitReportParser parserHandler = new XunitReportParser();
-  StaxParser parser = new StaxParser(parserHandler, false);
-  String pathPrefix = "/org/sonar/cxx/sensors/reports-project/xunit-reports/";
+  private XunitReportParser parserHandler = new XunitReportParser("");
+  private StaxParser parser = new StaxParser(parserHandler, false);
+  private final String pathPrefix = "/org/sonar/cxx/sensors/reports-project/xunit-reports/";
 
   @Test
   public void testParse() throws javax.xml.stream.XMLStreamException {
 
-    Map<String, Integer> ioMap = new TreeMap<>();
+    var ioMap = new TreeMap<String, Integer>();
+
+    // report: number of tests
     ioMap.put("xunit-result-2.xml", 5);
     ioMap.put("xunit-result-SAMPLE_with_fileName.xml", 3);
     ioMap.put("xunit-result-SAMPLE.xml", 3);
@@ -45,18 +46,23 @@ public class XunitReportParserTest {
     ioMap.put("nested_testsuites.xml", 2);
     ioMap.put("xunit-result-no-testsuite.xml", 0);
 
-    for (Map.Entry<String, Integer> entry : ioMap.entrySet()) {
-      parserHandler = new XunitReportParser();
+    for (var entry : ioMap.entrySet()) {
+      parserHandler = new XunitReportParser("");
       parser = new StaxParser(parserHandler, false);
       File report = TestUtils.loadResource(pathPrefix + entry.getKey());
       parser.parse(report);
-      assertEquals((int) entry.getValue(), parserHandler.getTestCases().size());
+
+      long tests = 0;
+      for (var testFile : parserHandler.getTestFiles()) {
+        tests += testFile.getTests();
+      }
+      assertEquals((long) entry.getValue(), tests);
     }
   }
 
   @Test(expected = javax.xml.stream.XMLStreamException.class)
   public void shouldThrowWhenGivenInvalidTime() throws javax.xml.stream.XMLStreamException {
-    parserHandler = new XunitReportParser();
+    parserHandler = new XunitReportParser("");
     parser = new StaxParser(parserHandler, false);
     File report = TestUtils.loadResource(pathPrefix + "invalid-time-xunit-report.xml");
     parser.parse(report);

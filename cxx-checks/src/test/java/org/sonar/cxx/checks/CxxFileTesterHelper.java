@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,12 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.util.Optional;
-import org.mockito.Mockito;
-import static org.mockito.Mockito.when;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.cxx.CxxLanguage;
 
 /**
  *
@@ -36,37 +32,28 @@ import org.sonar.cxx.CxxLanguage;
  */
 public class CxxFileTesterHelper {
 
-  public static CxxFileTester CreateCxxFileTester(String fileName, String basePath) throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = new CxxFileTester();
-    tester.sensorContext = SensorContextTester.create(new File(basePath));
+  public static CxxFileTester CreateCxxFileTester(String fileName, String basePath) throws UnsupportedEncodingException,
+                                                                                           IOException {
+    var tester = new CxxFileTester();
+    tester.context = SensorContextTester.create(new File(basePath));
 
-    tester.sensorContext.fileSystem().add(TestInputFileBuilder.create("", fileName).build());
-    tester.cxxFile = tester.sensorContext.fileSystem().inputFile(tester.sensorContext.fileSystem().predicates().hasPath(fileName));
-
-    return tester;
-  }
-
-  public static CxxFileTester CreateCxxFileTester(String fileName, String basePath, Charset charset) throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = new CxxFileTester();
-    tester.sensorContext = SensorContextTester.create(new File(basePath));
-
-    tester.sensorContext.fileSystem().add(TestInputFileBuilder.create("", fileName).setCharset(charset).build());
-    tester.cxxFile = tester.sensorContext.fileSystem().inputFile(tester.sensorContext.fileSystem().predicates().hasPath(fileName));
+    tester.context.fileSystem().add(TestInputFileBuilder.create("", fileName).build());
+    tester.cxxFile = tester.context.fileSystem().inputFile(tester.context.fileSystem().predicates().hasPath(
+      fileName));
 
     return tester;
   }
 
-  public static CxxLanguage mockCxxLanguage() {
-    CxxLanguage language = Mockito.mock(CxxLanguage.class);
-    when(language.getKey()).thenReturn("c++");
-    when(language.getName()).thenReturn("c++");
-    when(language.getPropertiesKey()).thenReturn("cxx");
-    when(language.IsRecoveryEnabled()).thenReturn(Optional.of(Boolean.TRUE));
-    when(language.getFileSuffixes())
-      .thenReturn(new String[]{".cpp", ".hpp", ".h", ".cxx", ".c", ".cc", ".hxx", ".hh"});
-    when(language.getHeaderFileSuffixes()).thenReturn(new String[]{".hpp", ".h", ".hxx", ".hh"});
+  public static CxxFileTester CreateCxxFileTester(String fileName, String basePath, Charset charset) throws
+    UnsupportedEncodingException, IOException {
+    var tester = new CxxFileTester();
+    tester.context = SensorContextTester.create(new File(basePath));
 
-    return language;
+    tester.context.fileSystem().add(TestInputFileBuilder.create("", fileName).setCharset(charset).build());
+    tester.cxxFile = tester.context.fileSystem().inputFile(tester.context.fileSystem().predicates().hasPath(
+      fileName));
+
+    return tester;
   }
 
 }

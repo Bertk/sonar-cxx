@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,11 +22,10 @@ package org.sonar.cxx.visitors;
 import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.Grammar;
 import com.sonar.sslr.api.Token;
-import java.util.Arrays;
 import java.util.List;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.squidbridge.api.SourceFile;
 
@@ -64,18 +63,18 @@ public class CxxPublicApiVisitor<G extends Grammar> extends AbstractCxxPublicApi
 
   private static final Logger LOG = Loggers.get(CxxPublicApiVisitor.class);
 
-  private int totalAPINr;
-  private int undocumentedAPINr;
+  private int publicApiCounter;
+  private int undocumentedApiCounter;
 
-  public CxxPublicApiVisitor(CxxLanguage language) {
+  public CxxPublicApiVisitor(CxxSquidConfiguration squidConfig) {
     super();
-    withHeaderFileSuffixes(Arrays.asList(language.getHeaderFileSuffixes()));
+    withHeaderFileSuffixes(squidConfig.getPublicApiFileSuffixes());
   }
 
   @Override
   public void visitFile(AstNode astNode) {
-    totalAPINr = 0;
-    undocumentedAPINr = 0;
+    publicApiCounter = 0;
+    undocumentedApiCounter = 0;
     super.visitFile(astNode);
   }
 
@@ -84,23 +83,20 @@ public class CxxPublicApiVisitor<G extends Grammar> extends AbstractCxxPublicApi
     super.leaveFile(astNode);
 
     SourceFile sourceFile = (SourceFile) getContext().peekSourceCode();
-    sourceFile.setMeasure(CxxMetric.PUBLIC_API, totalAPINr);
-    sourceFile.setMeasure(CxxMetric.PUBLIC_UNDOCUMENTED_API, undocumentedAPINr);
+    sourceFile.setMeasure(CxxMetric.PUBLIC_API, publicApiCounter);
+    sourceFile.setMeasure(CxxMetric.PUBLIC_UNDOCUMENTED_API, undocumentedApiCounter);
   }
 
   @Override
   protected void onPublicApi(AstNode node, String id, List<Token> comments) {
     final boolean commented = !comments.isEmpty();
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("node: {} line: {} id: '{}' documented: {}", node.getType(), node.getTokenLine(), id, commented);
-    }
+    LOG.debug("node: {} line: {} id: '{}' documented: {}", node.getType(), node.getTokenLine(), id, commented);
 
     if (!commented) {
-      undocumentedAPINr++;
+      undocumentedApiCounter++;
     }
 
-    totalAPINr++;
+    publicApiCounter++;
   }
 
 }

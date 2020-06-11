@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -34,14 +34,16 @@ public class TooManyStatementsPerLineCheckTest {
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void test() throws UnsupportedEncodingException, IOException {
-    TooManyStatementsPerLineCheck check = new TooManyStatementsPerLineCheck();
+    var check = new TooManyStatementsPerLineCheck();
     check.excludeCaseBreak = false;
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/TooManyStatementsPerLine.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
+      "src/test/resources/checks/TooManyStatementsPerLine.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
-      .next().atLine(17).withMessage("At most one statement is allowed per line, but 2 statements were found on this line.")
+      .next().atLine(17).withMessage(
+      "At most one statement is allowed per line, but 2 statements were found on this line.")
       .next().atLine(20)
       .next().atLine(23)
       .next().atLine(27)
@@ -52,20 +54,22 @@ public class TooManyStatementsPerLineCheckTest {
 
   @Test
   public void testDefaultExcludeCaseBreak() {
-    TooManyStatementsPerLineCheck check = new TooManyStatementsPerLineCheck();
+    var check = new TooManyStatementsPerLineCheck();
     assertThat(check.excludeCaseBreak).isFalse();
   }
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
   public void testExcludeCaseBreak() throws UnsupportedEncodingException, IOException {
-    TooManyStatementsPerLineCheck check = new TooManyStatementsPerLineCheck();
+    var check = new TooManyStatementsPerLineCheck();
     check.excludeCaseBreak = true;
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/TooManyStatementsPerLine.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), check);
+    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
+      "src/test/resources/checks/TooManyStatementsPerLine.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
-      .next().atLine(17).withMessage("At most one statement is allowed per line, but 2 statements were found on this line.")
+      .next().atLine(17).withMessage(
+      "At most one statement is allowed per line, but 2 statements were found on this line.")
       .next().atLine(20)
       .next().atLine(23)
       .next().atLine(27)

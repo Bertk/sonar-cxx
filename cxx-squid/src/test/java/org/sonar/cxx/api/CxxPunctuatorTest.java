@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -28,11 +28,11 @@ public class CxxPunctuatorTest {
 
   @Test
   public void test() {
-    SoftAssertions softly = new SoftAssertions();
+    var softly = new SoftAssertions();
     softly.assertThat(CxxPunctuator.values()).hasSize(49);
 
     AstNode astNode = mock(AstNode.class);
-    for (CxxPunctuator punctuator : CxxPunctuator.values()) {
+    for (var punctuator : CxxPunctuator.values()) {
       softly.assertThat(punctuator.hasToBeSkippedFromAst(astNode)).isFalse();
     }
     softly.assertAll();

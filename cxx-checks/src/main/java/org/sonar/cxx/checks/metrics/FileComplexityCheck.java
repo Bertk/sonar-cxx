@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -53,6 +53,11 @@ public class FileComplexityCheck extends CxxCyclomaticComplexityCheck<Grammar> {
   }
 
   @Override
+  protected int getMaxComplexity() {
+    return max;
+  }
+
+  @Override
   protected Optional<AstNodeType> getScopeType() {
     return Optional.empty();
   }
@@ -60,11 +65,6 @@ public class FileComplexityCheck extends CxxCyclomaticComplexityCheck<Grammar> {
   @Override
   protected String getScopeName() {
     return "file";
-  }
-
-  @Override
-  protected int getMaxComplexity() {
-    return max;
   }
 
 }

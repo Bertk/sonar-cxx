@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 package org.sonar.cxx.sensors.compiler;
 
 import java.io.File;
-import javax.xml.stream.XMLStreamException;
+import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,9 +29,9 @@ import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.utils.log.LogTester;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
+import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
 public class CxxCompilerSensorTest {
@@ -40,49 +40,50 @@ public class CxxCompilerSensorTest {
   public LogTester logTester = new LogTester();
 
   private DefaultFileSystem fs;
-  private CxxLanguage language;
-  SensorContextTester context;
-  CxxCompilerSensorMock sensor;
+  private final MapSettings settings = new MapSettings();
+  private SensorContextTester context;
+  private CxxCompilerSensorMock sensor;
 
   @Before
   public void setUp() {
+    settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
     fs = TestUtils.mockFileSystem();
-    language = TestUtils.mockCxxLanguage();
     context = SensorContextTester.create(fs.baseDir());
-    sensor = new CxxCompilerSensorMock(language);
+    context.setSettings(settings);
+    sensor = new CxxCompilerSensorMock(context);
   }
 
   @Test
-  public void testFileNotFound() throws XMLStreamException {
-    File report = new File("");
+  public void testFileNotFound() {
+    var report = new File("");
     sensor.setRegex("*");
-    sensor.testProcessReport(context, report);
+    sensor.testExecuteReport(report);
     String log = logTester.logs().toString();
     assertThat(log.contains("FileNotFoundException")).isTrue();
   }
 
   @Test
-  public void testRegexEmpty() throws XMLStreamException {
-    File report = new File("");
-    sensor.testProcessReport(context, report);
+  public void testRegexEmpty() {
+    var report = new File("");
+    sensor.testExecuteReport(report);
     String log = logTester.logs().toString();
     assertThat(log.contains("empty custom regular expression")).isTrue();
   }
 
   @Test
-  public void testRegexInvalid() throws XMLStreamException {
-    File report = new File(fs.baseDir(), "compiler-reports/VC-report.vclog");
+  public void testRegexInvalid() {
+    var report = new File(fs.baseDir(), "compiler-reports/VC-report.vclog");
     sensor.setRegex("*");
-    sensor.testProcessReport(context, report);
+    sensor.testExecuteReport(report);
     String log = logTester.logs().toString();
     assertThat(log.contains("PatternSyntaxException")).isTrue();
   }
 
   @Test
-  public void testRegexNamedGroupMissing() throws XMLStreamException {
-    File report = new File(fs.baseDir(), "compiler-reports/VC-report.vclog");
+  public void testRegexNamedGroupMissing() {
+    var report = new File(fs.baseDir(), "compiler-reports/VC-report.vclog");
     sensor.setRegex(".*");
-    sensor.testProcessReport(context, report);
+    sensor.testExecuteReport(report);
     String log = logTester.logs().toString();
     assertThat(log.contains("No group with name")).isTrue();
   }
@@ -91,12 +92,20 @@ public class CxxCompilerSensorTest {
 
     private String regex = "";
 
-    public CxxCompilerSensorMock(CxxLanguage language) {
-      super(language, "cxx.reportPath", "cxx.XXX");
+    public CxxCompilerSensorMock(SensorContext context) {
+      this.context = context;
     }
 
     @Override
     public void describe(SensorDescriptor descriptor) {
+    }
+
+    public void testExecuteReport(File report) {
+      executeReport(report);
+    }
+
+    public void setRegex(String regex) {
+      this.regex = regex;
     }
 
     @Override
@@ -105,27 +114,25 @@ public class CxxCompilerSensorTest {
     }
 
     @Override
-    protected String getCharset(final SensorContext context) {
-      return "UTF-8";
+    protected String getCharset() {
+      return StandardCharsets.UTF_8.name();
     }
 
     @Override
-    protected String getRegex(final SensorContext context) {
+    protected String getRegex() {
       return regex;
     }
 
     @Override
-    protected CxxMetricsFactory.Key getMetricKey() {
-      return CxxMetricsFactory.Key.OTHER_SENSOR_ISSUES_KEY;
+    protected String getReportPathsKey() {
+      return "cxx.reportPaths";
     }
 
-    public void testProcessReport(final SensorContext context, File report) throws XMLStreamException {
-      processReport(context, report);
+    @Override
+    protected String getRuleRepositoryKey() {
+      return "cxx.XXX";
     }
 
-    public void setRegex(String regex) {
-      this.regex = regex;
-    }
   }
 
 }

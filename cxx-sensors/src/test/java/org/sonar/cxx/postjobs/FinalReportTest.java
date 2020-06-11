@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,6 @@
 package org.sonar.cxx.postjobs;
 
 import java.io.File;
-import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +32,6 @@ import org.sonar.api.utils.log.LogTester;
 import org.sonar.api.utils.log.LoggerLevel;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.preprocessor.CxxPreprocessor;
-import org.sonar.cxx.sensors.utils.TestUtils;
 import org.sonar.cxx.visitors.CxxParseErrorLoggerVisitor;
 
 public class FinalReportTest {
@@ -49,20 +47,19 @@ public class FinalReportTest {
 
   @Test
   public void finalReportTest() {
-    String dir = "src/test/resources/org/sonar/cxx/postjobs";
+    var dir = "src/test/resources/org/sonar/cxx/postjobs";
+    var context = SensorContextTester.create(new File(dir));
     InputFile inputFile = TestInputFileBuilder.create("", dir + "/syntaxerror.cc").build();
-
-    SensorContextTester context = SensorContextTester.create(new File(dir));
     context.fileSystem().add(inputFile);
 
     CxxParseErrorLoggerVisitor.resetReport();
     CxxPreprocessor.resetReport();
-    CxxAstScanner.scanSingleFile(inputFile, context, TestUtils.mockCxxLanguage());
+    CxxAstScanner.scanSingleFile(new File(inputFile.uri().getPath()));
 
-    FinalReport postjob = new FinalReport();
+    var postjob = new FinalReport();
     postjob.execute(postJobContext);
 
-    List<String> log = logTester.logs(LoggerLevel.WARN);
+    var log = logTester.logs(LoggerLevel.WARN);
     assertThat(log.size()).isEqualTo(2);
     assertThat(log.get(0)).contains("include directive error(s)");
     assertThat(log.get(1)).contains("syntax error(s) detected");

@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.checks.CxxFileTester;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
-import org.sonar.squidbridge.api.CheckMessage;
 import org.sonar.squidbridge.api.SourceFile;
 import org.sonar.squidbridge.checks.CheckMessagesVerifierRule;
 
@@ -39,8 +38,9 @@ public class UndocumentedApiCheckTest {
   @SuppressWarnings("squid:S2699")
   @Test
   public void detected() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/UndocumentedApiCheck/no_doc.h", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), new UndocumentedApiCheck());
+    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
+      "src/test/resources/checks/UndocumentedApiCheck/no_doc.h", ".");
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), new UndocumentedApiCheck());
 
     checkMessagesVerifier.verify(file.getCheckMessages())
       .next().atLine(6) // class
@@ -85,25 +85,26 @@ public class UndocumentedApiCheckTest {
       .next().atLine(123) // enum member
       .next().atLine(124) // enum member
       .next().atLine(127) // class OverrideInClassTest
-      .next().atLine(138) // struct OverrideInStructTest      
+      .next().atLine(138) // struct OverrideInStructTest
       .next().atLine(143) // struct ComplexOverrideInStruct
-      .next().atLine(148) // struct ComplexOverrideInClass      
+      .next().atLine(148) // struct ComplexOverrideInClass
       .next().atLine(154) // aliasDeclaration1
       .next().atLine(156) // aliasDeclaration2
       .next().atLine(161); // class ClassWithFriend
 
-    for (CheckMessage msg : file.getCheckMessages()) {
+    for (var msg : file.getCheckMessages()) {
       assertThat(msg.formatDefaultMessage()).isNotEmpty();
     }
   }
 
   @Test
   public void docStyle1() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/UndocumentedApiCheck/doc_style1.h", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), new UndocumentedApiCheck());
+    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
+      "src/test/resources/checks/UndocumentedApiCheck/doc_style1.h", ".");
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), new UndocumentedApiCheck());
 
-    StringBuilder errors = new StringBuilder(1024);
-    for (CheckMessage msg : file.getCheckMessages()) {
+    var errors = new StringBuilder(1024);
+    for (var msg : file.getCheckMessages()) {
       errors.append("Line: ");
       errors.append(msg.getLine());
       errors.append("; ");
@@ -115,11 +116,12 @@ public class UndocumentedApiCheckTest {
 
   @Test
   public void docStyle2() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/UndocumentedApiCheck/doc_style2.h", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.cxxFile, tester.sensorContext, CxxFileTesterHelper.mockCxxLanguage(), new UndocumentedApiCheck());
+    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
+      "src/test/resources/checks/UndocumentedApiCheck/doc_style2.h", ".");
+    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), new UndocumentedApiCheck());
 
-    StringBuilder errors = new StringBuilder(1024);
-    for (CheckMessage msg : file.getCheckMessages()) {
+    var errors = new StringBuilder(1024);
+    for (var msg : file.getCheckMessages()) {
       errors.append("Line: ");
       errors.append(msg.getLine());
       errors.append("; ");

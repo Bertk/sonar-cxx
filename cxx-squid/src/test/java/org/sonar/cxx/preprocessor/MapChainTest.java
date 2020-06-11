@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ import org.junit.Test;
 
 public class MapChainTest {
 
-  MapChain<String, String> mc;
+  private final MapChain<String, String> mc;
 
   public MapChainTest() {
     mc = new MapChain<>();

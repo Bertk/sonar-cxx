@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -46,10 +46,6 @@ public class VisualStudioTestResultsFileParser implements UnitTestResultsParser 
 
   private static class Parser {
 
-    private static void checkRootTag(XmlParserHelper xmlParserHelper) {
-      xmlParserHelper.checkRootTag("TestRun");
-    }
-
     private final File file;
     private final UnitTestResults unitTestResults;
     private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
@@ -62,8 +58,12 @@ public class VisualStudioTestResultsFileParser implements UnitTestResultsParser 
       this.unitTestResults = unitTestResults;
     }
 
+    private static void checkRootTag(XmlParserHelper xmlParserHelper) {
+      xmlParserHelper.checkRootTag("TestRun");
+    }
+
     public void parse() {
-      try (XmlParserHelper xmlParserHelper = new XmlParserHelper(file)) {
+      try (var xmlParserHelper = new XmlParserHelper(file)) {
         checkRootTag(xmlParserHelper);
         dispatchTags(xmlParserHelper);
         if (!foundCounters) {
@@ -118,19 +118,19 @@ public class VisualStudioTestResultsFileParser implements UnitTestResultsParser 
         return dateFormat.parse(value);
       } catch (ParseException e) {
         throw xmlParserHelper.parseError("Expected an valid date and time instead of \"" + value
-          + "\" for the attribute \"" + name + "\". " + e.getMessage());
+                                           + "\" for the attribute \"" + name + "\". " + e.getMessage());
       }
     }
 
     private String keepOnlyMilliseconds(String value) {
-      StringBuffer sb = new StringBuffer(256);
+      var sb = new StringBuffer(256);
 
       Matcher matcher = millisecondsPattern.matcher(value);
-      StringBuilder trailingZeros = new StringBuilder(128);
+      var trailingZeros = new StringBuilder(128);
       while (matcher.find()) {
         String milliseconds = matcher.group(2);
         trailingZeros.setLength(0);
-        for (int i = 0; i < 3 - milliseconds.length(); i++) {
+        for (var i = 0; i < 3 - milliseconds.length(); i++) {
           trailingZeros.append('0');
         }
         matcher.appendReplacement(sb, "$1" + trailingZeros);

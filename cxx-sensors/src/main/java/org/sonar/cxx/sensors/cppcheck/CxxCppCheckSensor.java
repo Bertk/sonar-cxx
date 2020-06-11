@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,74 +20,76 @@
 package org.sonar.cxx.sensors.cppcheck;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.stream.XMLStreamException;
-import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.config.PropertyDefinition;
+import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
-import org.sonar.cxx.CxxMetricsFactory;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
+import org.sonar.cxx.sensors.utils.InvalidReportException;
+import org.sonar.cxx.sensors.utils.ReportException;
 
 /**
- * Sensor for cppcheck (static code analyzer).
+ * Sensor for Cppcheck - A tool for static C/C++ code analysis
  *
  * @author fbonin
  * @author vhardion
  */
 public class CxxCppCheckSensor extends CxxIssuesReportSensor {
 
-  public static final String REPORT_PATH_KEY = "cppcheck.reportPath";
+  public static final String REPORT_PATH_KEY = "sonar.cxx.cppcheck.reportPaths";
   private static final Logger LOG = Loggers.get(CxxCppCheckSensor.class);
 
-  private final List<CppcheckParser> parsers = new LinkedList<>();
-
-  /**
-   * CxxCppCheckSensor for CppCheck Sensor
-   *
-   * @param language defines settings C or C++
-   */
-  public CxxCppCheckSensor(CxxLanguage language) {
-    super(language, REPORT_PATH_KEY, CxxCppCheckRuleRepository.getRepositoryKey(language));
-    parsers.add(new CppcheckParserV2(this));
-    parsers.add(new CppcheckParserV1(this));
+  public static List<PropertyDefinition> properties() {
+    return Collections.unmodifiableList(Arrays.asList(
+      PropertyDefinition.builder(REPORT_PATH_KEY)
+        .name("Cppcheck XML report(s)")
+        .description(
+          "Path to a <a href='http://cppcheck.sourceforge.net/'>Cppcheck</a> XML report, relative to"
+            + " projects root. Both XML formats (version 1 and version 2) are supported. If neccessary, <a href='https://"
+          + "ant.apache.org/manual/dirtasks.html'>Ant-style wildcards</a> are at your service."
+        )
+        .category("CXX External Analyzers")
+        .subCategory("Cppcheck")
+        .onQualifiers(Qualifiers.PROJECT)
+        .multiValues(true)
+        .build()
+    ));
   }
 
   @Override
   public void describe(SensorDescriptor descriptor) {
     descriptor
-      .name(getLanguage().getName() + " CppCheckSensor")
-      .onlyOnLanguage(getLanguage().getKey())
+      .name("CXX Cppcheck report import")
+      .onlyOnLanguage("cxx")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
-      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathKey()));
+      .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   @Override
-  protected void processReport(final SensorContext context, File report)
-    throws javax.xml.stream.XMLStreamException {
-    boolean parsed = false;
+  protected void processReport(File report) throws ReportException {
+    LOG.debug("Processing 'Cppcheck V2' report '{}'", report.getName());
 
-    for (CppcheckParser parser : parsers) {
-      try {
-        parser.processReport(context, report);
-        LOG.info("Added report '{}' (parsed by: {})", report, parser);
-        parsed = true;
-        break;
-      } catch (XMLStreamException e) {
-        LOG.debug("Report {} cannot be parsed by {}", report, parser, e);
-      }
-    }
-
-    if (!parsed) {
-      LOG.error("Report {} cannot be parsed", report);
+    CppcheckParser parser = new CppcheckParser(this);
+    try {
+      parser.parse(report);
+    } catch (XMLStreamException e) {
+      throw new InvalidReportException("The 'Cppcheck V2' report is invalid", e);
     }
   }
 
   @Override
-  protected CxxMetricsFactory.Key getMetricKey() {
-    return CxxMetricsFactory.Key.CPPCHECK_SENSOR_ISSUES_KEY;
+  protected String getReportPathsKey() {
+    return REPORT_PATH_KEY;
+  }
+
+  @Override
+  protected String getRuleRepositoryKey() {
+    return CxxCppCheckRuleRepository.KEY;
   }
 
 }

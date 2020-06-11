@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -114,15 +114,15 @@ public class MapChain<K, V> {
     move(key, highPrioDisabled, highPrioMap);
   }
 
+  public Map<K, V> getHighPrioMap() {
+    return Collections.unmodifiableMap(highPrioMap);
+  }
+
   private void move(K key, Map<K, V> from, Map<K, V> to) {
     V value = from.remove(key);
     if (value != null) {
       to.put(key, value);
     }
-  }
-
-  public Map<K, V> getHighPrioMap() {
-    return Collections.unmodifiableMap(highPrioMap);
   }
 
 }

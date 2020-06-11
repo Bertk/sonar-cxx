@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ import com.sonar.sslr.api.AstNode;
 import com.sonar.sslr.api.Grammar;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxLanguage;
+import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
 import org.sonar.cxx.parser.CxxGrammarImpl;
 import org.sonar.squidbridge.SquidAstVisitor;
@@ -33,7 +33,6 @@ import org.sonar.squidbridge.checks.ChecksHelper;
 
 public class CxxFunctionComplexityVisitor<G extends Grammar> extends SquidAstVisitor<G> {
 
-  public static final String FUNCTION_COMPLEXITY_THRESHOLD_KEY = "funccomplexity.threshold";
   private static final Logger LOG = Loggers.get(CxxFunctionComplexityVisitor.class);
 
   private final int cyclomaticComplexityThreshold;
@@ -41,11 +40,9 @@ public class CxxFunctionComplexityVisitor<G extends Grammar> extends SquidAstVis
   private int complexFunctions;
   private int complexFunctionsLoc;
 
-  public CxxFunctionComplexityVisitor(CxxLanguage language) {
-    this.cyclomaticComplexityThreshold = language.getIntegerOption(FUNCTION_COMPLEXITY_THRESHOLD_KEY).orElse(10);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Cyclomatic complexity threshold: " + this.cyclomaticComplexityThreshold);
-    }
+  public CxxFunctionComplexityVisitor(CxxSquidConfiguration squidConfig) {
+    this.cyclomaticComplexityThreshold = squidConfig.getFunctionComplexityThreshold();
+    LOG.debug("Cyclomatic complexity threshold: " + this.cyclomaticComplexityThreshold);
   }
 
   @Override

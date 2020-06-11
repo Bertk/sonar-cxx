@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,72 +24,107 @@ package org.sonar.cxx.sensors.tests.dotnet;
 // Copyright (C) 2014-2017 SonarSource SA
 // mailto:info AT sonarsource DOT com
 import java.io.File;
-import org.sonar.api.batch.sensor.Sensor;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
+import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.measures.CoreMetrics;
-import org.sonar.cxx.CxxLanguage;
+import org.sonar.api.measures.Metric;
+import org.sonar.api.resources.Qualifiers;
+import org.sonar.api.scanner.sensor.ProjectSensor;
 
-public class CxxUnitTestResultsImportSensor implements Sensor {
+public class CxxUnitTestResultsImportSensor implements ProjectSensor {
 
   private final WildcardPatternFileProvider wildcardPatternFileProvider
-    = new WildcardPatternFileProvider(new File("."), File.separator);
+                                              = new WildcardPatternFileProvider(new File("."), File.separator);
   private final CxxUnitTestResultsAggregator unitTestResultsAggregator;
-  protected final CxxLanguage language;
+  private SensorContext context;
 
-  public CxxUnitTestResultsImportSensor(CxxUnitTestResultsAggregator unitTestResultsAggregator,
-    CxxLanguage language) {
+  public CxxUnitTestResultsImportSensor(CxxUnitTestResultsAggregator unitTestResultsAggregator) {
     this.unitTestResultsAggregator = unitTestResultsAggregator;
-    this.language = language;
+  }
+
+  public static List<PropertyDefinition> properties() {
+    String category = "CXX External Analyzers";
+    String subcategory = "Unit Test";
+    String NOTE
+             = " Note that while measures such as the number of tests are displayed at project level,"
+                 + " no drilldown is available.\n";
+    return Collections.unmodifiableList(Arrays.asList(
+      PropertyDefinition.builder(UnitTestConfiguration.VISUAL_STUDIO_TEST_RESULTS_PROPERTY_KEY)
+        .multiValues(true)
+        .name("Visual Studio Test Reports Paths")
+        .description(
+          "Paths to Visual Studio Test Reports. Multiple paths may be comma-delimited, or included via wildcards."
+            + NOTE
+            + "Example: \"report.trx\", \"report1.trx,report2.trx\" or \"C:/report.trx\"")
+        .category(category)
+        .subCategory(subcategory)
+        .onQualifiers(Qualifiers.PROJECT)
+        .build(),
+      PropertyDefinition.builder(UnitTestConfiguration.XUNIT_TEST_RESULTS_PROPERTY_KEY)
+        .multiValues(true)
+        .name("xUnit Test Reports Paths")
+        .description(
+          "Paths to xUnit execution reports. Multiple paths may be comma-delimited, or included via wildcards."
+            + NOTE
+            + "Example: \"report.xml\", \"report1.xml,report2.xml\" or \"C:/report.xml\"")
+        .category(category)
+        .subCategory(subcategory)
+        .onQualifiers(Qualifiers.PROJECT)
+        .build(),
+      PropertyDefinition.builder(UnitTestConfiguration.NUNIT_TEST_RESULTS_PROPERTY_KEY)
+        .multiValues(true)
+        .name("NUnit Test Reports Paths")
+        .description(
+          "Paths to NUnit execution reports. Multiple paths may be comma-delimited, or included via wildcards."
+            + NOTE
+            + "Example: \"TestResult.xml\", \"TestResult1.xml,TestResult2.xml\" or \"C:/TestResult.xml\"")
+        .category(category)
+        .subCategory(subcategory)
+        .onQualifiers(Qualifiers.PROJECT)
+        .build()
+    ));
   }
 
   @Override
   public void describe(SensorDescriptor descriptor) {
-    String name = String.format("%s Unit Test Results Import", this.language.getName());
-    descriptor.name(name);
-    descriptor.global();
-    descriptor.onlyWhenConfiguration(conf -> new UnitTestConfiguration(language, conf).hasUnitTestResultsProperty());
-    descriptor.onlyOnLanguage(this.language.getKey());
+    descriptor
+      .name("CXX VSTest/xUnit/NUnit Test report import")
+      .onlyWhenConfiguration(conf -> new UnitTestConfiguration(conf).hasUnitTestResultsProperty())
+      .onlyOnLanguage("cxx");
   }
 
   @Override
   public void execute(SensorContext context) {
-    analyze(context, new UnitTestResults(), new UnitTestConfiguration(language, context.config()));
+    this.context = context;
+    analyze(new UnitTestResults(), new UnitTestConfiguration(context.config()));
   }
 
-  void analyze(SensorContext context, UnitTestResults unitTestResults, UnitTestConfiguration unitTestConf) {
+  public void analyze(UnitTestResults unitTestResults, UnitTestConfiguration unitTestConf) {
     UnitTestResults aggregatedResults = unitTestResultsAggregator.aggregate(wildcardPatternFileProvider,
-      unitTestResults, unitTestConf);
-
-    context.<Integer>newMeasure()
-      .forMetric(CoreMetrics.TESTS)
-      .on(context.module())
-      .withValue(aggregatedResults.tests())
-      .save();
-    context.<Integer>newMeasure()
-      .forMetric(CoreMetrics.TEST_ERRORS)
-      .on(context.module())
-      .withValue(aggregatedResults.errors())
-      .save();
-    context.<Integer>newMeasure()
-      .forMetric(CoreMetrics.TEST_FAILURES)
-      .on(context.module())
-      .withValue(aggregatedResults.failures())
-      .save();
-    context.<Integer>newMeasure()
-      .forMetric(CoreMetrics.SKIPPED_TESTS)
-      .on(context.module())
-      .withValue(aggregatedResults.skipped())
-      .save();
-
-    Long executionTime = aggregatedResults.executionTime();
-    if (executionTime != null) {
-      context.<Long>newMeasure()
-        .forMetric(CoreMetrics.TEST_EXECUTION_TIME)
-        .on(context.module())
-        .withValue(executionTime)
-        .save();
+                                                                            unitTestResults, unitTestConf);
+    if (aggregatedResults != null) {
+      saveMetric(CoreMetrics.TESTS, aggregatedResults.tests());
+      saveMetric(CoreMetrics.TEST_ERRORS, aggregatedResults.errors());
+      saveMetric(CoreMetrics.TEST_FAILURES, aggregatedResults.failures());
+      saveMetric(CoreMetrics.SKIPPED_TESTS, aggregatedResults.skipped());
+      Long executionTime = aggregatedResults.executionTime();
+      if (executionTime != null) {
+        saveMetric(CoreMetrics.TEST_EXECUTION_TIME, executionTime);
+      }
     }
+  }
+
+  private <T extends Serializable> void saveMetric(Metric<T> metric, T value) {
+    context.<T>newMeasure()
+      .withValue(value)
+      .forMetric(metric)
+      .on(context.project())
+      .save();
   }
 
 }

@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,9 +24,9 @@ import org.sonar.cxx.api.CxxTokenType;
 
 public final class LiteralValuesBuilder {
 
-  String lexerValue;
-  String tokenValue;
-  TokenType tokenType;
+  public final String lexerValue;
+  public final String tokenValue;
+  public final TokenType tokenType;
 
   LiteralValuesBuilder(Builder builder) {
     this.lexerValue = builder.lexerValue;

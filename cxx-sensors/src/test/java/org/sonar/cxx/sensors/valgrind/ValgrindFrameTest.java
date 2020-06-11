@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,6 @@
 package org.sonar.cxx.sensors.valgrind;
 
 import java.util.HashMap;
-import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
@@ -28,9 +27,9 @@ import org.junit.Test;
 
 public class ValgrindFrameTest {
 
-  ValgrindFrame frame;
-  ValgrindFrame equalFrame;
-  ValgrindFrame otherFrame;
+  private ValgrindFrame frame;
+  private ValgrindFrame equalFrame;
+  private ValgrindFrame otherFrame;
 
   @Before
   public void setUp() {
@@ -70,24 +69,24 @@ public class ValgrindFrameTest {
 
   @Test
   public void stringRepresentationShouldResembleValgrindsStandard() {
-    Map<String, ValgrindFrame> ioMap = new HashMap<>();
+    var ioMap = new HashMap<String, ValgrindFrame>();
 
     ioMap.put("0xDEADBEAF: main() (main.cc:1)",
-      new ValgrindFrame("0xDEADBEAF", "libX.so", "main()", "src", "main.cc", "1"));
+              new ValgrindFrame("0xDEADBEAF", "libX.so", "main()", "src", "main.cc", "1"));
     ioMap.put("0xDEADBEAF: main() (main.cc:1)",
-      new ValgrindFrame("0xDEADBEAF", "libX.so", "main()", null, "main.cc", "1"));
+              new ValgrindFrame("0xDEADBEAF", "libX.so", "main()", null, "main.cc", "1"));
     ioMap.put("0xDEADBEAF: main() (main.cc)",
-      new ValgrindFrame("0xDEADBEAF", "libX.so", "main()", null, "main.cc", ""));
+              new ValgrindFrame("0xDEADBEAF", "libX.so", "main()", null, "main.cc", ""));
     ioMap.put("0xDEADBEAF: ??? (main.cc:1)",
-      new ValgrindFrame("0xDEADBEAF", "libX.so", null, "src", "main.cc", "1"));
+              new ValgrindFrame("0xDEADBEAF", "libX.so", null, "src", "main.cc", "1"));
     ioMap.put("0xDEADBEAF: ??? (in libX.so)",
-      new ValgrindFrame("0xDEADBEAF", "libX.so", null, "src", null, "1"));
+              new ValgrindFrame("0xDEADBEAF", "libX.so", null, "src", null, "1"));
     ioMap.put("0xDEADBEAF: ???",
-      new ValgrindFrame("0xDEADBEAF", null, null, null, null, ""));
+              new ValgrindFrame("0xDEADBEAF", null, null, null, null, ""));
     ioMap.put("???: ???",
-      new ValgrindFrame(null, null, null, null, null, ""));
+              new ValgrindFrame(null, null, null, null, null, ""));
 
-    for (Map.Entry<String, ValgrindFrame> entry : ioMap.entrySet()) {
+    for (var entry : ioMap.entrySet()) {
       assertEquals(entry.getKey(), entry.getValue().toString());
     }
   }

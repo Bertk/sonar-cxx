@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonarsource.sonarqube-plugins.cxx</groupId>
     <artifactId>cxx</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cxx-sensors</artifactId>
@@ -13,6 +13,7 @@
 
   <properties>
     <sonar.artifact.path>target/${project.artifactId}-${project.version}.jar</sonar.artifact.path>
+    <sonar.coverage.jacoco.xmlReportPaths>${basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
   </properties>
 
   <dependencies>
@@ -65,12 +66,22 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.9.9.2</version>
+      <version>2.11.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.staxmate</groupId>
+      <artifactId>staxmate</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.woodstox</groupId>
+      <artifactId>woodstox-core</artifactId>
+      <version>6.2.1</version>
+    </dependency>        
     <dependency>
       <groupId>com.googlecode.plist</groupId>
       <artifactId>dd-plist</artifactId>
-      <version>1.19</version>
+      <version>1.23</version>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>

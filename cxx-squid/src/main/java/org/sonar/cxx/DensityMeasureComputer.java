@@ -1,6 +1,6 @@
 /*
  * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2019 SonarOpenCommunity
+ * Copyright (C) 2010-2020 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,10 @@
  */
 package org.sonar.cxx;
 
-import java.util.Map;
 import org.sonar.api.ce.measure.Component;
 import org.sonar.api.ce.measure.Measure;
 import org.sonar.api.ce.measure.MeasureComputer;
 import org.sonar.api.measures.CoreMetrics;
-import org.sonar.api.measures.Metric;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 
@@ -46,52 +44,31 @@ public class DensityMeasureComputer implements MeasureComputer {
 
   private static final Logger LOG = Loggers.get(DensityMeasureComputer.class);
 
-  private final String publicAPIKey;
-  private final String publicUndocumentedAPIKey;
-  private final String publicDocumentedAPIDensityKey;
-
-  private final String complexFunctionsKey;
-  private final String complexFunctionsPercKey;
-  private final String complexFunctionsLocKey;
-  private final String complexFunctionsLocPercKey;
-
-  private final String bigFunctionsKey;
-  private final String bigFunctionsPercKey;
-  private final String bigFunctionsLocKey;
-  private final String bigFunctionsLocPercKey;
-
-  private final String locInFunctionsKey;
-
   private final String[] inputMetrics;
   private final String[] outputMetrics;
 
-  public DensityMeasureComputer(String languageKey, String languagePropsKey) {
-    final Map<CxxMetricsFactory.Key, Metric<?>> metrics = CxxMetricsFactory.generateMap(languageKey, languagePropsKey);
-
-    publicAPIKey = metrics.get(CxxMetricsFactory.Key.PUBLIC_API_KEY).key();
-    publicUndocumentedAPIKey = metrics.get(CxxMetricsFactory.Key.PUBLIC_UNDOCUMENTED_API_KEY).key();
-    publicDocumentedAPIDensityKey = metrics.get(CxxMetricsFactory.Key.PUBLIC_DOCUMENTED_API_DENSITY_KEY).key();
-
-    complexFunctionsKey = metrics.get(CxxMetricsFactory.Key.COMPLEX_FUNCTIONS_KEY).key();
-    complexFunctionsPercKey = metrics.get(CxxMetricsFactory.Key.COMPLEX_FUNCTIONS_PERC_KEY).key();
-    complexFunctionsLocKey = metrics.get(CxxMetricsFactory.Key.COMPLEX_FUNCTIONS_LOC_KEY).key();
-    complexFunctionsLocPercKey = metrics.get(CxxMetricsFactory.Key.COMPLEX_FUNCTIONS_LOC_PERC_KEY).key();
-
-    bigFunctionsKey = metrics.get(CxxMetricsFactory.Key.BIG_FUNCTIONS_KEY).key();
-    bigFunctionsPercKey = metrics.get(CxxMetricsFactory.Key.BIG_FUNCTIONS_PERC_KEY).key();
-    bigFunctionsLocKey = metrics.get(CxxMetricsFactory.Key.BIG_FUNCTIONS_LOC_KEY).key();
-    bigFunctionsLocPercKey = metrics.get(CxxMetricsFactory.Key.BIG_FUNCTIONS_LOC_PERC_KEY).key();
-
-    locInFunctionsKey = metrics.get(CxxMetricsFactory.Key.LOC_IN_FUNCTIONS_KEY).key();
-
-    inputMetrics = new String[]{publicAPIKey, publicUndocumentedAPIKey, CoreMetrics.FUNCTIONS_KEY, locInFunctionsKey,
-      complexFunctionsKey, complexFunctionsLocKey, bigFunctionsKey, bigFunctionsLocKey};
-    outputMetrics = new String[]{publicDocumentedAPIDensityKey, complexFunctionsPercKey, complexFunctionsLocPercKey,
-      bigFunctionsPercKey, bigFunctionsLocPercKey};
+  public DensityMeasureComputer() {
+    inputMetrics = new String[]{
+      CxxMetrics.PUBLIC_API_KEY,
+      CxxMetrics.PUBLIC_UNDOCUMENTED_API_KEY,
+      CoreMetrics.FUNCTIONS_KEY,
+      CxxMetrics.LOC_IN_FUNCTIONS_KEY,
+      CxxMetrics.COMPLEX_FUNCTIONS_KEY,
+      CxxMetrics.COMPLEX_FUNCTIONS_LOC_KEY,
+      CxxMetrics.BIG_FUNCTIONS_KEY,
+      CxxMetrics.BIG_FUNCTIONS_LOC_KEY
+    };
+    outputMetrics = new String[]{
+      CxxMetrics.PUBLIC_DOCUMENTED_API_DENSITY_KEY,
+      CxxMetrics.COMPLEX_FUNCTIONS_PERC_KEY,
+      CxxMetrics.COMPLEX_FUNCTIONS_LOC_PERC_KEY,
+      CxxMetrics.BIG_FUNCTIONS_PERC_KEY,
+      CxxMetrics.BIG_FUNCTIONS_LOC_PERC_KEY
+    };
   }
 
   private static void compute(MeasureComputerContext context, String valueKey, String totalKey, String densityKey,
-    boolean calculateReminingPercent) {
+                              boolean calculateReminingPercent) {
     final Component component = context.getComponent();
 
     final Measure valueMeasure = context.getMeasure(valueKey);
@@ -108,7 +85,7 @@ public class DensityMeasureComputer implements MeasureComputer {
       // Otherwise there is a chance, that your custom calculation won't work properly for
       // multi-module projects.
       LOG.debug("Component {}: measure {} already calculated, value = {}", component.getKey(), densityKey,
-        existingMeasure.getDoubleValue());
+                existingMeasure.getDoubleValue());
       return;
     }
 
@@ -142,11 +119,31 @@ public class DensityMeasureComputer implements MeasureComputer {
 
   @Override
   public void compute(MeasureComputerContext context) {
-    compute(context, publicUndocumentedAPIKey, publicAPIKey, publicDocumentedAPIDensityKey, true);
-    compute(context, complexFunctionsKey, CoreMetrics.FUNCTIONS_KEY, complexFunctionsPercKey, false);
-    compute(context, complexFunctionsLocKey, locInFunctionsKey, complexFunctionsLocPercKey, false);
-    compute(context, bigFunctionsKey, CoreMetrics.FUNCTIONS_KEY, bigFunctionsPercKey, false);
-    compute(context, bigFunctionsLocKey, locInFunctionsKey, bigFunctionsLocPercKey, false);
+    compute(context,
+            CxxMetrics.PUBLIC_UNDOCUMENTED_API_KEY,
+            CxxMetrics.PUBLIC_API_KEY,
+            CxxMetrics.PUBLIC_DOCUMENTED_API_DENSITY_KEY,
+            true);
+    compute(context,
+            CxxMetrics.COMPLEX_FUNCTIONS_KEY,
+            CoreMetrics.FUNCTIONS_KEY,
+            CxxMetrics.COMPLEX_FUNCTIONS_PERC_KEY,
+            false);
+    compute(context,
+            CxxMetrics.COMPLEX_FUNCTIONS_LOC_KEY,
+            CxxMetrics.LOC_IN_FUNCTIONS_KEY,
+            CxxMetrics.COMPLEX_FUNCTIONS_LOC_PERC_KEY,
+            false);
+    compute(context,
+            CxxMetrics.BIG_FUNCTIONS_KEY,
+            CoreMetrics.FUNCTIONS_KEY,
+            CxxMetrics.BIG_FUNCTIONS_PERC_KEY,
+            false);
+    compute(context,
+            CxxMetrics.BIG_FUNCTIONS_LOC_KEY,
+            CxxMetrics.LOC_IN_FUNCTIONS_KEY,
+            CxxMetrics.BIG_FUNCTIONS_LOC_PERC_KEY,
+            false);
   }
 
 }
