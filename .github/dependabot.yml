@@ -1,0 +1,23 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: io.cucumber:gherkin
+    versions:
+    - 16.0.0
+    - 17.0.0
+    - 17.0.1
+    - 17.0.2
+    - 18.0.0
+    - 18.1.0
+  - dependency-name: org.mockito:mockito-core
+    versions:
+    - 3.7.7
+    - 3.8.0
+  - dependency-name: io.cucumber:tag-expressions
+    versions:
+    - 3.0.0
