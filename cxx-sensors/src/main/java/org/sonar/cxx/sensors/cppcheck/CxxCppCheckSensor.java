@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,6 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
-import org.sonar.cxx.sensors.utils.ReportException;
 
 /**
  * Sensor for Cppcheck - A tool for static C/C++ code analysis
@@ -47,11 +46,10 @@ public class CxxCppCheckSensor extends CxxIssuesReportSensor {
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
-        .name("Cppcheck XML report(s)")
+        .name("Cppcheck Report(s)")
         .description(
-          "Path to a <a href='http://cppcheck.sourceforge.net/'>Cppcheck</a> XML report, relative to"
-            + " projects root. Both XML formats (version 1 and version 2) are supported. If neccessary, <a href='https://"
-          + "ant.apache.org/manual/dirtasks.html'>Ant-style wildcards</a> are at your service."
+          "Comma-separated paths (absolute or relative to the project base directory) to `*xml` files with"
+            + " `Cppcheck` issues. Ant patterns are accepted for relative paths."
         )
         .category("CXX External Analyzers")
         .subCategory("Cppcheck")
@@ -65,16 +63,14 @@ public class CxxCppCheckSensor extends CxxIssuesReportSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX Cppcheck report import")
-      .onlyOnLanguage("cxx")
+      .onlyOnLanguages("cxx", "cpp", "c++", "c")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
       .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   @Override
-  protected void processReport(File report) throws ReportException {
-    LOG.debug("Processing 'Cppcheck V2' report '{}'", report.getName());
-
-    CppcheckParser parser = new CppcheckParser(this);
+  protected void processReport(File report) {
+    var parser = new CppcheckParser(this);
     try {
       parser.parse(report);
     } catch (XMLStreamException e) {

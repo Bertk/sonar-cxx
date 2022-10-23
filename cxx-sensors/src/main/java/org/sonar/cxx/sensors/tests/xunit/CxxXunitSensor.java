@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -52,12 +52,16 @@ public class CxxXunitSensor extends CxxReportSensor {
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
-        .name("Unit test execution report(s)")
-        .description("Path to unit test execution report(s), relative to projects root."
-                       + " See <a href='https://github.com/SonarOpenCommunity/sonar-cxx/wiki/Get-test-execution-metrics'>"
-                     + "here</a> for supported formats." + USE_ANT_STYLE_WILDCARDS)
+        .name("xUnit Report(s)")
+        .description(
+          "Comma-separated list of paths to the various directories containing the *.xml xUnit report files."
+            + " Each path may be absolute or relative to the project base directory. Ant patterns are accepted for"
+            + " relative paths. Note that while measures such as the number of tests are displayed at project level,"
+            + " no drilldown is available."
+            + " In the SonarQube UI, enter one entry per field."
+        )
         .category("CXX External Analyzers")
-        .subCategory("xUnit Test")
+        .subCategory("xUnit")
         .onQualifiers(Qualifiers.PROJECT)
         .multiValues(true)
         .build()
@@ -68,7 +72,7 @@ public class CxxXunitSensor extends CxxReportSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX xUnit Test report import")
-      //.onlyOnLanguage(getLanguage().getKey())
+      //.onlyOnLanguages("cxx","cpp", "c++", "c")
       .onlyWhenConfiguration(conf -> conf.hasKey(REPORT_PATH_KEY));
   }
 
@@ -85,7 +89,7 @@ public class CxxXunitSensor extends CxxReportSensor {
       } else {
         LOG.debug("No xUnit reports found, nothing to process");
       }
-    } catch (IOException | XMLStreamException e) {
+    } catch (XMLStreamException e) {
       CxxUtils.validateRecovery("Invalid xUnit report", e, context.config());
     }
   }
@@ -96,7 +100,7 @@ public class CxxXunitSensor extends CxxReportSensor {
    * @throws XMLStreamException
    * @throws IOException
    */
-  private XunitReportParser parseReport(List<File> reports) throws XMLStreamException, IOException {
+  private XunitReportParser parseReport(List<File> reports) throws XMLStreamException {
     var parserHandler = new XunitReportParser(context.fileSystem().baseDir().getPath());
     var parser = new StaxParser(parserHandler, false);
     for (var report : reports) {
@@ -105,7 +109,6 @@ public class CxxXunitSensor extends CxxReportSensor {
         parser.parse(report);
       } catch (EmptyReportException e) {
         LOG.warn("The xUnit report '{}' seems to be empty, ignoring.", report);
-        LOG.debug("{}", e);
       }
     }
     return parserHandler;
@@ -113,14 +116,14 @@ public class CxxXunitSensor extends CxxReportSensor {
 
   private void save(Collection<TestFile> testfiles) {
 
-    int testsCount = 0;
-    int testsSkipped = 0;
-    int testsErrors = 0;
-    int testsFailures = 0;
+    var testsCount = 0;
+    var testsSkipped = 0;
+    var testsErrors = 0;
+    var testsFailures = 0;
     long testsTime = 0;
     for (var tf : testfiles) {
       if (!tf.getFilename().isEmpty()) {
-        InputFile inputFile = getInputFileIfInProject(tf.getFilename());
+        var inputFile = getInputFileIfInProject(tf.getFilename());
         if (inputFile != null) {
           if (inputFile.language() != null && inputFile.type() == Type.TEST) {
             LOG.debug("Saving xUnit data for '{}': tests={} | errors:{} | failure:{} | skipped:{} | time:{}",
@@ -142,7 +145,7 @@ public class CxxXunitSensor extends CxxReportSensor {
     }
 
     if (testsCount > 0) {
-      LOG.debug("Saving xUnit report total data: tests={} | errors:{} | failure:{} | skipped:{} | time:{}",
+      LOG.debug("Saving xUnit report data: tests={}, errors={}, failure={}, skipped={}, time={}",
                 testsCount, testsErrors, testsFailures, testsSkipped, testsTime);
       saveMetric(CoreMetrics.TESTS, testsCount);
       saveMetric(CoreMetrics.TEST_ERRORS, testsErrors);

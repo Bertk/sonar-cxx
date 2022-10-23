@@ -1,0 +1,73 @@
+[
+  {
+    "_comment_": "example extension to define global defines and includes for headers and for files which are not compiled",
+    "file": "__global__",
+    "defines": {
+      "GLOBAL_DEFINE": "1"
+    },
+    "includes": [
+      "/usr/include"
+    ]
+  },
+  {
+    "_comment_": "test argument parser",
+    "directory": ".",
+    "file": "test-argument-parser.cpp",
+    "arguments": [
+      "-DMACRO1", "-DMACRO2=2",
+      "-D", "MACRO3", "-D", "MACRO4=4",
+      "-DMACRO5=\" a 'b' c \"",
+      "-DMACRO6=\"With spaces, quotes and \\-es.\"",
+      "-I/aaa/bbb", "-I", "/ccc/ddd",
+      "-iquote/eee/fff", "-iquote", "/ggg/hhh",
+      "-isystem/iii/jjj", "-isystem", "/kkk/lll",
+      "-idirafter/mmm/nnn", "-idirafter", "/ooo/ppp"
+    ],
+    "output": "test"
+  },
+  {
+    "_comment_": "example with command for compilation",
+    "directory": ".",
+    "file": "test-with-command.cpp",
+    "command": "gcc -o test -I/usr/local/include -I /another/include/dir -DSIMPLE -DCOMMAND_DEFINE=1 -D COMMAND_SPACE_DEFINE=\" foo 'bar' zoo \" test.cpp",
+    "output": "test"
+  },
+  {
+    "_comment_": "example with using arguments",
+    "directory": ".",
+    "file": "test-with-arguments.cpp",
+    "arguments": "-o test -I/usr/local/include -I /another/include/dir -DSIMPLE -DARG_DEFINE=1 -D ARG_SPACE_DEFINE=\" foo 'bar' zoo \" test.cpp",
+    "output": "test"
+  },
+  {
+    "_comment_": "example with using arguments as list",
+    "directory": ".",
+    "file": "test-with-arguments-as-list.cpp",
+    "arguments": [ "-o", "test", "-I/usr/local/include", "-I", "/another/include/dir", "-DSIMPLE", "-DARG_DEFINE=1", "-D", "ARG_SPACE_DEFINE=\" foo 'bar' zoo \"", "test.cpp" ],
+    "output": "test"
+  },
+  {
+    "_comment_": "example with using arguments as list",
+    "directory": "./src",
+    "file": "test-with-relative-directory.cpp",
+    "arguments": [ "-o", "test", "-I/usr/local/include", "-I", "another/include/dir", "-I", "../parent/include/dir", "test.cpp" ],
+    "output": "test"
+  },
+  {
+    "_comment_": "example extension using defines and includes to define usage",
+    "directory": ".",
+    "file": "test-extension.cpp",
+    "defines": {
+      "UNIT_DEFINE": "1"
+    },
+    "includes": [
+      "/usr/local/include"
+    ]
+  },
+  {
+    "_comment_": "Visual Studio sample",
+    "directory": "C:/Sample/Solutions/",
+    "command": "\"clang++.exe\" -x c++ \"C:/Sample/Project/source.cpp\" -std=c++14 -Wall -fms-compatibility-version=19.10 -Wmicrosoft -Wno-invalid-token-paste -Wno-unknown-pragmas -Wno-unused-value -fsyntax-only \"-D_MT\" \"-D_DLL\" \"-D_WIN64\" \"-D_WINDOWS\" \"-D_DEBUG\" \"-D_USRDLL\" \"-DSTRICT\" \"-DTGTSVR_PROJECT\" \"-D_WIN32_DCOM\" \"-D_CRT_SECURE_NO_DEPRECATE\" \"-DBOOST_BIND_GLOBAL_PLACEHOLDERS\" \"-DBOOST_THREAD_DYN_LINK\" \"-D_DEBUG_FUNCTIONAL_MACHINERY\" -isystem\"C:/Sample/Project\" -isystem\"C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.29.30133/include\" -isystem\"C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Tools/MSVC/14.29.30133/atlmfc/include\" -isystem\"C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/VS/include\" -isystem\"C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/ucrt\" -isystem\"C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um\" -isystem\"C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared\" -isystem\"C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/winrt\" -isystem\"C:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/cppwinrt\" -I\"C:/Development/svn/Line18/Sample/Tool\" -I\"C:/Development/Sample/Tool/ComComponents/Interfaces\" -I\"C:/Sample/Solutions/PropertySheets/../../../Sample/include\" -I\"C:/Sample/Solutions/PropertySheets/../../../Sample/component/include/IDL\" -I\"C:/Sample/Solutions/PropertySheets/../../../Sample/Tool/ComComponents/Include/IDL\" -I\"C:/Sample/Solutions/PropertySheets/../../../Sample/Tool/ComComponents/Interfaces\" -I\"C:/Sample/Solutions/PropertySheets/../../../Sample/AddOns/Mediators/DeviceConfigX/DeviceConfigX.Com/IDL\" -I\"C:/Sample/Solutions/PropertySheets/../../../..\" -I\"C:/Sample/Solutions/PropertySheets/../../../Access\" -I\"C:/Sample/Solutions/PropertySheets/../../../Access/Framework/Include\" -I\"C:/Sample/Solutions/PropertySheets/../../../Access/Framework/Module/Types\" -I\"C:/Sample/Solutions/PropertySheets/../../../Access/Framework/Module/ModuleUtility\" -I\"C:/Sample/Solutions/PropertySheets/../../../Access/Framework/Project/Time/Time/PublicInterface\" -I\"C:/Sample/Solutions/PropertySheets/../../../Access/Module/AcquisitionBuffer/PublicInterface\"",
+    "file": "C:/Sample/Project/source.cpp"
+  }
+]

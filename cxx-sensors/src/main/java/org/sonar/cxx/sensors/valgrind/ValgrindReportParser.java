@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,7 @@ class ValgrindReportParser {
    * @exception XMLStreamException javax.xml.stream.XMLStreamException
    */
   public Set<ValgrindError> parse(File report) throws XMLStreamException {
-    ValgrindReportStreamHandler streamHandler = new ValgrindReportStreamHandler();
+    var streamHandler = new ValgrindReportStreamHandler();
     new StaxParser(streamHandler).parse(report);
     return streamHandler.valgrindErrors;
   }
@@ -108,7 +108,7 @@ class ValgrindReportParser {
       }
 
       if (text == null || kind == null || stacks.isEmpty()) {
-        String msg = "Valgrind error is incomplete: we require all of 'kind', '*what.text' and 'stack'";
+        var msg = "Valgrind error is incomplete: we require all of 'kind', '*what.text' and 'stack'";
         child.throwStreamException(msg);
       }
 

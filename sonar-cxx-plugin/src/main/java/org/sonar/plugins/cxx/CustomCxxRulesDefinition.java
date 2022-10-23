@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ import java.util.Arrays;
 import org.sonar.api.resources.Language;
 import org.sonar.api.scanner.ScannerSide;
 import org.sonar.api.server.rule.RulesDefinition;
-import org.sonar.squidbridge.annotations.AnnotationBasedRulesDefinition;
+import org.sonar.cxx.squidbridge.annotations.AnnotationBasedRulesDefinition;
 
 /**
  *
@@ -34,7 +34,7 @@ public abstract class CustomCxxRulesDefinition implements RulesDefinition {
 
   @Override
   public void define(RulesDefinition.Context context) {
-    RulesDefinition.NewRepository repo = context.createRepository(repositoryKey(), getLanguage().getKey())
+    var repo = context.createRepository(repositoryKey(), getLanguage().getKey())
       .setName(repositoryName());
 
     // Load metadata from check classes' annotations

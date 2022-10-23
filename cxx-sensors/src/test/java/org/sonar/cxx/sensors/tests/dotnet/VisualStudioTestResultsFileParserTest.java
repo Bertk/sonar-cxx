@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,39 +24,36 @@ package org.sonar.cxx.sensors.tests.dotnet;
 // Copyright (C) 2014-2017 SonarSource SA
 // mailto:info AT sonarsource DOT com
 import java.io.File;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 
-public class VisualStudioTestResultsFileParserTest {
+class VisualStudioTestResultsFileParserTest {
 
   private static final String REPORT_PATH = "src/test/resources/org/sonar/cxx/sensors/reports-project/MSTest-reports/";
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   @Test
-  public void no_counters() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("The mandatory <Counters> tag is missing in ");
-    thrown.expectMessage(new File(REPORT_PATH + "no_counters.trx").getAbsolutePath());
-    new VisualStudioTestResultsFileParser().accept(new File(REPORT_PATH + "no_counters.trx"),
-                                                   mock(UnitTestResults.class));
+  void no_counters() {
+    IllegalArgumentException thrown = catchThrowableOfType(() -> {
+      new VisualStudioTestResultsFileParser().accept(new File(REPORT_PATH + "no_counters.trx"),
+                                                     mock(UnitTestResults.class));
+    }, IllegalArgumentException.class);
+    assertThat(thrown).hasMessageContaining("The mandatory <Counters> tag is missing in "
+                                              + new File(REPORT_PATH + "no_counters.trx").getAbsolutePath());
   }
 
   @Test
-  public void wrong_passed_number() {
-    thrown.expect(ParseErrorException.class);
-    thrown.expectMessage("Expected an integer instead of \"foo\" for the attribute \"passed\" in ");
-    thrown.expectMessage(new File(REPORT_PATH + "wrong_passed_number.trx").getAbsolutePath());
-    new VisualStudioTestResultsFileParser().accept(new File(REPORT_PATH + "wrong_passed_number.trx"), mock(
-                                                   UnitTestResults.class));
+  void wrong_passed_number() {
+    ParseErrorException thrown = catchThrowableOfType(() -> {
+      new VisualStudioTestResultsFileParser().accept(new File(REPORT_PATH + "wrong_passed_number.trx"),
+                                                     mock(UnitTestResults.class));
+    }, ParseErrorException.class);
+    assertThat(thrown).hasMessageContaining("Expected an integer instead of \"foo\" for the attribute \"passed\" in "
+                                              + new File(REPORT_PATH + "wrong_passed_number.trx").getAbsolutePath());
   }
 
   @Test
-  public void valid() throws Exception {
+  void valid() throws Exception {
     var results = new UnitTestResults();
     new VisualStudioTestResultsFileParser().accept(new File(REPORT_PATH + "valid.trx"), results);
 
@@ -69,15 +66,15 @@ public class VisualStudioTestResultsFileParserTest {
   }
 
   @Test
-  public void valid_missing_attributes() throws Exception {
+  void valid_missing_attributes() throws Exception {
     var results = new UnitTestResults();
     new VisualStudioTestResultsFileParser().accept(new File(REPORT_PATH + "valid_missing_attributes.trx"), results);
 
     assertThat(results.tests()).isEqualTo(3);
     assertThat(results.passedPercentage()).isEqualTo(3 * 100.0 / 3);
-    assertThat(results.skipped()).isEqualTo(0);
-    assertThat(results.failures()).isEqualTo(0);
-    assertThat(results.errors()).isEqualTo(0);
+    assertThat(results.skipped()).isZero();
+    assertThat(results.failures()).isZero();
+    assertThat(results.errors()).isZero();
   }
 
 }

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ public class CxxSonarWayProfile implements BuiltInQualityProfilesDefinition {
 
   @Override
   public void define(Context context) {
-    NewBuiltInQualityProfile sonarWay = context.createBuiltInQualityProfile("Sonar way", CxxLanguage.KEY);
+    var sonarWay = context.createBuiltInQualityProfile("Sonar way", CxxLanguage.KEY);
     Profile jsonProfile = readProfile();
     jsonProfile.ruleKeys.forEach((key) -> {
       sonarWay.activateRule(CheckList.REPOSITORY_KEY, key);

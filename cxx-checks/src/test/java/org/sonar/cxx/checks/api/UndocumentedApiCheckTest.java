@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,26 +21,22 @@ package org.sonar.cxx.checks.api;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.checks.CxxFileTester;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
-import org.sonar.squidbridge.api.SourceFile;
-import org.sonar.squidbridge.checks.CheckMessagesVerifierRule;
+import org.sonar.cxx.squidbridge.api.SourceFile;
+import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifierRule;
 
-public class UndocumentedApiCheckTest {
+class UndocumentedApiCheckTest {
 
-  @Rule
   public CheckMessagesVerifierRule checkMessagesVerifier = new CheckMessagesVerifierRule();
 
   @SuppressWarnings("squid:S2699")
   @Test
-  public void detected() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
-      "src/test/resources/checks/UndocumentedApiCheck/no_doc.h", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), new UndocumentedApiCheck());
+  void detected() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/UndocumentedApiCheck/no_doc.h", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), new UndocumentedApiCheck());
 
     checkMessagesVerifier.verify(file.getCheckMessages())
       .next().atLine(6) // class
@@ -98,10 +94,9 @@ public class UndocumentedApiCheckTest {
   }
 
   @Test
-  public void docStyle1() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
-      "src/test/resources/checks/UndocumentedApiCheck/doc_style1.h", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), new UndocumentedApiCheck());
+  void docStyle1() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/UndocumentedApiCheck/doc_style1.h", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), new UndocumentedApiCheck());
 
     var errors = new StringBuilder(1024);
     for (var msg : file.getCheckMessages()) {
@@ -111,14 +106,13 @@ public class UndocumentedApiCheckTest {
       errors.append(msg.formatDefaultMessage());
       errors.append("\r\n");
     }
-    assertThat(errors.length()).isEqualTo(0);
+    assertThat(errors.length()).isZero();
   }
 
   @Test
-  public void docStyle2() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
-      "src/test/resources/checks/UndocumentedApiCheck/doc_style2.h", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), new UndocumentedApiCheck());
+  void docStyle2() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/UndocumentedApiCheck/doc_style2.h", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), new UndocumentedApiCheck());
 
     var errors = new StringBuilder(1024);
     for (var msg : file.getCheckMessages()) {
@@ -128,7 +122,7 @@ public class UndocumentedApiCheckTest {
       errors.append(msg.formatDefaultMessage());
       errors.append("\r\n");
     }
-    assertThat(errors.length()).isEqualTo(0);
+    assertThat(errors.length()).isZero();
   }
 
 }

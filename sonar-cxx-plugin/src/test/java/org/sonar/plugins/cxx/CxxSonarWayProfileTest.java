@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,14 +20,14 @@
 package org.sonar.plugins.cxx;
 
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.server.profile.BuiltInQualityProfilesDefinition;
 
-public class CxxSonarWayProfileTest {
+class CxxSonarWayProfileTest {
 
   @Test
-  public void should_create_sonar_way_profile() {
+  void should_create_sonar_way_profile() {
     var profileDef = new CxxSonarWayProfile();
     var context = new BuiltInQualityProfilesDefinition.Context();
     profileDef.define(context);
@@ -35,7 +35,7 @@ public class CxxSonarWayProfileTest {
     assertThat(profile.language()).isEqualTo(CxxLanguage.KEY);
     assertThat(profile.name()).isEqualTo("Sonar way");
     List<BuiltInQualityProfilesDefinition.BuiltInActiveRule> activeRules = profile.rules();
-    assertThat(activeRules.size()).as("Expected number of rules in profile").isGreaterThanOrEqualTo(0);
+    assertThat(activeRules.size()).as("Expected number of rules in profile").isNotNegative();
   }
 
 }

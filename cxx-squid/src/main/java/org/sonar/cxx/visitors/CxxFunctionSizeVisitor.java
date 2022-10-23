@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,16 +19,16 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
+import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.parser.CxxGrammarImpl;
-import org.sonar.squidbridge.SquidAstVisitor;
-import org.sonar.squidbridge.api.SourceFile;
-import org.sonar.squidbridge.api.SourceFunction;
+import org.sonar.cxx.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.squidbridge.api.SourceFile;
+import org.sonar.cxx.squidbridge.api.SourceFunction;
 
 public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G> {
 
@@ -41,8 +41,10 @@ public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G
   private int totalLoc;
 
   public CxxFunctionSizeVisitor(CxxSquidConfiguration squidConfig) {
-    this.sizeThreshold = squidConfig.getFunctionSizeThreshold();
-    LOG.debug("Function size threshold: " + this.sizeThreshold);
+    this.sizeThreshold = squidConfig.getInt(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES,
+                                            CxxSquidConfiguration.FUNCTION_SIZE_THRESHOLD)
+      .orElse(20);
+    LOG.debug("'Big Functions' metric threshold (LOC): " + this.sizeThreshold);
   }
 
   @Override
@@ -52,9 +54,8 @@ public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G
 
   @Override
   public void leaveNode(AstNode node) {
-    SourceFunction sourceFunction = (SourceFunction) getContext().peekSourceCode();
-
-    final int lineCount = sourceFunction.getInt(CxxMetric.LINES_OF_CODE_IN_FUNCTION_BODY);
+    var sourceFunction = (SourceFunction) getContext().peekSourceCode();
+    var lineCount = sourceFunction.getInt(CxxMetric.LINES_OF_CODE_IN_FUNCTION_BODY);
 
     if (lineCount > this.sizeThreshold) {
       bigFunctions++;
@@ -76,7 +77,7 @@ public class CxxFunctionSizeVisitor<G extends Grammar> extends SquidAstVisitor<G
   public void leaveFile(AstNode astNode) {
     super.leaveFile(astNode);
 
-    SourceFile sourceFile = (SourceFile) getContext().peekSourceCode();
+    var sourceFile = (SourceFile) getContext().peekSourceCode();
     sourceFile.setMeasure(CxxMetric.BIG_FUNCTIONS, bigFunctions);
     sourceFile.setMeasure(CxxMetric.BIG_FUNCTIONS_LOC, bigFunctionsLoc);
     sourceFile.setMeasure(CxxMetric.LOC_IN_FUNCTIONS, totalLoc);

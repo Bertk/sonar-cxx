@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +19,19 @@
  */
 package org.sonar.cxx.checks.naming;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import static com.sonar.cxx.sslr.api.GenericTokenType.IDENTIFIER;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.regex.Pattern;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
 import org.sonar.cxx.checks.utils.CheckUtils;
 import org.sonar.cxx.parser.CxxGrammarImpl;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.SqaleConstantRemediation;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 import org.sonar.cxx.tag.Tag;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.SqaleConstantRemediation;
-import org.sonar.squidbridge.checks.SquidCheck;
 
 /**
  * FunctionNameCheck
@@ -57,12 +58,12 @@ public class FunctionNameCheck extends SquidCheck<Grammar> {
   public String format = DEFAULT;
   private Pattern pattern = null;
 
-  private static boolean isFunctionDefinition(AstNode declId) {
-    boolean isFunction = false;
+  private static boolean isGlobalFunctionDefinition(AstNode node) {
+    var isFunction = false;
     // not method inside of class
     // not a nested name - not method outside of class
-    if ((declId.getFirstAncestor(CxxGrammarImpl.memberDeclaration) == null)
-      && (!declId.hasDirectChildren(CxxGrammarImpl.nestedNameSpecifier))) {
+    if ((node.getFirstAncestor(CxxGrammarImpl.memberDeclaration) == null)
+          && (!node.hasDirectChildren(CxxGrammarImpl.nestedNameSpecifier))) {
       isFunction = true;
     }
     return isFunction;
@@ -76,14 +77,15 @@ public class FunctionNameCheck extends SquidCheck<Grammar> {
 
   @Override
   public void visitNode(AstNode astNode) {
-    AstNode declId = astNode.getFirstDescendant(CxxGrammarImpl.declaratorId);
-    if (isFunctionDefinition(declId)) {
-      AstNode idNode = declId.getLastChild(CxxGrammarImpl.className);
+    var declId = astNode.getFirstDescendant(CxxGrammarImpl.declaratorId);
+    if (declId != null && isGlobalFunctionDefinition(declId)) {
+      var idNode = declId.getLastChild(IDENTIFIER);
       if (idNode != null) {
         String identifier = idNode.getTokenValue();
         if (!pattern.matcher(identifier).matches()) {
           getContext().createLineViolation(this,
-            "Rename function \"{0}\" to match the regular expression {1}.", idNode, identifier, format);
+                                           "Rename function \"{0}\" to match the regular expression {1}.", idNode,
+                                           identifier, format);
         }
       }
     }

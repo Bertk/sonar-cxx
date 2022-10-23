@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,17 +19,17 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.AstNode;
-import static com.sonar.sslr.api.GenericTokenType.EOF;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.api.Trivia;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.AstNode;
+import static com.sonar.cxx.sslr.api.GenericTokenType.EOF;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.api.Trivia;
 import java.util.regex.Pattern;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.squidbridge.SquidAstVisitor;
-import org.sonar.squidbridge.api.SourceCode;
-import org.sonar.squidbridge.api.SourceFile;
+import org.sonar.cxx.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.squidbridge.api.SourceCode;
+import org.sonar.cxx.squidbridge.api.SourceFile;
 
 /**
  * Visitor that computes the number of lines of code of a file.

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,145 +19,296 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
-import static org.sonar.sslr.tests.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
-public class TemplatesTest extends ParserBaseTestHelper {
+class TemplatesTest extends ParserBaseTestHelper {
 
   @Test
-  public void templateDeclaration() {
-    p.setRootRule(g.rule(CxxGrammarImpl.templateDeclaration));
+  void templateDeclaration() {
+    setRootRule(CxxGrammarImpl.templateDeclaration);
+
+    mockRule(CxxGrammarImpl.templateHead);
+    mockRule(CxxGrammarImpl.declaration);
+    mockRule(CxxGrammarImpl.conceptDefinition);
+
+    assertThatParser()
+      .matches("templateHead declaration")
+      .matches("templateHead conceptDefinition");
+  }
+
+  @Test
+  void templateDeclaration_reallife() {
+    setRootRule(CxxGrammarImpl.templateDeclaration);
+
+    assertThatParser()
+      .matches("template <class T> ostream& operator<<();")
+      .matches("template <class T> ostream& operator<<(ostream& strm, const int& i);")
+      .matches("template <class T> ostream& operator<< (ostream& strm);")
+      .matches("template <class T> ostream& operator<< (const auto_ptr<T>& p);")
+      .matches("template <class T> ostream& operator<< (ostream& strm, const auto_ptr<T>& p);")
+      .matches("template<bool (A::*bar)(void)> void foo();")
+      .matches("template<class T> auto mul(T a, T b) -> decltype(a*b) {return a*b;}")
+      .matches("template <class T, class U> concept Derived = std::is_base_of<U, T>::value;")
+      .matches("template<typename T> void f(T&&) requires Eq<T>;")
+      .matches("template<typename T> requires Addable<T> T add(T a, T b) { return a + b; }")
+      .matches("template<bool T = false> std::string f();"); // issue #2025
+  }
+
+  @Test
+  void templateHead() {
+    setRootRule(CxxGrammarImpl.templateHead);
 
     mockRule(CxxGrammarImpl.templateParameterList);
-    mockRule(CxxGrammarImpl.declaration);
+    mockRule(CxxGrammarImpl.requiresClause);
+    mockRule(CxxGrammarImpl.templateParameter);
 
-    assertThat(p).matches("template < templateParameterList > declaration");
+    assertThatParser()
+      .matches("template < templateParameterList >")
+      .matches("template < templateParameterList > requiresClause");
   }
 
   @Test
-  public void templateDeclaration_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.templateDeclaration));
+  void templateHead_reallife() {
+    setRootRule(CxxGrammarImpl.templateHead);
 
-    assertThat(p).matches("template <class T> ostream& operator<<();");
-    assertThat(p).matches("template <class T> ostream& operator<<(ostream& strm, const int& i);");
-
-    assertThat(p).matches("template <class T> ostream& operator<< (ostream& strm);");
-    assertThat(p).matches("template <class T> ostream& operator<< (const auto_ptr<T>& p);");
-    assertThat(p).matches("template <class T> ostream& operator<< (ostream& strm, const auto_ptr<T>& p);");
-    assertThat(p).matches("template<bool (A::*bar)(void)> void foo();");
-    assertThat(p).matches("template<class T> auto mul(T a, T b) -> decltype(a*b) {return a*b;}");
+    assertThatParser()
+      .matches("template<typename T> requires Addable<T>")
+      // issue #2317
+      .matches("template <typename T, size_t s = sizeof(T)*2 >")
+      .matches("template <typename T, size_t s = 1>2 >");
   }
 
   @Test
-  public void templateParameterList() {
-    p.setRootRule(g.rule(CxxGrammarImpl.templateParameterList));
+  void templateParameterList() {
+    setRootRule(CxxGrammarImpl.templateParameterList);
 
     mockRule(CxxGrammarImpl.templateParameter);
 
-    assertThat(p).matches("templateParameter");
-    assertThat(p).matches("templateParameter , templateParameter");
+    assertThatParser()
+      .matches("templateParameter")
+      .matches("templateParameter , templateParameter");
   }
 
   @Test
-  public void typeParameter() {
-    p.setRootRule(g.rule(CxxGrammarImpl.typeParameter));
+  void templateParameter() {
+    setRootRule(CxxGrammarImpl.templateParameter);
 
+    mockRule(CxxGrammarImpl.typeParameter);
+    mockRule(CxxGrammarImpl.parameterDeclaration);
+
+    assertThatParser()
+      .matches("typeParameter")
+      .matches("parameterDeclaration");
+  }
+
+  @Test
+  void templateParameter_reallife() {
+    setRootRule(CxxGrammarImpl.templateParameter);
+
+    // type-parameter: type-parameter-key ...opt identifieropt
+    assertThatParser()
+      .matches("typename")
+      .matches("typename T")
+      .matches("class T")
+      .matches("typename ... T")
+      // type-parameter: type-parameter-key identifieropt = type-id
+      .matches("typename T1 = int")
+      .matches("typename = int")
+      // type-parameter: type-constraint ...opt identifieropt
+      .matches("foo")
+      .matches("foo::foo")
+      .matches("foo::foo<A, B>")
+      // type-parameter: type-constraint identifieropt = type-id
+      .matches("foo = int")
+      .matches("foo::foo = int")
+      .matches("foo::foo<A, B> = int")
+      // type-parameter: template-head type-parameter-key ...opt identifieropt
+      .matches("template<typename = float> typename T")
+      .matches("template<typename = float> typename ... T")
+      // type-parameter: template-head type-parameter-key identifieropt = id-expression
+      .matches("template<typename = float> typename T = foo")
+      .matches("template<typename = float> typename = foo::foo")
+      // parameter-declaration
+      .matches("auto ... vs")
+      .matches("auto** pp0")
+      // issue #2317
+      .matches("size_t s = 15")
+      .matches("size_t s = sizeof(T)*2")
+      .matches("values v = v::ok")
+      .matches("T::type n = 0");
+  }
+
+  @Test
+  void requiresClause() {
+    setRootRule(CxxGrammarImpl.requiresClause);
+
+    mockRule(CxxGrammarImpl.constraintLogicalOrExpression);
+
+    assertThatParser().matches("requires constraintLogicalOrExpression");
+  }
+
+  @Test
+  void constraintLogicalOrExpression() {
+    setRootRule(CxxGrammarImpl.constraintLogicalOrExpression);
+
+    mockRule(CxxGrammarImpl.constraintLogicalAndExpression);
+
+    assertThatParser()
+      .matches("constraintLogicalAndExpression")
+      .matches("constraintLogicalAndExpression || constraintLogicalAndExpression");
+  }
+
+  @Test
+  void constraintLogicalAndExpression() {
+    setRootRule(CxxGrammarImpl.constraintLogicalAndExpression);
+
+    mockRule(CxxGrammarImpl.primaryExpression);
+
+    assertThatParser()
+      .matches("primaryExpression")
+      .matches("primaryExpression && primaryExpression");
+  }
+
+  @Test
+  void typeParameter() {
+    setRootRule(CxxGrammarImpl.typeParameter);
+
+    mockRule(CxxGrammarImpl.typeParameterKey);
     mockRule(CxxGrammarImpl.typeId);
-    mockRule(CxxGrammarImpl.templateParameterList);
+    mockRule(CxxGrammarImpl.templateHead);
     mockRule(CxxGrammarImpl.idExpression);
 
-    assertThat(p).matches("class");
-    assertThat(p).matches("class T");
-    assertThat(p).matches("class ... foo");
-
-    assertThat(p).matches("class = typeId");
-    assertThat(p).matches("class foo = typeId");
-
-    assertThat(p).matches("typename");
-    assertThat(p).matches("typename ... foo");
-
-    assertThat(p).matches("typename = typeId");
-    assertThat(p).matches("typename foo = typeId");
-
-    assertThat(p).matches("template < templateParameterList > class");
-    assertThat(p).matches("template < templateParameterList > class ... foo");
-
-    assertThat(p).matches("template < templateParameterList > class = idExpression");
-    assertThat(p).matches("template < templateParameterList > class foo = idExpression");
+    assertThatParser()
+      .matches("typeParameterKey")
+      .matches("typeParameterKey ...")
+      .matches("typeParameterKey foo")
+      .matches("typeParameterKey ... foo")
+      .matches("typeParameterKey = typeId")
+      .matches("typeParameterKey foo = typeId")
+      .matches("templateHead typeParameterKey")
+      .matches("templateHead typeParameterKey ...")
+      .matches("templateHead typeParameterKey ... foo")
+      .matches("templateHead typeParameterKey = idExpression")
+      .matches("templateHead typeParameterKey foo = idExpression")
+      .matches("typeConstraint")
+      .matches("typeConstraint ...")
+      .matches("typeConstraint foo")
+      .matches("typeConstraint ... foo")
+      .matches("typeConstraint = typeId")
+      .matches("typeConstraint foo = typeId");
   }
 
   @Test
-  public void simpleTemplateId_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.simpleTemplateId));
+  void simpleTemplateId_reallife() {
+    setRootRule(CxxGrammarImpl.simpleTemplateId);
 
-    assertThat(p).matches("sometype<int>");
-    assertThat(p).matches("vector<Person*>");
-    // assertThat(p).matches("sometype<N/2>");
-    // try{
-    // p.parse("vector<Person*>");
-    // } catch(Exception e){}
-    // ExtendedStackTraceStream.print(stackTrace, System.out);
+    assertThatParser()
+      .matches("sometype<int>")
+      .matches("vector<Person*>")
+      .matches("A<(X>Y)>")
+      .matches("A<(X<Y)>")
+      .matches("vector<std::vector<bool>>")
+      .matches("Y<X<(6>1)>>")
+      .matches("Y<X<(6<1)>>")
+      .matches("Y<X<(6>=1)>>")
+      .matches("Y<X<(6<=1)>>")
+      .matches("Y<X<(6>>1)>>")
+      .matches("Y<X<(6<<1)>>")
+      .matches("Y<X<(6<=>1)>>");
   }
 
   @Test
-  public void templateId() {
-    p.setRootRule(g.rule(CxxGrammarImpl.templateId));
+  void typeConstraint() {
+    setRootRule(CxxGrammarImpl.typeConstraint);
+
+    mockRule(CxxGrammarImpl.nestedNameSpecifier);
+    mockRule(CxxGrammarImpl.conceptName);
+    mockRule(CxxGrammarImpl.templateArgumentList);
+
+    assertThatParser()
+      .matches("conceptName")
+      .matches("nestedNameSpecifier conceptName")
+      .matches("conceptName < >")
+      .matches("conceptName < templateArgumentList >")
+      .matches("nestedNameSpecifier conceptName < >")
+      .matches("nestedNameSpecifier conceptName < templateArgumentList >");
+  }
+
+  @Test
+  void templateId() {
+    setRootRule(CxxGrammarImpl.templateId);
 
     mockRule(CxxGrammarImpl.simpleTemplateId);
     mockRule(CxxGrammarImpl.operatorFunctionId);
     mockRule(CxxGrammarImpl.templateArgumentList);
     mockRule(CxxGrammarImpl.literalOperatorId);
 
-    assertThat(p).matches("simpleTemplateId");
-    assertThat(p).matches("operatorFunctionId < >");
-    assertThat(p).matches("operatorFunctionId < templateArgumentList >");
-    assertThat(p).matches("literalOperatorId < >");
-    assertThat(p).matches("literalOperatorId < templateArgumentList >");
+    assertThatParser()
+      .matches("simpleTemplateId")
+      .matches("operatorFunctionId < >")
+      .matches("operatorFunctionId < templateArgumentList >")
+      .matches("literalOperatorId < >")
+      .matches("literalOperatorId < templateArgumentList >");
   }
 
   @Test
-  public void templateId_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.templateId));
-    assertThat(p).matches("foo<int>");
-    assertThat(p).matches("operator==<B>");
+  void templateId_reallife() {
+    setRootRule(CxxGrammarImpl.templateId);
+
+    assertThatParser()
+      .matches("foo<int>")
+      .matches("operator==<B>");
   }
 
   @Test
-  public void templateArgumentList() {
-    p.setRootRule(g.rule(CxxGrammarImpl.templateArgumentList));
+  void templateArgumentList() {
+    setRootRule(CxxGrammarImpl.templateArgumentList);
 
     mockRule(CxxGrammarImpl.templateArgument);
 
-    assertThat(p).matches("templateArgument");
-    assertThat(p).matches("templateArgument ...");
-    assertThat(p).matches("templateArgument , templateArgument");
-    assertThat(p).matches("templateArgument , templateArgument ...");
+    assertThatParser()
+      .matches("templateArgument")
+      .matches("templateArgument ...")
+      .matches("templateArgument , templateArgument")
+      .matches("templateArgument , templateArgument ...");
   }
 
   @Test
-  public void typenameSpecifier() {
-    p.setRootRule(g.rule(CxxGrammarImpl.typenameSpecifier));
+  void conceptDefinition() {
+    setRootRule(CxxGrammarImpl.conceptDefinition);
+
+    mockRule(CxxGrammarImpl.conceptName);
+    mockRule(CxxGrammarImpl.constraintExpression);
+
+    assertThatParser().matches("concept conceptName = constraintExpression ;");
+  }
+
+  @Test
+  void typenameSpecifier() {
+    setRootRule(CxxGrammarImpl.typenameSpecifier);
 
     mockRule(CxxGrammarImpl.nestedNameSpecifier);
     mockRule(CxxGrammarImpl.simpleTemplateId);
 
-    assertThat(p).matches("typename nestedNameSpecifier IDENTIFIER");
-    assertThat(p).matches("typename nestedNameSpecifier simpleTemplateId");
-    assertThat(p).matches("typename nestedNameSpecifier template simpleTemplateId");
-    assertThat(p).matches("typename IDENTIFIER");
-    assertThat(p).matches("IDENTIFIER");
+    assertThatParser()
+      .matches("typename nestedNameSpecifier IDENTIFIER")
+      .matches("typename nestedNameSpecifier simpleTemplateId")
+      .matches("typename nestedNameSpecifier template simpleTemplateId")
+      .matches("typename IDENTIFIER");
   }
 
   @Test
-  public void deductionGuide() {
-    p.setRootRule(g.rule(CxxGrammarImpl.deductionGuide));
+  void deductionGuide() {
+    setRootRule(CxxGrammarImpl.deductionGuide);
 
+    mockRule(CxxGrammarImpl.explicitSpecifier);
     mockRule(CxxGrammarImpl.templateName);
     mockRule(CxxGrammarImpl.parameterDeclarationClause);
     mockRule(CxxGrammarImpl.simpleTemplateId);
 
-    assertThat(p).matches("templateName ( parameterDeclarationClause ) -> simpleTemplateId ;");
-    assertThat(p).matches("extern templateName ( parameterDeclarationClause ) -> simpleTemplateId ;");
+    assertThatParser()
+      .matches("templateName ( parameterDeclarationClause ) -> simpleTemplateId ;")
+      .matches("explicitSpecifier templateName ( parameterDeclarationClause ) -> simpleTemplateId ;");
   }
 
 }

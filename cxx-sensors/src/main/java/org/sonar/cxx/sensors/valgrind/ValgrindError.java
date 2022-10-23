@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -78,7 +78,7 @@ class ValgrindError {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    ValgrindError other = (ValgrindError) obj;
+    var other = (ValgrindError) obj;
     return new EqualsBuilder()
       .append(kind, other.kind)
       .append(text, other.text)

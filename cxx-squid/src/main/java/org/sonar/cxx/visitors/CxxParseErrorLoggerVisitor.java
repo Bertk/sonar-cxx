@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,22 +19,23 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.GenericTokenType;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.TokenType;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.List;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.api.CxxPunctuator;
 import org.sonar.cxx.parser.CxxGrammarImpl;
-import org.sonar.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.parser.CxxPunctuator;
+import org.sonar.cxx.squidbridge.SquidAstVisitor;
 
 public class CxxParseErrorLoggerVisitor<GRAMMAR extends Grammar> extends SquidAstVisitor<GRAMMAR> {
 
   private static final String SYNTAX_ERROR_MSG
-                                = "Source code parser: {} syntax error(s) detected. Syntax errors could cause invalid software metric values."
-                                  + " Root cause are typically missing includes, missing macros or compiler specific extensions.";
+                                = "Source code parser: {} syntax error(s) detected. "
+                                    + "Syntax errors could cause invalid software metric values."
+                                    + " Root cause are typically missing includes, "
+                                    + "missing macros or compiler specific extensions.";
   private static final Logger LOG = Loggers.get(CxxParseErrorLoggerVisitor.class);
   private static int errors = 0;
 
@@ -66,7 +67,7 @@ public class CxxParseErrorLoggerVisitor<GRAMMAR extends Grammar> extends SquidAs
 
     for (var child : children) {
       sb.append(child.getTokenValue());
-      TokenType type = child.getToken().getType();
+      var type = child.getToken().getType();
 
       if (type.equals(GenericTokenType.IDENTIFIER)) {
         // save position of last identifier for message

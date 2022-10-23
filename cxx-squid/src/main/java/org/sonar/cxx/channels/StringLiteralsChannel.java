@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,11 @@
  */
 package org.sonar.cxx.channels;
 
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.impl.Lexer;
-import org.sonar.cxx.api.CxxTokenType;
-import org.sonar.sslr.channel.Channel;
-import org.sonar.sslr.channel.CodeReader;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.impl.Lexer;
+import org.sonar.cxx.parser.CxxTokenType;
+import org.sonar.cxx.sslr.channel.Channel;
+import org.sonar.cxx.sslr.channel.CodeReader;
 
 /**
  * StringLiteralsChannel
@@ -32,8 +32,7 @@ public class StringLiteralsChannel extends Channel<Lexer> {
 
   private static final char EOF = (char) -1;
 
-  private final StringBuilder sb = new StringBuilder(256);
-
+  private final StringBuilder csb = new StringBuilder(256);
   private int index = 0;
   private char ch = ' ';
   private boolean isRawString = false;
@@ -42,13 +41,28 @@ public class StringLiteralsChannel extends Channel<Lexer> {
   public boolean consume(CodeReader code, Lexer output) {
     int line = code.getLinePosition();
     int column = code.getColumnPosition();
+    if (!read(code, csb)) {
+      return false;
+    }
+    output.addToken(Token.builder()
+      .setLine(line)
+      .setColumn(column)
+      .setURI(output.getURI())
+      .setValueAndOriginalValue(csb.toString())
+      .setType(CxxTokenType.STRING)
+      .build());
+    csb.delete(0, csb.length());
+    return true;
+  }
+
+  public boolean read(CodeReader code, StringBuilder sb) {
     index = 0;
     readStringPrefix(code);
     if (ch != '\"') {
       return false;
     }
     if (isRawString) {
-      if (!readRawString(code)) {
+      if (!readRawString(code, sb)) {
         return false;
       }
     } else {
@@ -60,70 +74,6 @@ public class StringLiteralsChannel extends Channel<Lexer> {
     for (var i = 0; i < index; i++) {
       sb.append((char) code.pop());
     }
-    output.addToken(Token.builder()
-      .setLine(line)
-      .setColumn(column)
-      .setURI(output.getURI())
-      .setValueAndOriginalValue(sb.toString())
-      .setType(CxxTokenType.STRING)
-      .build());
-    sb.setLength(0);
-    return true;
-  }
-
-  private boolean readString(CodeReader code) {
-    index++;
-    while (code.charAt(index) != ch) {
-      if (code.charAt(index) == EOF) {
-        return false;
-      }
-      if (code.charAt(index) == '\\') {
-        // escape
-        index++;
-      }
-      index++;
-    }
-    index++;
-    return true;
-  }
-
-  private boolean readRawString(CodeReader code) {
-    // "delimiter( raw_character* )delimiter"
-    char charAt;
-    index++;
-    while ((charAt = code.charAt(index)) != '(') { // delimiter in front of (
-      if (charAt == EOF) {
-        return false;
-      }
-      sb.append(charAt);
-      index++;
-    }
-    String delimiter = sb.toString();
-    sb.setLength(0);
-    do {
-      index -= sb.length();
-      sb.setLength(0);
-      while ((charAt = code.charAt(index)) != ')') { // raw_character*
-        if (charAt == EOF) {
-          return false;
-        }
-        index++;
-      }
-      index++;
-      while ((charAt = code.charAt(index)) != '"') { // delimiter after )
-        if (charAt == EOF) {
-          return false;
-        }
-        sb.append(charAt);
-        index++;
-
-        if (sb.length() > delimiter.length()) {
-          break;
-        }
-      }
-    } while (!sb.toString().equals(delimiter));
-    sb.setLength(0);
-    index++;
     return true;
   }
 
@@ -147,27 +97,87 @@ public class StringLiteralsChannel extends Channel<Lexer> {
     }
   }
 
-  private void readUdSuffix(CodeReader code) {
-    for (int start_index = index, len = 0;; index++) {
-      char c = code.charAt(index);
-      if (c == EOF) {
-        return;
+  private boolean readRawString(CodeReader code, StringBuilder sb) {
+    // "delimiter( raw_character* )delimiter"
+    char charAt;
+    index++;
+    while ((charAt = code.charAt(index)) != '(') { // delimiter in front of (
+      if (charAt == EOF) {
+        return false;
       }
-      if (Character.isLowerCase(c) || Character.isUpperCase(c) || (c == '_')) {
-        len++;
-      } else {
-        if (Character.isDigit(c)) {
-          if (len > 0) {
-            len++;
-          } else {
-            index = start_index;
-            return;
-          }
-        } else {
-          return;
+      sb.append(charAt);
+      index++;
+    }
+    var delimiter = sb.toString();
+    sb.delete(0, sb.length());
+    do {
+      index -= sb.length();
+      sb.delete(0, sb.length());
+      while ((charAt = code.charAt(index)) != ')') { // raw_character*
+        if (charAt == EOF) {
+          return false;
+        }
+        index++;
+      }
+      index++;
+      while ((charAt = code.charAt(index)) != '"') { // delimiter after )
+        if (charAt == EOF) {
+          return false;
+        }
+        sb.append(charAt);
+        index++;
+
+        if (sb.length() > delimiter.length()) {
+          break;
         }
       }
+    } while (!sb.toString().equals(delimiter));
+    sb.delete(0, sb.length());
+    index++;
+    return true;
+  }
+
+  private boolean readString(CodeReader code) {
+    index++;
+    char charAt;
+    while ((charAt = code.charAt(index)) != ch) {
+      if (charAt == EOF) {
+        return false;
+      }
+      if (charAt == '\\') {
+        // escape
+        index++;
+      }
+      index++;
     }
+    index++;
+    return true;
+  }
+
+  private void readUdSuffix(CodeReader code) {
+    int len = 0;
+    for (int start_index = index;; index++) {
+      var charAt = code.charAt(index);
+      if (charAt == EOF) {
+        return;
+      }
+      if (isSuffix(charAt)) {
+        len++;
+      } else if (Character.isDigit(charAt)) {
+        if (len > 0) {
+          len++;
+        } else {
+          index = start_index;
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+  }
+
+  private static boolean isSuffix(char c) {
+    return Character.isLowerCase(c) || Character.isUpperCase(c) || (c == '_');
   }
 
 }

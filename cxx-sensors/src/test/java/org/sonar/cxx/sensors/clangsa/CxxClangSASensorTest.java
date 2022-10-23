@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,12 +22,11 @@ package org.sonar.cxx.sensors.clangsa;
 import com.google.common.collect.Iterables;
 import java.util.Collections;
 import org.apache.commons.lang.RandomStringUtils;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
@@ -38,45 +37,45 @@ import org.sonar.api.config.internal.MapSettings;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxClangSASensorTest {
+class CxxClangSASensorTest {
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     fs = TestUtils.mockFileSystem();
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
   }
 
   @Test
-  public void shouldIgnoreIssuesIfResourceNotFound() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldIgnoreIssuesIfResourceNotFound() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxClangSASensor.REPORT_PATH_KEY, "clangsa-reports/clangsa-empty.plist");
     context.setSettings(settings);
 
     var sensor = new CxxClangSASensor();
     sensor.execute(context);
 
-    assertThat(context.allIssues()).hasSize(0);
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void shouldReportCorrectViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportCorrectViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxClangSASensor.REPORT_PATH_KEY, "clangsa-reports/clangsa-report.plist");
     context.setSettings(settings);
 
     /*
      * 2 issues
      */
-    DefaultInputFile testFile0 = TestInputFileBuilder.create("ProjectKey", "src/lib/component0.cc").setLanguage("cxx")
-      .initMetadata("asd\nasdas\nasda\n").build();
+    var testFile0 = TestInputFileBuilder.create("ProjectKey", "src/lib/component0.cc").setLanguage("cxx")
+      .initMetadata("asd\nasdghzui\nasd\nasd\nasdghtlout\nasdghtkouilh\nasd\nasdkhgkjgkjhgjg\nasd\n").build();
     /*
      * 1 issue
      */
-    DefaultInputFile testFile1 = TestInputFileBuilder.create("ProjectKey", "src/lib/component1.cc").setLanguage("cxx")
-      .initMetadata("asd\nasdas\nasda\n").build();
+    var testFile1 = TestInputFileBuilder.create("ProjectKey", "src/lib/component1.cc").setLanguage("cxx")
+      .initMetadata("asd\nasdas\nasdaghtzutiojklmg\n").build();
 
     context.fileSystem().add(testFile0);
     context.fileSystem().add(testFile1);
@@ -88,8 +87,8 @@ public class CxxClangSASensorTest {
   }
 
   @Test
-  public void shouldReportCorrectFlows() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportCorrectFlows() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxClangSASensor.REPORT_PATH_KEY,
                          "clangsa-reports/clangsa-report.plist");
     context.setSettings(settings);
@@ -97,12 +96,12 @@ public class CxxClangSASensorTest {
     /*
      * 2 issues
      */
-    DefaultInputFile testFile0 = TestInputFileBuilder.create("ProjectKey", "src/lib/component0.cc").setLanguage("cxx")
+    var testFile0 = TestInputFileBuilder.create("ProjectKey", "src/lib/component0.cc").setLanguage("cxx")
       .setContents(generateTestFileContents(100, 80)).build();
     /*
      * 1 issue
      */
-    DefaultInputFile testFile1 = TestInputFileBuilder.create("ProjectKey", "src/lib/component1.cc").setLanguage("cxx")
+    var testFile1 = TestInputFileBuilder.create("ProjectKey", "src/lib/component1.cc").setLanguage("cxx")
       .setContents(generateTestFileContents(100, 80)).build();
 
     context.fileSystem().add(testFile0);
@@ -124,16 +123,16 @@ public class CxxClangSASensorTest {
         IssueLocation issueLocation = flow.locations().get(1);
         assertThat(issueLocation.inputComponent()).isEqualTo(testFile0);
         assertThat(issueLocation.message()).isEqualTo("'a' declared without an initial value");
-        assertThat(issueLocation.textRange().start().line()).isEqualTo(31);
-        assertThat(issueLocation.textRange().end().line()).isEqualTo(31);
+        assertThat(issueLocation.textRange().start().line()).isEqualTo(5);
+        assertThat(issueLocation.textRange().end().line()).isEqualTo(5);
       }
 
       {
         IssueLocation issueLocation = flow.locations().get(0);
         assertThat(issueLocation.inputComponent()).isEqualTo(testFile0);
         assertThat(issueLocation.message()).isEqualTo("Branch condition evaluates to a garbage value");
-        assertThat(issueLocation.textRange().start().line()).isEqualTo(32);
-        assertThat(issueLocation.textRange().end().line()).isEqualTo(32);
+        assertThat(issueLocation.textRange().start().line()).isEqualTo(6);
+        assertThat(issueLocation.textRange().end().line()).isEqualTo(6);
       }
     }
 
@@ -151,8 +150,8 @@ public class CxxClangSASensorTest {
   }
 
   @Test
-  public void invalidReportReportsNoIssues() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void invalidReportReportsNoIssues() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxClangSASensor.REPORT_PATH_KEY, "clangsa-reports/clangsa-reportXYZ.plist");
     context.setSettings(settings);
 
@@ -162,18 +161,18 @@ public class CxxClangSASensorTest {
     var sensor = new CxxClangSASensor();
     sensor.execute(context);
 
-    assertThat(context.allIssues()).hasSize(0);
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
     var sensor = new CxxClangSASensor();
     sensor.describe(descriptor);
 
     var softly = new SoftAssertions();
     softly.assertThat(descriptor.name()).isEqualTo("CXX Clang Static Analyzer report import");
-    softly.assertThat(descriptor.languages()).containsOnly("cxx");
+    softly.assertThat(descriptor.languages()).containsOnly("cxx", "cpp", "c++", "c");
     softly.assertThat(descriptor.ruleRepositories()).containsOnly(CxxClangSARuleRepository.KEY);
     softly.assertAll();
   }

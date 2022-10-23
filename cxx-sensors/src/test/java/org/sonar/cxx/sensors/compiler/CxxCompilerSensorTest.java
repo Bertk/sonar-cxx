@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,30 +21,30 @@ package org.sonar.cxx.sensors.compiler;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
-import org.sonar.api.utils.log.LogTester;
+import org.sonar.api.utils.log.LogTesterJUnit5;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxCompilerSensorTest {
+class CxxCompilerSensorTest {
 
-  @Rule
-  public LogTester logTester = new LogTester();
+  @RegisterExtension
+  public LogTesterJUnit5 logTester = new LogTesterJUnit5();
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
   private SensorContextTester context;
   private CxxCompilerSensorMock sensor;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
     fs = TestUtils.mockFileSystem();
@@ -54,38 +54,38 @@ public class CxxCompilerSensorTest {
   }
 
   @Test
-  public void testFileNotFound() {
+  void testFileNotFound() {
     var report = new File("");
-    sensor.setRegex("*");
+    sensor.setRegex("(?<test>.*)");
     sensor.testExecuteReport(report);
-    String log = logTester.logs().toString();
-    assertThat(log.contains("FileNotFoundException")).isTrue();
+    var log = logTester.logs().toString();
+    assertThat(log).contains("FileNotFoundException");
   }
 
   @Test
-  public void testRegexEmpty() {
+  void testRegexEmpty() {
     var report = new File("");
     sensor.testExecuteReport(report);
-    String log = logTester.logs().toString();
-    assertThat(log.contains("empty custom regular expression")).isTrue();
+    var log = logTester.logs().toString();
+    assertThat(log).contains("empty custom regular expression");
   }
 
   @Test
-  public void testRegexInvalid() {
+  void testRegexInvalid() {
     var report = new File(fs.baseDir(), "compiler-reports/VC-report.vclog");
-    sensor.setRegex("*");
+    sensor.setRegex("(?<test>*)");
     sensor.testExecuteReport(report);
-    String log = logTester.logs().toString();
-    assertThat(log.contains("PatternSyntaxException")).isTrue();
+    var log = logTester.logs().toString();
+    assertThat(log).contains("PatternSyntaxException");
   }
 
   @Test
-  public void testRegexNamedGroupMissing() {
+  void testRegexNamedGroupMissing() {
     var report = new File(fs.baseDir(), "compiler-reports/VC-report.vclog");
     sensor.setRegex(".*");
     sensor.testExecuteReport(report);
-    String log = logTester.logs().toString();
-    assertThat(log.contains("No group with name")).isTrue();
+    var log = logTester.logs().toString();
+    assertThat(log).contains("contains no named-capturing group");
   }
 
   private class CxxCompilerSensorMock extends CxxCompilerSensor {
@@ -114,7 +114,7 @@ public class CxxCompilerSensorTest {
     }
 
     @Override
-    protected String getCharset() {
+    protected String getEncoding() {
       return StandardCharsets.UTF_8.name();
     }
 

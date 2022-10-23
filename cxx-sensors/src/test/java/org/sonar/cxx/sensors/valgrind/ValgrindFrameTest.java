@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,18 +20,17 @@
 package org.sonar.cxx.sensors.valgrind;
 
 import java.util.HashMap;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ValgrindFrameTest {
+class ValgrindFrameTest {
 
   private ValgrindFrame frame;
   private ValgrindFrame equalFrame;
   private ValgrindFrame otherFrame;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     frame = new ValgrindFrame("", "", "lala", "", "lala", "111");
     equalFrame = new ValgrindFrame("", "", "lala", "", "lala", "111");
@@ -39,36 +38,36 @@ public class ValgrindFrameTest {
   }
 
   @Test
-  public void frameDoesntEqualsNull() {
+  void frameDoesntEqualsNull() {
     assertThat(frame).isNotNull();
   }
 
   @Test
-  public void frameDoesntEqualsMiscObject() {
+  void frameDoesntEqualsMiscObject() {
     assertThat(frame).isNotEqualTo("string");
   }
 
   @Test
-  public void frameEqualityIsReflexive() {
+  void frameEqualityIsReflexive() {
     assertThat(frame).isEqualTo(frame);
     assertThat(otherFrame).isEqualTo(otherFrame);
     assertThat(equalFrame).isEqualTo(equalFrame);
   }
 
   @Test
-  public void frameEqualityWorksAsExpected() {
+  void frameEqualityWorksAsExpected() {
     assertThat(frame).isEqualTo(equalFrame);
     assertThat(frame).isNotEqualTo(otherFrame);
   }
 
   @Test
-  public void frameHashWorksAsExpected() {
-    assertThat(frame.hashCode() == equalFrame.hashCode()).isTrue();
-    assertThat(frame.hashCode() != otherFrame.hashCode()).isTrue();
+  void frameHashWorksAsExpected() {
+    assertThat(frame).hasSameHashCodeAs(equalFrame);
+    assertThat(frame.hashCode()).isNotEqualTo(otherFrame.hashCode());
   }
 
   @Test
-  public void stringRepresentationShouldResembleValgrindsStandard() {
+  void stringRepresentationShouldResembleValgrindsStandard() {
     var ioMap = new HashMap<String, ValgrindFrame>();
 
     ioMap.put("0xDEADBEAF: main() (main.cc:1)",
@@ -87,7 +86,7 @@ public class ValgrindFrameTest {
               new ValgrindFrame(null, null, null, null, null, ""));
 
     for (var entry : ioMap.entrySet()) {
-      assertEquals(entry.getKey(), entry.getValue().toString());
+      assertThat(entry.getValue()).hasToString(entry.getKey());
     }
   }
 

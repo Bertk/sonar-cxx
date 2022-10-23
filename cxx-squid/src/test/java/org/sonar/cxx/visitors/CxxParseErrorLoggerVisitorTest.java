@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,44 +19,34 @@
  */
 package org.sonar.cxx.visitors;
 
-import java.io.File;
-import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
-import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.utils.log.LogTester;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.sonar.api.utils.log.LogTesterJUnit5;
 import org.sonar.api.utils.log.LoggerLevel;
 import org.sonar.cxx.CxxAstScanner;
+import org.sonar.cxx.CxxFileTesterHelper;
 
-public class CxxParseErrorLoggerVisitorTest {
+class CxxParseErrorLoggerVisitorTest {
 
-  @Rule
-  public LogTester logTester = new LogTester();
-
-  @Before
-  public void scanFile() {
-    String dir = "src/test/resources/visitors";
-    InputFile inputFile = TestInputFileBuilder.create("", dir + "/syntaxerror.cc").build();
-    SensorContextTester context = SensorContextTester.create(new File(dir));
-    context.fileSystem().add(inputFile);
-
-    logTester.setLevel(LoggerLevel.DEBUG);
-    CxxAstScanner.scanSingleFile(new File(inputFile.uri().getPath()));
-  }
+  @RegisterExtension
+  public LogTesterJUnit5 logTester = new LogTesterJUnit5();
 
   @Test
-  public void handleParseErrorTest() throws Exception {
-    List<String> log = logTester.logs(LoggerLevel.DEBUG);
-    assertThat(log).hasSize(11);
-    assertThat(log.get(6)).contains("skip declaration: namespace X {");
-    assertThat(log.get(7)).contains("skip declaration: void test :: f1 ( ) {");
-    assertThat(log.get(8)).contains("syntax error: i = unsigend int ( i + 1 )");
-    assertThat(log.get(9)).contains("skip declaration: void test :: f3 ( ) {");
-    assertThat(log.get(10)).contains("syntax error: int i = 0 i ++");
+  void handleParseErrorTest() throws Exception {
+    logTester.setLevel(LoggerLevel.DEBUG);
+    var tester = CxxFileTesterHelper.create("src/test/resources/visitors/syntaxerror.cc", ".", "");
+    CxxAstScanner.scanSingleInputFile(tester.asInputFile());
+
+    var log = String.join("\n", logTester.logs(LoggerLevel.DEBUG));
+
+    assertThat(log)
+      .isNotEmpty()
+      .contains("skip declaration: namespace X {")
+      .contains("skip declaration: void test :: f1 ( ) {")
+      .contains("syntax error: i = unsigend int ( i + 1 )")
+      .contains("skip declaration: void test :: f3 ( ) {")
+      .contains("syntax error: int i = 0 i ++");
   }
 
 }

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -25,30 +25,26 @@ package org.sonar.cxx.sensors.tests.dotnet;
 // mailto:info AT sonarsource DOT com
 import java.io.File;
 import java.io.IOException;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-public class XmlParserHelperTest {
+class XmlParserHelperTest {
 
   private static final String REPORT_PATH = "src/test/resources/org/sonar/cxx/sensors/reports-project/MSTest-reports/";
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   @Test
-  public void invalid_prolog() throws IOException {
-    thrown.expectMessage("Error while parsing the XML file: ");
-    thrown.expectMessage("invalid_prolog.txt");
-
-    try (var helper = new XmlParserHelper(new File(REPORT_PATH + "invalid_prolog.txt"))) {
-      helper.nextStartTag();
-    }
+  void invalid_prolog() throws IOException {
+    IllegalStateException e = catchThrowableOfType(() -> {
+      try (var helper = new XmlParserHelper(new File(REPORT_PATH + "invalid_prolog.txt"))) {
+        helper.nextStartTag();
+      }
+    }, IllegalStateException.class);
+    assertThat(e).hasMessageContaining("Error while parsing the XML file: "
+                                         + new File(REPORT_PATH + "invalid_prolog.txt").getAbsolutePath());
   }
 
   @Test
-  public void nextStartOrEndTag() {
+  void nextStartOrEndTag() {
     var xml = new XmlParserHelper(new File(REPORT_PATH + "valid.xml"));
     assertThat(xml.nextStartOrEndTag()).isEqualTo("<foo>");
     assertThat(xml.nextStartOrEndTag()).isEqualTo("<bar>");
@@ -64,22 +60,18 @@ public class XmlParserHelperTest {
   }
 
   @Test
-  public void getDoubleAttribute() {
+  void getDoubleAttribute() {
     var xml = new XmlParserHelper(new File(REPORT_PATH + "valid.xml"));
     xml.nextStartTag();
     assertThat(xml.getDoubleAttribute("myDouble")).isEqualTo(0.123);
     assertThat(xml.getDoubleAttribute("myCommaDouble")).isEqualTo(1.234);
     assertThat(xml.getDoubleAttribute("nonExisting")).isNull();
 
-    thrown.expectMessage("valid.xml");
-    thrown.expectMessage("Expected an double instead of \"hello\" for the attribute \"myString\"");
-    xml.getDoubleAttribute("myString");
-    try {
-      xml.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    ParseErrorException e = catchThrowableOfType(() -> {
+      xml.getDoubleAttribute("myString");
+    }, ParseErrorException.class);
+    assertThat(e).hasMessageContaining("Expected an double instead of \"hello\" for the attribute \"myString\" in "
+                                         + new File(REPORT_PATH + "valid.xml").getAbsolutePath());
   }
 
 }

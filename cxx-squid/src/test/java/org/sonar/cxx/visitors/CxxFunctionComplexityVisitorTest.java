@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,25 +21,24 @@ package org.sonar.cxx.visitors;
 
 import java.io.IOException;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.CxxFileTester;
 import org.sonar.cxx.CxxFileTesterHelper;
-import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.squidbridge.api.SourceFile;
+import org.sonar.cxx.config.CxxSquidConfiguration;
+import org.sonar.cxx.squidbridge.api.SourceFile;
 
-public class CxxFunctionComplexityVisitorTest {
+class CxxFunctionComplexityVisitorTest {
 
   @Test
-  public void testPublishMeasuresForFile() throws IOException {
+  void testPublishMeasuresForFile() throws IOException {
 
     CxxSquidConfiguration squidConfig = new CxxSquidConfiguration();
-    squidConfig.setFunctionComplexityThreshold(5);
-
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/metrics/FunctionComplexity.cc",
-                                                                   ".", "");
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig);
+    squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.FUNCTION_COMPLEXITY_THRESHOLD,
+                    "5");
+    var tester = CxxFileTesterHelper.create("src/test/resources/metrics/FunctionComplexity.cc",
+                                        ".", "");
+    SourceFile file = CxxAstScanner.scanSingleInputFileConfig(tester.asInputFile(), squidConfig);
 
     var softly = new SoftAssertions();
     softly.assertThat(file.getInt(CxxMetric.COMPLEX_FUNCTIONS)).isEqualTo(4);
@@ -48,14 +47,14 @@ public class CxxFunctionComplexityVisitorTest {
   }
 
   @Test
-  public void testPublishMeasuresForEmptyFile() throws IOException {
+  void testPublishMeasuresForEmptyFile() throws IOException {
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/metrics/EmptyFile.cc", ".", "");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile());
+    var tester = CxxFileTesterHelper.create("src/test/resources/metrics/EmptyFile.cc", ".", "");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile());
 
     var softly = new SoftAssertions();
-    softly.assertThat(file.getInt(CxxMetric.COMPLEX_FUNCTIONS)).isEqualTo(0);
-    softly.assertThat(file.getInt(CxxMetric.COMPLEX_FUNCTIONS_LOC)).isEqualTo(0);
+    softly.assertThat(file.getInt(CxxMetric.COMPLEX_FUNCTIONS)).isZero();
+    softly.assertThat(file.getInt(CxxMetric.COMPLEX_FUNCTIONS_LOC)).isZero();
     softly.assertAll();
   }
 

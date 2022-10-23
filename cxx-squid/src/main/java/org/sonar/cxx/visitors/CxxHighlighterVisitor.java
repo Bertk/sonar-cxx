@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,21 +19,20 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.api.Trivia;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.api.Trivia;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import org.sonar.cxx.api.CxxKeyword;
+import org.sonar.cxx.parser.CxxKeyword;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.cxx.api.CxxTokenType;
-import org.sonar.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.parser.CxxTokenType;
+import org.sonar.cxx.squidbridge.SquidAstVisitor;
 
 public class CxxHighlighterVisitor extends SquidAstVisitor<Grammar> implements AstAndTokenVisitor {
 
@@ -191,7 +190,7 @@ public class CxxHighlighterVisitor extends SquidAstVisitor<Grammar> implements A
 
     PreprocessorDirectiveLocation(Token token) {
       super(token);
-      Matcher m = PREPROCESSOR_PATTERN.matcher(token.getValue());
+      var m = PREPROCESSOR_PATTERN.matcher(token.getValue());
       if (m.find()) {
         endLineOffset = startLineOffset + (m.end() - m.start());
       } else {

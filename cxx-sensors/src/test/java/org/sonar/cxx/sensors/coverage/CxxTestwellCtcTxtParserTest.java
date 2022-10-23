@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,31 +20,32 @@
 package org.sonar.cxx.sensors.coverage;
 
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
+import org.sonar.cxx.sensors.coverage.ctc.CxxCoverageTestwellCtcTxtSensor;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxTestwellCtcTxtParserTest {
+class CxxTestwellCtcTxtParserTest {
 
   private DefaultFileSystem fs;
   private SensorContextTester context;
   private final MapSettings settings = new MapSettings();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     fs = TestUtils.mockFileSystem();
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
   }
 
   @Test
-  public void shouldReportCoveredLines() {
+  void shouldReportCoveredLines() {
     context = SensorContextTester.create(fs.baseDir());
-    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+    settings.setProperty(CxxCoverageTestwellCtcTxtSensor.REPORT_PATH_KEY,
                          "coverage-reports/TestwellCTC/report_small_v8.txt");
     context.setSettings(settings);
 
@@ -53,7 +54,7 @@ public class CxxTestwellCtcTxtParserTest {
                                          + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                        + "\n\n\n\n\n\n\n").build());
 
-    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
+    var sensor = new CxxCoverageTestwellCtcTxtSensor();
     sensor.execute(context);
 
     var softly = new SoftAssertions();
@@ -63,9 +64,9 @@ public class CxxTestwellCtcTxtParserTest {
   }
 
   @Test
-  public void shouldReportCoveredConditionsOne() {
+  void shouldReportCoveredConditionsOne() {
     context = SensorContextTester.create(fs.baseDir());
-    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+    settings.setProperty(CxxCoverageTestwellCtcTxtSensor.REPORT_PATH_KEY,
                          "coverage-reports/TestwellCTC/report_small_v8.txt");
     context.setSettings(settings);
 
@@ -74,7 +75,7 @@ public class CxxTestwellCtcTxtParserTest {
                                          + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                        + "\n\n\n\n\n\n\n").build());
 
-    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
+    var sensor = new CxxCoverageTestwellCtcTxtSensor();
     sensor.execute(context);
 
     var softly = new SoftAssertions();
@@ -84,9 +85,10 @@ public class CxxTestwellCtcTxtParserTest {
   }
 
   @Test
-  public void shouldReportCoveredConditionsTwo() {
+  void shouldReportCoveredConditionsTwo() {
     context = SensorContextTester.create(fs.baseDir());
-    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY, "coverage-reports/TestwellCTC/report_small_v8.txt");
+    settings.setProperty(CxxCoverageTestwellCtcTxtSensor.REPORT_PATH_KEY,
+                         "coverage-reports/TestwellCTC/report_small_v8.txt");
     context.setSettings(settings);
 
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "HGBuildNumberLookup.cpp")
@@ -94,7 +96,7 @@ public class CxxTestwellCtcTxtParserTest {
                                          + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                        + "\n\n\n\n\n\n\n").build());
 
-    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
+    var sensor = new CxxCoverageTestwellCtcTxtSensor();
     sensor.execute(context);
 
     var softly = new SoftAssertions();
@@ -104,9 +106,9 @@ public class CxxTestwellCtcTxtParserTest {
   }
 
   @Test
-  public void shouldConsumeLargeReportCoveredLines() {
+  void shouldConsumeLargeReportCoveredLines() {
     context = SensorContextTester.create(fs.baseDir());
-    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+    settings.setProperty(CxxCoverageTestwellCtcTxtSensor.REPORT_PATH_KEY,
                          "coverage-reports/TestwellCTC/report_big.txt");
     context.setSettings(settings);
 
@@ -119,7 +121,7 @@ public class CxxTestwellCtcTxtParserTest {
                                          + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                        + "\n\n\n\n\n\n\n").build());
 
-    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
+    var sensor = new CxxCoverageTestwellCtcTxtSensor();
     sensor.execute(context);
 
     var softly = new SoftAssertions();
@@ -129,9 +131,9 @@ public class CxxTestwellCtcTxtParserTest {
   }
 
   @Test
-  public void shouldConsumeLargeReportCoveredConditions() {
+  void shouldConsumeLargeReportCoveredConditions() {
     context = SensorContextTester.create(fs.baseDir());
-    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+    settings.setProperty(CxxCoverageTestwellCtcTxtSensor.REPORT_PATH_KEY,
                          "coverage-reports/TestwellCTC/report_big.txt");
     context.setSettings(settings);
 
@@ -144,7 +146,7 @@ public class CxxTestwellCtcTxtParserTest {
                                          + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                        + "\n\n\n\n\n\n\n").build());
 
-    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
+    var sensor = new CxxCoverageTestwellCtcTxtSensor();
     sensor.execute(context);
 
     var softly = new SoftAssertions();
@@ -154,9 +156,9 @@ public class CxxTestwellCtcTxtParserTest {
   }
 
   @Test
-  public void shouldConsumeLargeReportConditions() {
+  void shouldConsumeLargeReportConditions() {
     context = SensorContextTester.create(fs.baseDir());
-    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+    settings.setProperty(CxxCoverageTestwellCtcTxtSensor.REPORT_PATH_KEY,
                          "coverage-reports/TestwellCTC/report_big.txt");
     context.setSettings(settings);
 
@@ -169,7 +171,7 @@ public class CxxTestwellCtcTxtParserTest {
                                          + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                        + "\n\n\n\n\n\n\n").build());
 
-    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
+    var sensor = new CxxCoverageTestwellCtcTxtSensor();
     sensor.execute(context);
 
     var softly = new SoftAssertions();
@@ -179,9 +181,9 @@ public class CxxTestwellCtcTxtParserTest {
   }
 
   @Test
-  public void shouldConsumeEmptyReport() {
+  void shouldConsumeEmptyReport() {
     context = SensorContextTester.create(fs.baseDir());
-    settings.setProperty(CxxCoverageSensor.REPORT_PATH_KEY,
+    settings.setProperty(CxxCoverageTestwellCtcTxtSensor.REPORT_PATH_KEY,
                          "coverage-reports/TestwellCTC/report_empty.txt");
     context.setSettings(settings);
 
@@ -190,7 +192,7 @@ public class CxxTestwellCtcTxtParserTest {
                                          + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
                                        + "\n\n\n\n\n\n\n").build());
 
-    var sensor = new CxxCoverageSensor(new CxxCoverageCache());
+    var sensor = new CxxCoverageTestwellCtcTxtSensor();
     sensor.execute(context);
 
     var softly = new SoftAssertions();

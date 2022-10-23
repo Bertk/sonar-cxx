@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -65,7 +65,7 @@ public class DroppedPropertiesSensor implements ProjectSensor {
             "Define C++ keywords in an own header file and include it with 'sonar.cxx.forceIncludes' instead."); // V2.0.0
     map.put("sonar.cxx.suffixes.sources", "Use key 'sonar.cxx.file.suffixes' instead."); // V2.0.0
     map.put("sonar.cxx.suffixes.headers",
-            "Use key 'sonar.cxx.file.suffixes' instead. For API detection use 'sonar.cxx.api.file.suffixes'."); // V2.0.0
+            "Use key 'sonar.cxx.file.suffixes' instead. For API detection use 'sonar.cxx.metric.api.file.suffixes'."); // V2.0.0
     map.put("sonar.cxx.other.xslt.1.stylesheet", "Use 'sonar.cxx.xslt.1.stylesheet' instead."); // V2.0.0
     map.put("sonar.cxx.other.xslt.1.inputs", "Use 'sonar.cxx.xslt.1.inputs' instead."); // V2.0.0
     map.put("sonar.cxx.other.xslt.1.outputs", "Use 'sonar.cxx.xslt.1.outputs' instead."); // V2.0.0
@@ -74,7 +74,6 @@ public class DroppedPropertiesSensor implements ProjectSensor {
     map.put("sonar.cxx.clangtidy.reportPath", "Use 'sonar.cxx.clangtidy.reportPaths' instead."); // V2.0.0
     map.put("sonar.cxx.gcc.reportPath", "Use 'sonar.cxx.gcc.reportPaths' instead."); // V2.0.0
     map.put("sonar.cxx.vc.reportPath", "Use 'sonar.cxx.vc.reportPaths' instead."); // V2.0.0
-    map.put("sonar.cxx.coverage.reportPath", "Use 'sonar.cxx.coverage.reportPaths' instead."); // V2.0.0
     map.put("sonar.cxx.cppcheck.reportPath", "Use 'sonar.cxx.cppcheck.reportPaths' instead."); // V2.0.0
     map.put("sonar.cxx.drmemory.reportPath", "Use 'sonar.cxx.drmemory.reportPaths' instead."); // V2.0.0
     map.put("sonar.cxx.other.reportPath", "Use 'sonar.cxx.other.reportPaths' instead."); // V2.0.0
@@ -83,6 +82,25 @@ public class DroppedPropertiesSensor implements ProjectSensor {
     map.put("sonar.cxx.valgrind.reportPath", "Use 'sonar.cxx.valgrind.reportPaths' instead."); // V2.0.0
     map.put("sonar.cxx.vera.reportPath", "Use 'sonar.cxx.vera.reportPaths' instead."); // V2.0.0
     map.put("sonar.cxx.msbuild.reportPath", "Use 'sonar.cxx.msbuild.reportPaths' instead."); // V2.0.0
+    map.put("sonar.cxx.coverage.reportPath", "Use 'sonar.cxx.bullseye.reportPaths'"
+                                               + ", 'sonar.cxx.cobertura.reportPaths', 'sonar.cxx.vscoveragexml.reportPaths' or 'sonar.cxx.ctctxt.reportPaths'"
+                                             + " instead."); // V2.0.0
+    map.put("sonar.cxx.funccomplexity.threshold",
+            "Use 'sonar.cxx.metric.func.complexity.threshold' instead."); // V2.0.0
+    map.put("sonar.cxx.funcsize.threshold", "Use 'sonar.cxx.metric.func.size.threshold' instead."); // V2.0.0
+    map.put("sonar.cxx.vstest.reportsPaths", "Use 'sonar.cxx.vstest.reportPaths' instead."); // V2.0.0
+    map.put("sonar.cxx.xunit.reportsPaths", "Use 'sonar.cxx.xunit.reportPaths' instead."); // V2.0.0
+    map.put("sonar.cxx.nunit.reportsPaths", "Use 'sonar.cxx.nunit.reportPaths' instead."); // V2.0.0
+    map.put("sonar.cxx.clangtidy.charset", "Use 'sonar.cxx.clangtidy.encoding' instead."); // V2.0.0
+    map.put("sonar.cxx.gcc.charset", "Use 'sonar.cxx.gcc.encoding' instead."); // V2.0.0
+    map.put("sonar.cxx.vc.charset", "Use 'sonar.cxx.vc.encoding' instead."); // V2.0.0
+    map.put("sonar.cxx.ctctxt.charset", "Use 'sonar.cxx.ctctxt.encoding' instead."); // V2.0.0
+    map.put("sonar.cxx.msbuild.charset", "Use 'sonar.cxx.msbuild.encoding' instead."); // V2.0.0
+    map.put("sonar.cxx.cpd.ignoreLiterals", "Use 'sonar.cxx.metric.cpd.ignoreLiterals' instead."); // V2.0.0
+    map.put("sonar.cxx.cpd.ignoreIdentifiers", "Use 'sonar.cxx.metric.cpd.ignoreIdentifiers' instead."); // V2.0.0
+    map.put("sonar.cxx.nunit.reportPaths", "If possible use 'sonar.cs.nunit.reportsPaths' instead."); // V2.0.0
+    map.put("sonar.cxx.vstest.reportPaths", "If possible use 'sonar.cs.vstest.reportsPaths' instead."); // V2.0.0
+
     return Collections.unmodifiableMap(map);
   }
 
@@ -98,7 +116,7 @@ public class DroppedPropertiesSensor implements ProjectSensor {
   public void execute(SensorContext context) {
     ALL_REMOVED_PROPERTIES.forEach((key, info) -> {
       if (context.config().hasKey(key)) {
-        String msg = "CXX property '" + key + "' is no longer supported.";
+        var msg = "CXX property '" + key + "' is no longer supported.";
         if (!info.isEmpty()) {
           msg += " " + info;
         }

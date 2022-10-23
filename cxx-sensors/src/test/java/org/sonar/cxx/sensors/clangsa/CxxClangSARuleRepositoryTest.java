@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,25 +19,25 @@
  */
 package org.sonar.cxx.sensors.clangsa;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import org.sonar.api.platform.ServerFileSystem;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.api.server.rule.RulesDefinitionXmlLoader;
 
-public class CxxClangSARuleRepositoryTest {
+class CxxClangSARuleRepositoryTest {
 
   @Test
-  public void createRulesTest() {
-    CxxClangSARuleRepository def = new CxxClangSARuleRepository(
+  void createRulesTest() {
+    var def = new CxxClangSARuleRepository(
       mock(ServerFileSystem.class), new RulesDefinitionXmlLoader());
 
     var context = new RulesDefinition.Context();
     def.define(context);
 
     RulesDefinition.Repository repo = context.repository(CxxClangSARuleRepository.KEY);
-    assertEquals(111, repo.rules().size());
+    assertThat(repo.rules()).hasSize(92);
   }
 
 }

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,25 +21,23 @@ package org.sonar.cxx.checks.metrics;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.checks.CxxFileTester;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
-import org.sonar.squidbridge.api.SourceFile;
-import org.sonar.squidbridge.checks.CheckMessagesVerifier;
+import org.sonar.cxx.squidbridge.api.SourceFile;
+import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class TooManyStatementsPerLineCheckTest {
+class TooManyStatementsPerLineCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test() throws UnsupportedEncodingException, IOException {
+  void test() throws UnsupportedEncodingException, IOException {
     var check = new TooManyStatementsPerLineCheck();
     check.excludeCaseBreak = false;
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
-      "src/test/resources/checks/TooManyStatementsPerLine.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/TooManyStatementsPerLine.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().atLine(17).withMessage(
@@ -53,20 +51,19 @@ public class TooManyStatementsPerLineCheckTest {
   }
 
   @Test
-  public void testDefaultExcludeCaseBreak() {
+  void testDefaultExcludeCaseBreak() {
     var check = new TooManyStatementsPerLineCheck();
     assertThat(check.excludeCaseBreak).isFalse();
   }
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void testExcludeCaseBreak() throws UnsupportedEncodingException, IOException {
+  void testExcludeCaseBreak() throws UnsupportedEncodingException, IOException {
     var check = new TooManyStatementsPerLineCheck();
     check.excludeCaseBreak = true;
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
-      "src/test/resources/checks/TooManyStatementsPerLine.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/TooManyStatementsPerLine.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().atLine(17).withMessage(
       "At most one statement is allowed per line, but 2 statements were found on this line.")

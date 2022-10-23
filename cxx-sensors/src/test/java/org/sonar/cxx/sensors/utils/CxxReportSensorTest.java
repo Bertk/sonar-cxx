@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,14 +21,14 @@ package org.sonar.cxx.sensors.utils;
 
 import java.io.File;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
 
-public class CxxReportSensorTest {
+class CxxReportSensorTest {
 
   private final String VALID_REPORT_PATH = "cppcheck-reports/cppcheck-result-*.xml";
   private final String VALID_REPORT_PATH_LIST = "cppcheck-reports/*empty.xml, cppcheck-reports/*V2.xml";
@@ -38,7 +38,7 @@ public class CxxReportSensorTest {
   private File baseDir;
   private final MapSettings settings = new MapSettings();
 
-  @Before
+  @BeforeEach
   public void init() {
     TestUtils.mockFileSystem();
     try {
@@ -49,13 +49,13 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void shouldntThrowWhenInstantiating() {
+  void shouldntThrowWhenInstantiating() {
     var sensor = new CxxReportSensorImpl(settings);
     assertThat(sensor).isNotNull();
   }
 
   @Test
-  public void getReports_shouldFindNothingIfNoKey() {
+  void getReports_shouldFindNothingIfNoKey() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, INVALID_REPORT_PATH);
 
     var context = SensorContextTester.create(baseDir);
@@ -65,7 +65,7 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void getReports_shouldFindNothingIfNoPath() {
+  void getReports_shouldFindNothingIfNoPath() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, "");
     var context = SensorContextTester.create(baseDir);
     context.setSettings(settings);
@@ -74,7 +74,7 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void getReports_shouldFindNothingIfInvalidPath() {
+  void getReports_shouldFindNothingIfInvalidPath() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, INVALID_REPORT_PATH);
     var context = SensorContextTester.create(baseDir);
     context.setSettings(settings);
@@ -83,27 +83,27 @@ public class CxxReportSensorTest {
   }
 
   @Test
-  public void getReports_shouldFindSomething() {
+  void getReports_shouldFindSomething() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, VALID_REPORT_PATH);
     var context = SensorContextTester.create(baseDir);
     context.setSettings(settings);
     List<File> reports = CxxUtils.getFiles(context, REPORT_PATH_PROPERTY_KEY);
     assertThat(reports).isNotNull();
-    assertThat(reports.get(0).exists()).isTrue();
-    assertThat(reports.get(0).isAbsolute()).isTrue();
-    assertThat(reports.size()).isEqualTo(3);
+    assertThat(reports.get(0)).exists();
+    assertThat(reports.get(0)).isAbsolute();
+    assertThat(reports).hasSize(3);
   }
 
   @Test
-  public void getReports_shouldFindSomethingList() {
+  void getReports_shouldFindSomethingList() {
     settings.setProperty(REPORT_PATH_PROPERTY_KEY, VALID_REPORT_PATH_LIST);
     var context = SensorContextTester.create(baseDir);
     context.setSettings(settings);
     List<File> reports = CxxUtils.getFiles(context, REPORT_PATH_PROPERTY_KEY);
     assertThat(reports).isNotNull();
-    assertThat(reports.get(0).exists()).isTrue();
-    assertThat(reports.get(0).isAbsolute()).isTrue();
-    assertThat(reports.size()).isEqualTo(3);
+    assertThat(reports.get(0)).exists();
+    assertThat(reports.get(0)).isAbsolute();
+    assertThat(reports).hasSize(3);
   }
 
   private class CxxReportSensorImpl extends CxxReportSensor {
@@ -117,7 +117,9 @@ public class CxxReportSensorTest {
 
     @Override
     public void describe(SensorDescriptor descriptor) {
-      descriptor.onlyOnLanguage("cxx").name("CxxReportSensorTest");
+      descriptor
+        .name("CxxReportSensorTest")
+        .onlyOnLanguages("cxx", "cpp", "c++", "c");
     }
   }
 

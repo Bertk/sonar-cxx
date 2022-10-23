@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +19,18 @@
  */
 package org.sonar.plugins.cxx;
 
-import com.sonar.sslr.api.Grammar;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import com.sonar.cxx.sslr.api.Grammar;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.resources.Language;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
 import org.sonar.cxx.tag.Tag;
-import org.sonar.squidbridge.checks.SquidCheck;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 
-public class CustomCxxRulesDefinitionTest {
+class CustomCxxRulesDefinitionTest {
 
   private static final Language LANGUAGE = new CxxLanguage(new MapSettings().asConfig());
   private static final String REPOSITORY_NAME = "Custom Rule Repository";
@@ -40,7 +40,7 @@ public class CustomCxxRulesDefinitionTest {
   private static final String RULE_KEY = "MyCustomRule";
 
   @Test
-  public void test() {
+  void test() {
     var rulesDefinition = new MyCustomPlSqlRulesDefinition();
     var context = new RulesDefinition.Context();
     rulesDefinition.define(context);

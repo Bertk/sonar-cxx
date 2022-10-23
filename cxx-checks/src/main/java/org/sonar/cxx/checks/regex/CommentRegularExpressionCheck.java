@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,17 +19,17 @@
  */
 package org.sonar.cxx.checks.regex;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
-import org.sonar.squidbridge.annotations.NoSqale;
-import org.sonar.squidbridge.annotations.RuleTemplate;
-import org.sonar.squidbridge.checks.AbstractCommentRegularExpressionCheck;
+import org.sonar.cxx.squidbridge.annotations.NoSqale;
+import org.sonar.cxx.squidbridge.annotations.RuleTemplate;
+import org.sonar.cxx.squidbridge.checks.AbstractCommentRegularExpressionCheck;
 
 @Rule(
   key = "CommentRegularExpression",
-  name = "Regular expression on comment",
+  name = "Track comments matching a regular expression",
   priority = Priority.MAJOR)
 @RuleTemplate
 @NoSqale

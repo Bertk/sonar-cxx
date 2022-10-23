@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,17 +19,17 @@
  */
 package org.sonar.cxx.checks.error;
 
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.RecognitionException;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.RecognitionException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.cxx.tag.Tag;
-import org.sonar.squidbridge.AstScannerExceptionHandler;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.NoSqale;
-import org.sonar.squidbridge.checks.SquidCheck;
+import org.sonar.cxx.squidbridge.AstScannerExceptionHandler;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.NoSqale;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 
 @Rule(
   key = "ParsingError",

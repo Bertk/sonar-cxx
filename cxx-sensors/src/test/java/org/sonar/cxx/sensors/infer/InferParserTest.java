@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,26 +20,25 @@
 package org.sonar.cxx.sensors.infer;
 
 import com.google.gson.Gson;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-
-public class InferParserTest {
+class InferParserTest {
 
   @Test
-  public void shouldParseImportantInformation() {
-    InferParser.InferIssue expected = new InferParser.InferIssue();
+  void shouldParseImportantInformation() {
+    var expected = new InferParser.InferIssue();
     expected.setBugType("TotoType");
     expected.setFile("path/to/toto.c");
     expected.setLine(11);
     expected.setQualifier("Toto should not be toto.");
 
-    String json = "{'bug_type':'TotoType','qualifier':'Toto should not be toto.',"
-            + "'line':11,'file':'path/to/toto.c'}";
-    Gson gson = new Gson();
+    var json = "{'bug_type':'TotoType','qualifier':'Toto should not be toto.',"
+             + "'line':11,'file':'path/to/toto.c'}";
+    var gson = new Gson();
     InferParser.InferIssue value = gson.fromJson(json, InferParser.InferIssue.class);
 
-    assertEquals(expected.toString(), value.toString());
+    assertThat(value).hasToString(expected.toString());
   }
 
 }

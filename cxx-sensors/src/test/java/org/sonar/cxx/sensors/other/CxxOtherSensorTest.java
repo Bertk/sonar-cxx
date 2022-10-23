@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,37 +19,37 @@
  */
 package org.sonar.cxx.sensors.other;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
-import org.sonar.api.utils.log.LogTester;
+import org.sonar.api.utils.log.LogTesterJUnit5;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxOtherSensorTest {
+class CxxOtherSensorTest {
 
-  @Rule
-  public LogTester logTester = new LogTester();
+  @RegisterExtension
+  public LogTesterJUnit5 logTester = new LogTesterJUnit5();
 
   private CxxOtherSensor sensor;
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     fs = TestUtils.mockFileSystem();
   }
 
   @Test
-  public void shouldReportCorrectViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportCorrectViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxOtherSensor.REPORT_PATH_KEY, "externalrules-reports/externalrules-result-ok.xml");
     context.setSettings(settings);
 
@@ -65,8 +65,8 @@ public class CxxOtherSensorTest {
   }
 
   @Test
-  public void shouldReportFileLevelViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportFileLevelViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxOtherSensor.REPORT_PATH_KEY,
                          "externalrules-reports/externalrules-result-filelevelviolation.xml");
     context.setSettings(settings);
@@ -81,8 +81,8 @@ public class CxxOtherSensorTest {
   }
 
   @Test
-  public void shouldReportProjectLevelViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportProjectLevelViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxOtherSensor.REPORT_PATH_KEY,
                          "externalrules-reports/externalrules-result-projectlevelviolation.xml");
     context.setSettings(settings);
@@ -93,45 +93,50 @@ public class CxxOtherSensorTest {
     assertThat(context.allIssues()).hasSize(1);
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void shouldThrowExceptionWhenReportEmpty() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  @Test
+  void shouldThrowExceptionWhenReportEmpty() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, false);
     settings.setProperty(CxxOtherSensor.REPORT_PATH_KEY, "externalrules-reports/externalrules-result-empty.xml");
     context.setSettings(settings);
-
     sensor = new CxxOtherSensor();
-    sensor.execute(context);
 
-    assertThat(context.allIssues()).hasSize(0);
+    IllegalStateException thrown = catchThrowableOfType(() -> {
+      sensor.execute(context);
+    }, IllegalStateException.class);
+    assertThat(thrown).isExactlyInstanceOf(IllegalStateException.class);
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void shouldReportNoViolationsIfNoReportFound() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportNoViolationsIfNoReportFound() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxOtherSensor.REPORT_PATH_KEY, "externalrules-reports/noreport.xml");
     context.setSettings(settings);
 
     sensor = new CxxOtherSensor();
     sensor.execute(context);
 
-    assertThat(context.allIssues()).hasSize(0);
-  }
-
-  @Test(expected = IllegalStateException.class)
-  public void shouldThrowInCaseOfATrashyReport() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
-    settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, false);
-    settings.setProperty(CxxOtherSensor.REPORT_PATH_KEY, "externalrules-reports/externalrules-result-invalid.xml");
-    context.setSettings(settings);
-
-    sensor = new CxxOtherSensor();
-    sensor.execute(context);
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void shouldReportOnlyOneViolationAndRemoveDuplicates() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldThrowInCaseOfATrashyReport() {
+    var context = SensorContextTester.create(fs.baseDir());
+    settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, false);
+    settings.setProperty(CxxOtherSensor.REPORT_PATH_KEY, "externalrules-reports/externalrules-result-invalid.xml");
+    context.setSettings(settings);
+    sensor = new CxxOtherSensor();
+
+    IllegalStateException thrown = catchThrowableOfType(() -> {
+      sensor.execute(context);
+    }, IllegalStateException.class);
+    assertThat(thrown).isExactlyInstanceOf(IllegalStateException.class);
+  }
+
+  @Test
+  void shouldReportOnlyOneViolationAndRemoveDuplicates() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxOtherSensor.REPORT_PATH_KEY, "externalrules-reports/externalrules-with-duplicates.xml");
     context.setSettings(settings);
 
@@ -145,14 +150,14 @@ public class CxxOtherSensorTest {
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
     sensor = new CxxOtherSensor();
     sensor.describe(descriptor);
 
     var softly = new SoftAssertions();
-    softly.assertThat(descriptor.name()).isEqualTo("CXX external analyser report import");
-    softly.assertThat(descriptor.languages()).containsOnly("cxx");
+    softly.assertThat(descriptor.name()).isEqualTo("CXX other analyser report import");
+    softly.assertThat(descriptor.languages()).containsOnly("cxx", "cpp", "c++", "c");
     softly.assertThat(descriptor.ruleRepositories()).containsOnly(CxxOtherRepository.KEY);
     softly.assertAll();
   }

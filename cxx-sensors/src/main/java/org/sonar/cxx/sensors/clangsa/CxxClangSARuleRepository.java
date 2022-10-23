@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@ import org.sonar.cxx.sensors.utils.RulesDefinitionXml;
 public class CxxClangSARuleRepository extends RulesDefinitionXml {
 
   private static final String LANGUAGE = "cxx";
-  public static final String KEY = "ClangSA";
+  public static final String KEY = "clangsa";
   private static final String NAME = "Clang-SA";
   private static final String FILE = "/clangsa.xml";
 
@@ -38,6 +38,11 @@ public class CxxClangSARuleRepository extends RulesDefinitionXml {
    */
   public CxxClangSARuleRepository(ServerFileSystem fileSystem, RulesDefinitionXmlLoader xmlRuleLoader) {
     super(fileSystem, xmlRuleLoader, LANGUAGE, KEY, NAME, FILE);
+  }
+
+  @Override
+  public void prepareRule(NewRule rule) {
+    rule.addDeprecatedRuleKey("ClangSA", rule.key()); // V1.3 repository name
   }
 
 }

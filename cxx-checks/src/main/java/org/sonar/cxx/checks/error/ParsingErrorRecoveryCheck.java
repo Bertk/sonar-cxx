@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,15 +19,15 @@
  */
 package org.sonar.cxx.checks.error;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.cxx.parser.CxxGrammarImpl;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.NoSqale;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 import org.sonar.cxx.tag.Tag;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.NoSqale;
-import org.sonar.squidbridge.checks.SquidCheck;
 
 @Rule(
   key = "ParsingErrorRecovery",
@@ -45,8 +45,16 @@ public class ParsingErrorRecoveryCheck extends SquidCheck<Grammar> {
 
   @Override
   public void visitNode(AstNode node) {
-    getContext().createLineViolation(this, "C++ Parser can't read code. Declaration is skipped.",
-      node.getToken().getLine());
+    var msg = "C++ Parser can't read code. Declaration is skipped";
+    var lastToken = node.getLastToken();
+    if (lastToken != null) {
+      msg += String.format(" (last token='%s', line=%d, column=%d)",
+                           lastToken.getValue(),
+                           lastToken.getLine(),
+                           lastToken.getColumn());
+    }
+    msg += ".";
+    getContext().createLineViolation(this, msg, node.getToken().getLine());
   }
 
 }

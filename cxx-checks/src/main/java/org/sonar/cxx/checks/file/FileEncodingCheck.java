@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,20 +19,18 @@
  */
 package org.sonar.cxx.checks.file;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import org.sonar.api.utils.log.Logger;
-import org.sonar.api.utils.log.Loggers;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.NoSqale;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 import org.sonar.cxx.visitors.CxxCharsetAwareVisitor;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.NoSqale;
-import org.sonar.squidbridge.checks.SquidCheck;
 
 /**
  * FileEncodingCheck
@@ -45,7 +43,6 @@ import org.sonar.squidbridge.checks.SquidCheck;
 @NoSqale
 public class FileEncodingCheck extends SquidCheck<Grammar> implements CxxCharsetAwareVisitor {
 
-  private static final Logger LOG = Loggers.get(FileEncodingCheck.class);
   private Charset charset = StandardCharsets.UTF_8;
 
   @Override
@@ -59,9 +56,8 @@ public class FileEncodingCheck extends SquidCheck<Grammar> implements CxxCharset
       Files.readAllLines(getContext().getFile().toPath(), charset);
     } catch (IOException e) {
       getContext().createFileViolation(this,
-        "Not all characters of the file can be encoded with the predefined charset "
-        + charset.name() + ".");
-      LOG.debug("Cannot Read File", e);
+                                       "Not all characters of the file can be encoded with the predefined charset "
+                                         + charset.name() + ".");
     }
   }
 

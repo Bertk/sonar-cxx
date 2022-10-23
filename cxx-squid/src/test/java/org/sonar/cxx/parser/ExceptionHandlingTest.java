@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,58 +19,59 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
-import static org.sonar.sslr.tests.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
-public class ExceptionHandlingTest extends ParserBaseTestHelper {
+class ExceptionHandlingTest extends ParserBaseTestHelper {
 
   @Test
-  public void exceptionDeclaration() {
-    p.setRootRule(g.rule(CxxGrammarImpl.exceptionDeclaration));
+  void exceptionDeclaration() {
+    setRootRule(CxxGrammarImpl.exceptionDeclaration);
 
     mockRule(CxxGrammarImpl.typeSpecifierSeq);
     mockRule(CxxGrammarImpl.declarator);
     mockRule(CxxGrammarImpl.attributeSpecifierSeq);
     mockRule(CxxGrammarImpl.abstractDeclarator);
 
-    assertThat(p).matches("...");
-
-    assertThat(p).matches("typeSpecifierSeq declarator");
-    assertThat(p).matches("attributeSpecifierSeq typeSpecifierSeq declarator");
-
-    assertThat(p).matches("typeSpecifierSeq");
-    assertThat(p).matches("attributeSpecifierSeq typeSpecifierSeq abstractDeclarator");
+    assertThatParser()
+      .matches("...")
+      .matches("typeSpecifierSeq declarator")
+      .matches("attributeSpecifierSeq typeSpecifierSeq declarator")
+      .matches("typeSpecifierSeq")
+      .matches("attributeSpecifierSeq typeSpecifierSeq abstractDeclarator");
   }
 
   @Test
-  public void exceptionSpecification_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.noexceptSpecifier));
+  void exceptionSpecification_reallife() {
+    setRootRule(CxxGrammarImpl.noexceptSpecifier);
 
-    assertThat(p).matches("throw()");
-    assertThat(p).matches("throw(...)");
+    assertThatParser()
+      .matches("throw()")
+      .matches("throw(...)");
   }
 
   @Test
-  public void typeIdList() {
-    p.setRootRule(g.rule(CxxGrammarImpl.typeIdList));
+  void typeIdList() {
+    setRootRule(CxxGrammarImpl.typeIdList);
 
     mockRule(CxxGrammarImpl.typeId);
 
-    assertThat(p).matches("typeId");
-    assertThat(p).matches("typeId ...");
-    assertThat(p).matches("typeId , typeId");
-    assertThat(p).matches("typeId , typeId ...");
-    assertThat(p).matches("...");
+    assertThatParser()
+      .matches("typeId")
+      .matches("typeId ...")
+      .matches("typeId , typeId")
+      .matches("typeId , typeId ...")
+      .matches("...");
   }
 
   @Test
-  public void noexceptSpecification() {
-    p.setRootRule(g.rule(CxxGrammarImpl.noexceptSpecifier));
+  void noexceptSpecification() {
+    setRootRule(CxxGrammarImpl.noexceptSpecifier);
 
     mockRule(CxxGrammarImpl.constantExpression);
 
-    assertThat(p).matches("noexcept");
-    assertThat(p).matches("noexcept ( constantExpression )");
+    assertThatParser()
+      .matches("noexcept")
+      .matches("noexcept ( constantExpression )");
   }
 
 }

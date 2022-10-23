@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,6 @@ import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
-import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.sensors.utils.StaxParser;
 import org.sonar.cxx.utils.CxxReportIssue;
 
@@ -49,9 +48,12 @@ public class CxxVeraxxSensor extends CxxIssuesReportSensor {
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
-        .name("Vera++ XML report(s)")
-        .description("Path to <a href='https://bitbucket.org/verateam'>Vera++</a> XML reports(s),"
-                       + " relative to projects root." + USE_ANT_STYLE_WILDCARDS)
+        .name("Vera++ Report(s)")
+        .description(
+          "Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with"
+            + " `Vera++` issues. Ant patterns are accepted for relative paths."
+            + " In the SonarQube UI, enter one entry per field."
+        )
         .category("CXX External Analyzers")
         .subCategory("Vera++")
         .onQualifiers(Qualifiers.PROJECT)
@@ -64,15 +66,13 @@ public class CxxVeraxxSensor extends CxxIssuesReportSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX Vera++ report import")
-      .onlyOnLanguage("cxx")
+      .onlyOnLanguages("cxx", "cpp", "c++", "c")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
       .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   @Override
-  protected void processReport(File report) throws ReportException {
-    LOG.debug("Processing 'Vera++' report '{}'", report.getName());
-
+  protected void processReport(File report) {
     try {
       var parser = new StaxParser((SMHierarchicCursor rootCursor) -> {
         try {
@@ -92,7 +92,7 @@ public class CxxVeraxxSensor extends CxxIssuesReportSensor {
               String message = errorCursor.getAttrValue("message");
               String source = errorCursor.getAttrValue("source");
 
-              var issue = new CxxReportIssue(source, name, line, message);
+              var issue = new CxxReportIssue(source, name, line, null, message);
               saveUniqueViolation(issue);
             } else {
               LOG.debug("Error in file '{}', with message '{}'",

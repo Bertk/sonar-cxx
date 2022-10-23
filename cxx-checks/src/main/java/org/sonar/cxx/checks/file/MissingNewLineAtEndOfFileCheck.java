@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,16 +19,14 @@
  */
 package org.sonar.cxx.checks.file;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.SqaleConstantRemediation;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 import org.sonar.cxx.tag.Tag;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.SqaleConstantRemediation;
-import org.sonar.squidbridge.checks.SquidCheck;
 
 @Rule(
   key = "MissingNewLineAtEndOfFile",
@@ -39,24 +37,19 @@ import org.sonar.squidbridge.checks.SquidCheck;
 @SqaleConstantRemediation("1min")
 public class MissingNewLineAtEndOfFileCheck extends SquidCheck<Grammar> {
 
-  private static boolean endsWithNewline(RandomAccessFile randomAccessFile) throws IOException {
-    if (randomAccessFile.length() < 1) {
-      return false;
-    }
-    randomAccessFile.seek(randomAccessFile.length() - 1);
-    byte lastByte = randomAccessFile.readByte();
-    return lastByte == '\n' || lastByte == '\r';
-  }
-
   @Override
   public void visitFile(AstNode astNode) {
-    try (var randomAccessFile = new RandomAccessFile(getContext().getFile(), "r")) {
-      if (!endsWithNewline(randomAccessFile)) {
-        getContext().createFileViolation(this, "Add a new line at the end of this file.");
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
+    if (isEmptyOrNotEndingWithNewLine(getContext().getInputFileContent())) {
+      getContext().createFileViolation(this, "Add a new line at the end of this file.");
     }
+  }
+
+  private static boolean isEmptyOrNotEndingWithNewLine(String content) {
+    if (content.isEmpty()) {
+      return true;
+    }
+    var lastChar = content.charAt(content.length() - 1);
+    return lastChar != '\n' && lastChar != '\r';
   }
 
 }

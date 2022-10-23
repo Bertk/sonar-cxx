@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,7 @@
  */
 package org.sonar.cxx.checks.metrics;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
@@ -27,8 +27,8 @@ import org.sonar.cxx.tag.Tag;
 import org.sonar.cxx.utils.CxxReportIssue;
 import org.sonar.cxx.visitors.CxxCognitiveComplexityVisitor;
 import org.sonar.cxx.visitors.CxxComplexityScope;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.SqaleLinearWithOffsetRemediation;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.SqaleLinearWithOffsetRemediation;
 
 @Rule(
   key = "FunctionCognitiveComplexity",
@@ -61,9 +61,9 @@ public class FunctionCognitiveComplexityCheck extends CxxCognitiveComplexityVisi
       msg.append("The Cognitive Complexity of this function is ").append(scope.getComplexity())
         .append(" which is greater than ").append(max).append(" authorized.");
 
-      var issue = new CxxReportIssue(getRuleKey(), null, scope.getStartingLine(), msg.toString());
+      var issue = new CxxReportIssue(getRuleKey(), null, scope.getStartingLine(), null, msg.toString());
       for (var source : scope.getSources()) {
-        issue.addLocation(null, source.getLine(), source.getExplanation());
+        issue.addLocation(null, source.getLine(), null, source.getExplanation());
       }
       createMultiLocationViolation(issue);
     }

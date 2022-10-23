@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -63,12 +63,9 @@ public class StaxParser {
    */
   public StaxParser(XmlStreamHandler streamHandler, boolean isoControlCharsAwareParser) {
     this.streamHandler = streamHandler;
-    XMLInputFactory xmlFactory = XMLInputFactory.newInstance();
-    if (xmlFactory instanceof WstxInputFactory) {
-      WstxInputFactory wstxInputfactory = (WstxInputFactory) xmlFactory;
-      wstxInputfactory.configureForLowMemUsage();
-      wstxInputfactory.getConfig().setUndeclaredEntityResolver(new UndeclaredEntitiesXMLResolver());
-    }
+    WstxInputFactory xmlFactory = new WstxInputFactory();
+    xmlFactory.configureForLowMemUsage();
+    xmlFactory.getConfig().setUndeclaredEntityResolver(new UndeclaredEntitiesXMLResolver());
     xmlFactory.setProperty(XMLInputFactory.IS_VALIDATING, Boolean.FALSE);
     xmlFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
     xmlFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, Boolean.FALSE);
@@ -83,10 +80,10 @@ public class StaxParser {
    * @exception XMLStreamException javax.xml.stream.XMLStreamException
    */
   public void parse(File xmlFile) throws XMLStreamException {
-    try (InputStream input = java.nio.file.Files.newInputStream(xmlFile.toPath())) {
+    try ( var input = java.nio.file.Files.newInputStream(xmlFile.toPath())) {
       parse(input);
     } catch (IOException e) {
-      LOG.debug("Cannot access file", e);
+      LOG.error("Cannot access file: " + e.getMessage());
     }
   }
 
@@ -122,7 +119,7 @@ public class StaxParser {
    */
   public void parse(URL xmlUrl) throws XMLStreamException {
     try {
-      try (var xml = xmlUrl.openStream()) {
+      try ( var xml = xmlUrl.openStream()) {
         parse(xml);
       }
     } catch (IOException e) {
@@ -147,7 +144,7 @@ public class StaxParser {
       // return the entity under its raw form if not an unicode expression
       String undeclared = undeclaredEntity;
       if (StringUtils.startsWithIgnoreCase(undeclared, "u") && undeclared.length() == 5) {
-        int unicodeCharHexValue = Integer.parseInt(undeclared.substring(1), 16);
+        var unicodeCharHexValue = Integer.parseInt(undeclared.substring(1), 16);
         if (Character.isDefined(unicodeCharHexValue)) {
           undeclared = new String(new char[]{(char) unicodeCharHexValue});
         }
@@ -167,7 +164,7 @@ public class StaxParser {
 
     private static void checkBufferForISOControlChars(byte[] buffer, int off, int len) {
       for (var i = off; i < len; i++) {
-        char streamChar = (char) buffer[i];
+        var streamChar = (char) buffer[i];
         if (Character.isISOControl(streamChar) && streamChar != '\n') {
           // replace control chars by a simple space
           buffer[i] = ' ';

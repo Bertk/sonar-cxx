@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,24 +19,24 @@
  */
 package org.sonar.cxx.sensors.tests.xunit;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
-public class TestCaseTest {
+class TestCaseTest {
 
   @Test
-  public void rendersRightDetails() {
+  void rendersRightDetails() {
     var testCase = new TestCase("testCaseName", 1, "ok", "stack", "msg", "classname", "filename", "testSuiteName");
-    assertEquals("classname", testCase.getClassname());
-    assertEquals("testSuiteName:testCaseName", testCase.getFullname());
-    assertEquals("filename", testCase.getFilename());
-    assertEquals(true, testCase.isOk());
-    assertEquals(false, testCase.isError());
-    assertEquals(false, testCase.isFailure());
-    assertEquals(false, testCase.isSkipped());
-    assertEquals("msg", testCase.getErrorMessage());
-    assertEquals("stack", testCase.getStackTrace());
-    assertEquals(1, testCase.getExecutionTime());
+    assertThat(testCase.getClassname()).isEqualTo("classname");
+    assertThat(testCase.getFullname()).isEqualTo("testSuiteName:testCaseName");
+    assertThat(testCase.getFilename()).isEqualTo("filename");
+    assertThat(testCase.isOk()).isTrue();
+    assertThat(testCase.isError()).isFalse();
+    assertThat(testCase.isFailure()).isFalse();
+    assertThat(testCase.isSkipped()).isFalse();
+    assertThat(testCase.getErrorMessage()).isEqualTo("msg");
+    assertThat(testCase.getStackTrace()).isEqualTo("stack");
+    assertThat(testCase.getExecutionTime()).isEqualTo(1);
   }
 
 }

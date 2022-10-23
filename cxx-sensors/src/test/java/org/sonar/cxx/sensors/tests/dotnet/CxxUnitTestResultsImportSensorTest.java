@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,12 +23,12 @@ package org.sonar.cxx.sensors.tests.dotnet;
 // SonarQube .NET Tests Library
 // Copyright (C) 2014-2017 SonarSource SA
 // mailto:info AT sonarsource DOT com
-import static org.assertj.core.api.Assertions.assertThat;
+import java.io.File;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
 import static org.assertj.core.groups.Tuple.tuple;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import static org.mockito.ArgumentMatchers.same;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
@@ -38,26 +38,26 @@ import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.measures.CoreMetrics;
 
-public class CxxUnitTestResultsImportSensorTest {
+class CxxUnitTestResultsImportSensorTest {
 
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
+  @TempDir
+  File tempDir;
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
     var sensor = new CxxUnitTestResultsImportSensor(mock(CxxUnitTestResultsAggregator.class));
     sensor.describe(descriptor);
 
     var softly = new SoftAssertions();
-    softly.assertThat(descriptor.name()).isEqualTo("CXX VSTest/xUnit/NUnit Test report import");
-    softly.assertThat(descriptor.languages()).containsOnly("cxx");
+    softly.assertThat(descriptor.name()).isEqualTo("CXX VSTest/NUnit Test report import");
+    softly.assertThat(descriptor.languages()).containsOnly("cxx", "cpp", "c++", "c");
     softly.assertAll();
   }
 
   @Test
-  public void analyze() throws Exception {
-    SensorContextTester context = SensorContextTester.create(temp.newFolder());
+  void analyze() throws Exception {
+    var context = SensorContextTester.create(tempDir);
     UnitTestResults results = mock(UnitTestResults.class);
     when(results.tests()).thenReturn(42);
     when(results.passedPercentage()).thenReturn(84d);
@@ -90,8 +90,8 @@ public class CxxUnitTestResultsImportSensorTest {
   }
 
   @Test
-  public void should_not_save_metrics_with_empty_results() throws Exception {
-    SensorContextTester context = SensorContextTester.create(temp.newFolder());
+  void should_not_save_metrics_with_empty_results() throws Exception {
+    var context = SensorContextTester.create(tempDir);
 
     CxxUnitTestResultsAggregator unitTestResultsAggregator = mock(CxxUnitTestResultsAggregator.class);
     UnitTestConfiguration unitTestConf = mock(UnitTestConfiguration.class);

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -116,8 +116,8 @@ public class WildcardPatternFileProvider {
     var fileTillFirstWildcardElement = new File(pathTillFirstWildcardElement);
 
     File absoluteFileTillFirstWildcardElement = fileTillFirstWildcardElement.isAbsolute()
-                                                  ? fileTillFirstWildcardElement : new File(baseDir,
-                                                                                            pathTillFirstWildcardElement);
+                                                  ? fileTillFirstWildcardElement
+                                                  : new File(baseDir, pathTillFirstWildcardElement);
 
     List<String> wildcardElements = elements.subList(elementsTillFirstWildcard.size(), elements.size());
     if (wildcardElements.isEmpty()) {
@@ -126,7 +126,7 @@ public class WildcardPatternFileProvider {
     }
     checkNoCurrentOrParentFolderAccess(wildcardElements);
 
-    WildcardPattern wildcardPattern = WildcardPattern.create(toPath(wildcardElements), directorySeparator);
+    var wildcardPattern = WildcardPattern.create(toPath(wildcardElements), directorySeparator);
 
     var result = new HashSet<File>();
     for (var file : listFiles(absoluteFileTillFirstWildcardElement)) {

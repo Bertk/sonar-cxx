@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,6 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
-import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -48,9 +47,12 @@ public class CxxValgrindSensor extends CxxIssuesReportSensor {
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
-        .name("Valgrind XML report(s)")
-        .description("Path to <a href='http://valgrind.org/'>Valgrind</a> XML report(s), relative to projects root."
-                       + USE_ANT_STYLE_WILDCARDS)
+        .name("Valgrind Report(s)")
+        .description(
+          "Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with"
+            + " `Valgrind` issues. Ant patterns are accepted for relative paths."
+            + " In the SonarQube UI, enter one entry per field."
+        )
         .category("CXX External Analyzers")
         .subCategory("Valgrind")
         .onQualifiers(Qualifiers.PROJECT)
@@ -73,7 +75,7 @@ public class CxxValgrindSensor extends CxxIssuesReportSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX Valgrind report import")
-      .onlyOnLanguage("cxx")
+      .onlyOnLanguages("cxx", "cpp", "c++", "c")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
       .onlyWhenConfiguration(conf -> conf.hasKey(REPORT_PATH_KEY));
   }
@@ -92,21 +94,19 @@ public class CxxValgrindSensor extends CxxIssuesReportSensor {
 
     String errorMsg = createErrorMsg(error, stack, stackNr);
     // set the last own frame as a primary location
-    var issue = new CxxReportIssue(error.getKind(), lastOwnFrame.getPath(), lastOwnFrame.getLine(), errorMsg);
+    var issue = new CxxReportIssue(error.getKind(), lastOwnFrame.getPath(), lastOwnFrame.getLine(), null, errorMsg);
     // add all frames as secondary locations
     for (var frame : stack.getFrames()) {
       boolean frameIsInProject = frameIsInProject(frame);
       String mappedPath = (frameIsInProject) ? frame.getPath() : lastOwnFrame.getPath();
       String mappedLine = (frameIsInProject) ? frame.getLine() : lastOwnFrame.getLine();
-      issue.addLocation(mappedPath, mappedLine, frame.toString());
+      issue.addLocation(mappedPath, mappedLine, null, frame.toString());
     }
     return issue;
   }
 
   @Override
-  protected void processReport(File report) throws ReportException {
-    LOG.debug("Processing 'Valgrind' report '{}'", report.getName());
-
+  protected void processReport(File report) {
     try {
       var parser = new ValgrindReportParser();
       saveErrors(parser.parse(report));
@@ -127,7 +127,7 @@ public class CxxValgrindSensor extends CxxIssuesReportSensor {
 
   void saveErrors(Set<ValgrindError> valgrindErrors) {
     for (var error : valgrindErrors) {
-      int stackNr = 0;
+      var stackNr = 0;
       for (var stack : error.getStacks()) {
         CxxReportIssue issue = createIssue(error, stack, stackNr);
         if (issue != null) {

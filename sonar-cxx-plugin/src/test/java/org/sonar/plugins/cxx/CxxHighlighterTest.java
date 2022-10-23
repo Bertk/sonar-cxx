@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,9 @@ package org.sonar.plugins.cxx;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,17 +34,17 @@ import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.CheckFactory;
 import org.sonar.api.batch.sensor.highlighting.TypeOfText;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.issue.NoSonarFilter;
+import org.sonar.api.batch.sensor.issue.internal.DefaultNoSonarFilter;
 import org.sonar.api.measures.FileLinesContext;
 import org.sonar.api.measures.FileLinesContextFactory;
 
-public class CxxHighlighterTest {
+class CxxHighlighterTest {
 
   private CxxSquidSensor sensor;
   private SensorContextTester context;
   private DefaultInputFile inputFile;
 
-  @Before
+  @BeforeEach
   public void scanFile() throws IOException {
     ActiveRules rules = mock(ActiveRules.class);
     var checkFactory = new CheckFactory(rules);
@@ -57,13 +57,13 @@ public class CxxHighlighterTest {
     context = SensorContextTester.create(baseDir);
     context.fileSystem().add(inputFile);
 
-    sensor = new CxxSquidSensor(fileLinesContextFactory, checkFactory, new NoSonarFilter(), null);
+    sensor = new CxxSquidSensor(fileLinesContextFactory, checkFactory, new DefaultNoSonarFilter(), null);
     sensor.execute(context);
   }
 
   @Test
   @SuppressWarnings("squid:S2699") // ... checkOnRange contains the assertion
-  public void keyword() {
+  void keyword() {
 
     checkOnRange(55, 0, 4, TypeOfText.KEYWORD);  // void
     checkOnRange(57, 3, 4, TypeOfText.KEYWORD);  // auto
@@ -76,7 +76,7 @@ public class CxxHighlighterTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... checkOnRange contains the assertion
-  public void stringLiteral() {
+  void stringLiteral() {
 
     checkOnRange(49, 19, 7, TypeOfText.STRING);  // "hello"
     checkOnRange(50, 19, 18, TypeOfText.STRING); // "hello\tworld\r\n"
@@ -125,7 +125,7 @@ public class CxxHighlighterTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... checkOnRange contains the assertion
-  public void character() {
+  void character() {
 
     checkOnRange(46, 10, 3, TypeOfText.STRING); // 'x'
     checkOnRange(47, 10, 4, TypeOfText.STRING); // '\t'
@@ -133,7 +133,7 @@ public class CxxHighlighterTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... checkOnRange contains the assertion
-  public void comment() {
+  void comment() {
 
     check(1, 0, TypeOfText.COMMENT);
     /*\r\n comment\r\n*/
@@ -153,7 +153,7 @@ public class CxxHighlighterTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... checkOnRange contains the assertion
-  public void number() {
+  void number() {
 
     checkOnRange(27, 10, 1, TypeOfText.CONSTANT); //  0
     checkOnRange(28, 10, 1, TypeOfText.CONSTANT); // -1 (without minus)
@@ -174,7 +174,7 @@ public class CxxHighlighterTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... checkOnRange contains the assertion
-  public void preprocessDirective() {
+  void preprocessDirective() {
 
     checkOnRange(12, 0, 8, TypeOfText.PREPROCESS_DIRECTIVE); // #include
 
@@ -185,6 +185,16 @@ public class CxxHighlighterTest {
     checkOnRange(18, 0, 6, TypeOfText.PREPROCESS_DIRECTIVE); // #endif
 
     checkOnRange(20, 0, 7, TypeOfText.PREPROCESS_DIRECTIVE); // #define
+  }
+
+  @Test
+  @SuppressWarnings("squid:S2699") // ... checkOnRange contains the assertion
+  void identifiersWithSpecialMeaning() {
+    // identifier with special meaning => no highlighting
+    checkOnRange(112, 11, 6, null); // import
+    checkOnRange(119, 10, 6, null); // module
+    checkOnRange(120, 12, 6, null); // module
+    checkOnRange(122, 13, 6, null); // module
   }
 
   /**
@@ -218,7 +228,7 @@ public class CxxHighlighterTest {
       "ProjectKey:" + inputFile.file().getName(), line, column);
 
     int expectedNumberOfTypeOfText = expectedTypeOfText == null ? 0 : 1;
-    String message = "number of TypeOfTexts at line " + line + " and column " + column + messageComplement;
+    var message = "number of TypeOfTexts at line " + line + " and column " + column + messageComplement;
     assertThat(foundTypeOfTexts).as(message).hasSize(expectedNumberOfTypeOfText);
     if (expectedNumberOfTypeOfText > 0) {
       message = "found TypeOfTexts at line " + line + " and column " + column + messageComplement;

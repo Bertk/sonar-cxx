@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -63,15 +63,13 @@ public final class CxxUtils {
   /**
    * validateRecovery
    *
+   * @param msg
    * @param ex
    * @param config
    */
   public static void validateRecovery(String msg, Exception ex, Configuration config) {
-    var message = msg;
-    var cause = ex.getCause();
-    if (cause != null) {
-      message += ", cause='" + cause.toString().replaceAll("[\\r\\n]+", " ") + "'";
-    }
+    var message = (msg + ", cause='" + ExceptionUtils.getRootCauseMessage(ex) + "'")
+      .replaceAll("\\R+", " ");
     Optional<Boolean> recovery = config.getBoolean(CxxReportSensor.ERROR_RECOVERY_KEY);
     if (recovery.isPresent() && recovery.get()) {
       LOG.warn(message + ", skipping");
@@ -79,7 +77,7 @@ public final class CxxUtils {
     }
     LOG.info("Error recovery is disabled");
     LOG.error(message + ", stop analysis");
-    throw new IllegalStateException(ex.getMessage(), ex.getCause());
+    throw new IllegalStateException(msg, ex);
   }
 
   /**
@@ -118,9 +116,11 @@ public final class CxxUtils {
   public static List<File> getFiles(SensorContext context, String reportPathsKey) {
     String[] reportPaths = context.config().getStringArray(reportPathsKey);
     if (reportPaths == null || reportPaths.length == 0) {
-      LOG.info("Undefined report path value for key '{}'", reportPathsKey);
+      LOG.info("Undefined value for key '{}'", reportPathsKey);
       return Collections.emptyList();
     }
+
+    LOG.debug("Searching '{}' files with Ant pattern '{}'", reportPathsKey, reportPaths);
 
     var normalizedReportPaths = new ArrayList<String>();
     for (var reportPath : reportPaths) {
@@ -128,10 +128,10 @@ public final class CxxUtils {
       if (normalizedPath != null) {
         normalizedReportPaths.add(normalizedPath);
       } else {
-        LOG.debug("Not a valid report path '{}'", reportPath);
+        LOG.debug("Not a valid path '{}'", reportPath);
       }
     }
-    LOG.debug("Search report(s) in path(s): '{}'", String.join(", ", normalizedReportPaths));
+    LOG.debug("Search files(s) in path(s): '{}'", String.join(", ", normalizedReportPaths));
 
     // Includes array cannot contain null elements
     var directoryScanner = new DirectoryScanner();
@@ -145,7 +145,7 @@ public final class CxxUtils {
       return Collections.emptyList();
     }
 
-    LOG.debug("Found '{}' report file(s)", existingReportPaths.length);
+    LOG.debug("Found '{}' file(s)", existingReportPaths.length);
     return Arrays.stream(existingReportPaths).map(File::new).collect(Collectors.toList());
   }
 

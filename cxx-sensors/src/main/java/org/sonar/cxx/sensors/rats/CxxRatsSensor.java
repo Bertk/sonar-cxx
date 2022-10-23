@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,6 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
-import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -53,9 +52,12 @@ public class CxxRatsSensor extends CxxIssuesReportSensor {
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
-        .name("RATS report(s)")
-        .description("Path to <a href='https://code.google.com/p/rough-auditing-tool-for-security/'>RATS<a/>"
-                       + " reports(s), relative to projects root." + USE_ANT_STYLE_WILDCARDS)
+        .name("RATS Report(s)")
+        .description(
+          "Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with"
+            + " `RATS` issues. Ant patterns are accepted for relative paths."
+            + " In the SonarQube UI, enter one entry per field."
+        )
         .category("CXX External Analyzers")
         .subCategory("RATS")
         .onQualifiers(Qualifiers.PROJECT)
@@ -75,20 +77,18 @@ public class CxxRatsSensor extends CxxIssuesReportSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX RATS report import")
-      .onlyOnLanguage("cxx")
+      .onlyOnLanguages("cxx", "cpp", "c++", "c")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
       .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   @Override
-  protected void processReport(File report) throws ReportException {
-    LOG.debug("Processing 'RATS' report '{}'", report.getName());
-
+  protected void processReport(File report) {
     try {
       var builder = new SAXBuilder(XMLReaders.NONVALIDATING);
       builder.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
       builder.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-      Element root = builder.build(report).getRootElement();
+      var root = builder.build(report).getRootElement();
 
       List<Element> vulnerabilities = root.getChildren("vulnerability");
       for (var vulnerability : vulnerabilities) {
@@ -104,7 +104,7 @@ public class CxxRatsSensor extends CxxIssuesReportSensor {
           for (var lineElem : lines) {
             String line = lineElem.getTextTrim();
 
-            var issue = new CxxReportIssue(type, fileName, line, message);
+            var issue = new CxxReportIssue(type, fileName, line, null, message);
             saveUniqueViolation(issue);
           }
         }

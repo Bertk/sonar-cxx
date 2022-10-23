@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,11 @@
  */
 package org.sonar.cxx.channels;
 
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.impl.Lexer;
-import org.sonar.cxx.api.CxxTokenType;
-import org.sonar.sslr.channel.Channel;
-import org.sonar.sslr.channel.CodeReader;
+import com.sonar.cxx.sslr.api.Token;
+import com.sonar.cxx.sslr.impl.Lexer;
+import org.sonar.cxx.parser.CxxTokenType;
+import org.sonar.cxx.sslr.channel.Channel;
+import org.sonar.cxx.sslr.channel.CodeReader;
 
 /**
  * CharacterLiteralsChannel
@@ -60,7 +60,7 @@ public class CharacterLiteralsChannel extends Channel<Lexer> {
       .setValueAndOriginalValue(sb.toString())
       .setType(CxxTokenType.CHARACTER)
       .build());
-    sb.setLength(0);
+    sb.delete(0, sb.length());
     return true;
   }
 
@@ -84,31 +84,37 @@ public class CharacterLiteralsChannel extends Channel<Lexer> {
     ch = code.charAt(index);
     if ((ch == 'u') || (ch == 'U') || ch == 'L') {
       index++;
+      if (ch == 'u' && code.charAt(index) == '8') {
+        index++;
+      }
       ch = code.charAt(index);
     }
   }
 
   private void readUdSuffix(CodeReader code) {
-    for (int start_index = index, len = 0;; index++) {
-      char c = code.charAt(index);
-      if (c == EOF) {
+    int len = 0;
+    for (int start_index = index;; index++) {
+      var charAt = code.charAt(index);
+      if (charAt == EOF) {
         return;
       }
-      if (Character.isLowerCase(c) || Character.isUpperCase(c) || (c == '_')) {
+      if (isSuffix(charAt)) {
         len++;
-      } else {
-        if (Character.isDigit(c)) {
-          if (len > 0) {
-            len++;
-          } else {
-            index = start_index;
-            return;
-          }
+      } else if (Character.isDigit(charAt)) {
+        if (len > 0) {
+          len++;
         } else {
+          index = start_index;
           return;
         }
+      } else {
+        return;
       }
     }
+  }
+
+  private static boolean isSuffix(char c) {
+    return Character.isLowerCase(c) || Character.isUpperCase(c) || (c == '_');
   }
 
 }

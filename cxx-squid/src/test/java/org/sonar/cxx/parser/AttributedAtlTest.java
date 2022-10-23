@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,61 +19,65 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
-import static org.sonar.sslr.tests.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
-public class AttributedAtlTest extends ParserBaseTestHelper {
+class AttributedAtlTest extends ParserBaseTestHelper {
 
   @Test
-  public void vcAtlDeclaration() {
-    p.setRootRule(g.rule(CxxGrammarImpl.declaration));
+  void vcAtlDeclaration() {
+    setRootRule(CxxGrammarImpl.declaration);
 
-    assertThat(p).matches("[x];");
+    assertThatParser()
+      .matches("[x];");
   }
 
   @Test
-  public void vcAtlEnum() {
-    p.setRootRule(g.rule(CxxGrammarImpl.enumSpecifier));
+  void vcAtlEnum() {
+    setRootRule(CxxGrammarImpl.enumSpecifier);
 
-    assertThat(p).matches("[x] enum X {}");
+    assertThatParser()
+      .matches("[x] enum X {}");
   }
 
   @Test
-  public void vcAtlClass() {
-    p.setRootRule(g.rule(CxxGrammarImpl.classSpecifier));
+  void vcAtlClass() {
+    setRootRule(CxxGrammarImpl.classSpecifier);
 
-    assertThat(p).matches("[x] class X {}");
-    assertThat(p).matches("[x] struct X {}");
+    assertThatParser()
+      .matches("[x] class X {}")
+      .matches("[x] struct X {}");
   }
 
   @Test
-  public void vcAtlMember() {
-    p.setRootRule(g.rule(CxxGrammarImpl.memberSpecification));
+  void vcAtlMember() {
+    setRootRule(CxxGrammarImpl.memberSpecification);
 
-    assertThat(p).matches("[x] int m([y] int p);");
+    assertThatParser()
+      .matches("[x] int m([y] int p);");
   }
 
   @Test
-  public void vcAtlRealWorldExample() {
-    p.setRootRule(g.rule(CxxGrammarImpl.translationUnit));
+  void vcAtlRealWorldExample() {
+    setRootRule(CxxGrammarImpl.translationUnit);
 
-    assertThat(p).matches(
-      "  [module(name=\"MyModule\")];"
-      + "[emitidl(false)];"
-      + "[export, helpstring(\"description\")] enum MyEnum {};"
-      + "["
-      + "  dispinterface,"
-      + "  nonextensible,"
-      + "  hidden,"
-      + "  uuid(\"0815\"),"
-      + "  helpstring(\"description\")"
-      + "]"
-      + "struct IMyInterface"
-      + "{"
-      + "  [id(1), helpstring(\"description\")] HRESULT M1(int p1);"
-      + "  [propget, id(DISPID_VALUE), helpstring(\"description\")] HRESULT M2([in] VARIANT p1, [out, retval] MyService** p2);"
-      + "};"
-    );
+    assertThatParser()
+      .matches(
+        "  [module(name=\"MyModule\")];"
+          + "[emitidl(false)];"
+          + "[export, helpstring(\"description\")] enum MyEnum {};"
+          + "["
+          + "  dispinterface,"
+          + "  nonextensible,"
+          + "  hidden,"
+          + "  uuid(\"0815\"),"
+          + "  helpstring(\"description\")"
+          + "]"
+          + "struct IMyInterface"
+          + "{"
+          + "  [id(1), helpstring(\"description\")] HRESULT M1(int p1);"
+          + "  [propget, id(DISPID_VALUE), helpstring(\"description\")] HRESULT M2([in] VARIANT p1, [out, retval] MyService** p2);"
+        + "};"
+      );
   }
 
 }

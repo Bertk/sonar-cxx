@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -75,7 +75,7 @@ class ValgrindStack {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    ValgrindStack other = (ValgrindStack) obj;
+    var other = (ValgrindStack) obj;
     return new EqualsBuilder()
       .append(frames, other.frames)
       .isEquals();

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,46 +21,43 @@ package org.sonar.cxx.checks.naming;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.checks.CxxFileTester;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
-import org.sonar.squidbridge.api.SourceFile;
-import org.sonar.squidbridge.checks.CheckMessagesVerifierRule;
+import org.sonar.cxx.squidbridge.api.SourceFile;
+import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifierRule;
 
-public class FileNameCheckTest {
+class FileNameCheckTest {
 
-  @Rule
   public CheckMessagesVerifierRule checkMessagesVerifier = new CheckMessagesVerifierRule();
   private final FileNameCheck check = new FileNameCheck();
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void bad_name() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/badFile_name.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+  void bad_name() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/badFile_name.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 
-    String format = "(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$";
-    String message = "Rename this file to match this regular expression: \"%s\".";
+    var format = "(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$";
+    var message = "Rename this file to match this regular expression: \"%s\".";
     checkMessagesVerifier.verify(file.getCheckMessages())
       .next().withMessage(String.format(message, format));
   }
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void good_name_camel_case() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/FileName.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+  void good_name_camel_case() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/FileName.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 
     checkMessagesVerifier.verify(file.getCheckMessages());
   }
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void good_name_snake_case() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/file_name.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+  void good_name_snake_case() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/file_name.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 
     checkMessagesVerifier.verify(file.getCheckMessages());
   }

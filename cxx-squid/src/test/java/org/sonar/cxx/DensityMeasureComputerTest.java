@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,8 @@
  */
 package org.sonar.cxx;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.ce.measure.Component.Type;
 import org.sonar.api.ce.measure.test.TestComponent;
 import org.sonar.api.ce.measure.test.TestComponent.FileAttributesImpl;
@@ -28,7 +28,7 @@ import org.sonar.api.ce.measure.test.TestMeasureComputerContext;
 import org.sonar.api.ce.measure.test.TestMeasureComputerDefinition.MeasureComputerDefinitionBuilderImpl;
 import org.sonar.api.ce.measure.test.TestSettings;
 
-public class DensityMeasureComputerTest {
+class DensityMeasureComputerTest {
 
   private static TestMeasureComputerContext createContext(DensityMeasureComputer computer) {
     var component = new TestComponent("file", Type.FILE, new FileAttributesImpl("cxx", false));
@@ -38,14 +38,14 @@ public class DensityMeasureComputerTest {
   }
 
   @Test
-  public void metricsNumber() {
+  void metricsNumber() {
     var computer = new DensityMeasureComputer();
-    assertThat(computer.getInputMetrics().length).isEqualTo(8);
-    assertThat(computer.getOutputMetrics().length).isEqualTo(5);
+    assertThat(computer.getInputMetrics()).hasSize(8);
+    assertThat(computer.getOutputMetrics()).hasSize(5);
   }
 
   @Test
-  public void ignoreMissingValue() {
+  void ignoreMissingValue() {
     var computer = new DensityMeasureComputer();
     TestMeasureComputerContext context = createContext(computer);
 
@@ -56,7 +56,7 @@ public class DensityMeasureComputerTest {
   }
 
   @Test
-  public void ignoreMissingTotal() {
+  void ignoreMissingTotal() {
     var computer = new DensityMeasureComputer();
     TestMeasureComputerContext context = createContext(computer);
 
@@ -67,7 +67,7 @@ public class DensityMeasureComputerTest {
   }
 
   @Test
-  public void ignoreMissingBoth() {
+  void ignoreMissingBoth() {
     var computer = new DensityMeasureComputer();
     TestMeasureComputerContext context = createContext(computer);
 
@@ -77,7 +77,7 @@ public class DensityMeasureComputerTest {
   }
 
   @Test
-  public void ignoreAlreadyCalculated() {
+  void ignoreAlreadyCalculated() {
     var computer = new DensityMeasureComputer();
     TestMeasureComputerContext context = createContext(computer);
 
@@ -91,7 +91,7 @@ public class DensityMeasureComputerTest {
   }
 
   @Test
-  public void calculatePercent() {
+  void calculatePercent() {
     var computer = new DensityMeasureComputer();
     TestMeasureComputerContext context = createContext(computer);
 
@@ -104,7 +104,7 @@ public class DensityMeasureComputerTest {
   }
 
   @Test
-  public void calculateRemainingPercent() {
+  void calculateRemainingPercent() {
     var computer = new DensityMeasureComputer();
     TestMeasureComputerContext context = createContext(computer);
 

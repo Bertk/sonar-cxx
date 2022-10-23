@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,36 +19,36 @@
  */
 package org.sonar.cxx.visitors;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.CxxSquidConfiguration;
+import org.sonar.cxx.CxxFileTesterHelper;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.cxx.utils.TestUtils;
-import org.sonar.squidbridge.api.SourceFile;
+import org.sonar.cxx.config.CxxSquidConfiguration;
+import org.sonar.cxx.squidbridge.api.SourceFile;
 
-public class CxxCpdVisitorTest {
+class CxxCpdVisitorTest {
 
   private SourceFile sourceFile;
 
-  @Before
+  @BeforeEach
   public void scanFile() throws UnsupportedEncodingException, IOException {
-    File baseDir = TestUtils.loadResource("/visitors");
-    var file = new File(baseDir, "cpd.cc");
+    var tester = CxxFileTesterHelper.create("src/test/resources/visitors/cpd.cc", ".", "");
     var squidConfig = new CxxSquidConfiguration();
-    squidConfig.setCpdIgnoreIdentifier(true);
-    squidConfig.setCpdIgnoreLiteral(true);
-    var cpdVisitor = new CxxCpdVisitor(squidConfig);
-    sourceFile = CxxAstScanner.scanSingleFile(file, cpdVisitor);
+    squidConfig
+      .add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.CPD_IGNORE_LITERALS, "true");
+    squidConfig
+      .add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.CPD_IGNORE_IDENTIFIERS, "true");
+
+    sourceFile = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), new CxxCpdVisitor(squidConfig));
   }
 
   @Test
-  public void testCpdTokens() throws Exception {
+  void testCpdTokens() throws Exception {
     List<CxxCpdVisitor.CpdToken> data = (List<CxxCpdVisitor.CpdToken>) sourceFile.getData(CxxMetric.CPD_TOKENS_DATA);
     assertThat(data).hasSize(391);
   }

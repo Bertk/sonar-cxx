@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,19 +23,19 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.sensors.drmemory.DrMemoryParser.DrMemoryError;
 
-public class DrMemoryParserTest {
+class DrMemoryParserTest {
 
   @Test
-  public void shouldParseTheWholeFile() throws IOException {
+  void shouldParseTheWholeFile() throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
     var file = new File(classLoader.getResource("org/sonar/cxx/sensors/reports-project/drmemory-reports/results.txt")
       .getFile());
     List<DrMemoryError> drMemoryErrors = DrMemoryParser.parse(file, StandardCharsets.UTF_8.name());
-    Assert.assertEquals(733, drMemoryErrors.size());
+    assertThat(drMemoryErrors).hasSize(733);
   }
 
 }

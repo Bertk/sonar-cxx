@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,10 +20,10 @@
 package org.sonar.cxx.sensors.compiler.vc;
 
 import java.nio.charset.StandardCharsets;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
@@ -31,35 +31,35 @@ import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxCompilerVcSensorTest {
+class CxxCompilerVcSensorTest {
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     fs = TestUtils.mockFileSystem();
   }
 
   @Test
-  public void sensorDescriptorVc() {
+  void sensorDescriptorVc() {
     var descriptor = new DefaultSensorDescriptor();
     var sensor = new CxxCompilerVcSensor();
     sensor.describe(descriptor);
     var softly = new SoftAssertions();
-    softly.assertThat(descriptor.name()).isEqualTo("CXX Visual Studio compiler report import");
-    softly.assertThat(descriptor.languages()).containsOnly("cxx");
+    softly.assertThat(descriptor.name()).isEqualTo("CXX Visual C++ compiler report import");
+    softly.assertThat(descriptor.languages()).containsOnly("cxx", "cpp", "c++", "c");
     softly.assertThat(descriptor.ruleRepositories())
       .containsOnly(CxxCompilerVcRuleRepository.KEY);
     softly.assertAll();
   }
 
   @Test
-  public void shouldReportACorrectVcViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportACorrectVcViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCompilerVcSensor.REPORT_PATH_KEY,
                          "compiler-reports/BuildLog.htm");
-    settings.setProperty(CxxCompilerVcSensor.REPORT_CHARSET_DEF, StandardCharsets.UTF_16.name());
+    settings.setProperty(CxxCompilerVcSensor.REPORT_ENCODING_DEF, StandardCharsets.UTF_16.name());
     context.setSettings(settings);
 
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "zipmanager.cpp")
@@ -72,12 +72,12 @@ public class CxxCompilerVcSensorTest {
   }
 
   @Test
-  public void shouldReportBCorrectVcViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportBCorrectVcViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxCompilerVcSensor.REPORT_PATH_KEY, "compiler-reports/VC-report.vclog");
-    settings.setProperty(CxxCompilerVcSensor.REPORT_CHARSET_DEF, StandardCharsets.UTF_8.name());
+    settings.setProperty(CxxCompilerVcSensor.REPORT_ENCODING_DEF, StandardCharsets.UTF_8.name());
     settings.setProperty(CxxCompilerVcSensor.REPORT_REGEX_DEF,
-                         ".*>(?<file>.*)\\((?<line>\\d+)\\):\\x20warning\\x20(?<id>C\\d+):(?<message>.*)");
+                         "[^>]*+>(?<file>.*)\\((?<line>\\d{1,5})\\):\\x20warning\\x20(?<id>C\\d{4,5}):(?<message>.*)");
     context.setSettings(settings);
 
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "Server/source/zip/zipmanager.cpp")

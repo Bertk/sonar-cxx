@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -64,11 +64,11 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
       Double executionTime = null;
 
       String tag;
-      int level = 0;
+      var level = 0;
       while ((tag = xmlParserHelper.nextStartOrEndTag()) != null) {
         if ("<test-suite>".equals(tag)) {
           level++;
-          Double time = xmlParserHelper.getDoubleAttribute("time");
+          var time = xmlParserHelper.getDoubleAttribute("time");
 
           if (level == 1 && time != null) {
             if (executionTime == null) {
@@ -85,7 +85,7 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
     }
 
     public void parse() {
-      try (var xmlParserHelper = new XmlParserHelper(file)) {
+      try ( var xmlParserHelper = new XmlParserHelper(file)) {
         if (checkRootTag(xmlParserHelper)) {
           handleTestResultsTag(xmlParserHelper);
         }
@@ -95,15 +95,15 @@ public class NUnitTestResultsFileParser implements UnitTestResultsParser {
     }
 
     private void handleTestResultsTag(XmlParserHelper xmlParserHelper) {
-      int total = xmlParserHelper.getRequiredIntAttribute("total");
-      int errors = xmlParserHelper.getRequiredIntAttribute("errors");
-      int failures = xmlParserHelper.getRequiredIntAttribute("failures");
-      int inconclusive = xmlParserHelper.getRequiredIntAttribute("inconclusive");
-      int ignored = xmlParserHelper.getRequiredIntAttribute("ignored");
+      var total = xmlParserHelper.getRequiredIntAttribute("total");
+      var errors = xmlParserHelper.getRequiredIntAttribute("errors");
+      var failures = xmlParserHelper.getRequiredIntAttribute("failures");
+      var inconclusive = xmlParserHelper.getRequiredIntAttribute("inconclusive");
+      var ignored = xmlParserHelper.getRequiredIntAttribute("ignored");
 
-      int tests = total - inconclusive;
-      int passed = total - errors - failures - inconclusive;
-      int skipped = inconclusive + ignored;
+      var tests = total - inconclusive;
+      var passed = total - errors - failures - inconclusive;
+      var skipped = inconclusive + ignored;
 
       Double executionTime = readExecutionTimeFromDirectlyNestedTestSuiteTags(xmlParserHelper);
 

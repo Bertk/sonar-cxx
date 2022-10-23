@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,9 +19,9 @@
  */
 package org.sonar.cxx;
 
-import com.sonar.sslr.api.AstNodeType;
-import org.sonar.cxx.api.CxxKeyword;
-import org.sonar.cxx.api.CxxPunctuator;
+import com.sonar.cxx.sslr.api.AstNodeType;
+import org.sonar.cxx.parser.CxxKeyword;
+import org.sonar.cxx.parser.CxxPunctuator;
 import org.sonar.cxx.parser.CxxGrammarImpl;
 
 public final class CxxComplexityConstants {

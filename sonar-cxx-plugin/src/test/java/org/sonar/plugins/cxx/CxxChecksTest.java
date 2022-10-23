@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,13 +19,13 @@
  */
 package org.sonar.plugins.cxx;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.ArrayList;
 import java.util.Collections;
 import javax.annotation.CheckForNull;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.rule.CheckFactory;
 import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
 import org.sonar.api.batch.rule.internal.NewActiveRule;
@@ -34,10 +34,10 @@ import org.sonar.api.resources.Language;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.check.Rule;
-import org.sonar.squidbridge.SquidAstVisitor;
-import org.sonar.squidbridge.checks.SquidCheck;
+import org.sonar.cxx.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 
-public class CxxChecksTest {
+class CxxChecksTest {
 
   private static final String DEFAULT_REPOSITORY_KEY = "DefaultRuleRepository";
   private static final String DEFAULT_RULE_KEY = "MyRule";
@@ -47,7 +47,7 @@ public class CxxChecksTest {
   private MyCustomPlSqlRulesDefinition customRulesDefinition;
   private CheckFactory checkFactory;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     var activeRules = new ActiveRulesBuilder()
       .addRule(new NewActiveRule.Builder()
@@ -66,8 +66,8 @@ public class CxxChecksTest {
 
   @SuppressWarnings("rawtypes")
   @Test
-  public void shouldReturnDefaultChecks() {
-    CxxChecks checks = CxxChecks.createCxxCheck(checkFactory);
+  void shouldReturnDefaultChecks() {
+    var checks = CxxChecks.createCxxCheck(checkFactory);
     checks.addChecks(DEFAULT_REPOSITORY_KEY, new ArrayList<>(Collections.singletonList(MyRule.class)));
 
     SquidAstVisitor<Grammar> defaultCheck = check(checks, DEFAULT_REPOSITORY_KEY, DEFAULT_RULE_KEY);
@@ -79,8 +79,8 @@ public class CxxChecksTest {
   }
 
   @Test
-  public void shouldReturnCustomChecks() {
-    CxxChecks checks = CxxChecks.createCxxCheck(checkFactory);
+  void shouldReturnCustomChecks() {
+    var checks = CxxChecks.createCxxCheck(checkFactory);
     checks.addCustomChecks(new CustomCxxRulesDefinition[]{customRulesDefinition});
 
     SquidAstVisitor<Grammar> customCheck = check(checks, CUSTOM_REPOSITORY_KEY, CUSTOM_RULE_KEY);
@@ -92,16 +92,16 @@ public class CxxChecksTest {
   }
 
   @Test
-  public void shouldWorkWithoutCustomChecks() {
-    CxxChecks checks = CxxChecks.createCxxCheck(checkFactory);
+  void shouldWorkWithoutCustomChecks() {
+    var checks = CxxChecks.createCxxCheck(checkFactory);
     checks.addCustomChecks(null);
-    assertThat(checks.all()).hasSize(0);
+    assertThat(checks.all()).isEmpty();
   }
 
   @SuppressWarnings("rawtypes")
   @Test
-  public void shouldNotReturnRuleKeyIfCheckDoesNotExists() {
-    CxxChecks checks = CxxChecks.createCxxCheck(checkFactory);
+  void shouldNotReturnRuleKeyIfCheckDoesNotExists() {
+    var checks = CxxChecks.createCxxCheck(checkFactory);
     checks.addChecks(DEFAULT_REPOSITORY_KEY, new ArrayList<>(Collections.singletonList(MyRule.class)));
     assertThat(checks.ruleKey(new MyCustomRule())).isNull();
   }

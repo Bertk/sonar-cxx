@@ -70,3 +70,14 @@ void TestClass2::functionTest2()
 struct A {
    template<class T> class B;
 };
+
+/**
+ * @brief issue #2138
+ */
+template<> Formatter& LogMsg_applyFormat<int>(Formatter& format, int i);
+
+/**
+ * @brief issue #2180
+ */
+template <typename B>
+A<B>::~A() = default;

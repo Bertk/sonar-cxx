@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,7 @@
 package org.sonar.cxx.sensors.cppcheck;
 
 import java.io.File;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import javax.annotation.Nullable;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
@@ -30,7 +30,6 @@ import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
 import org.sonar.cxx.sensors.utils.StaxParser;
 import org.sonar.cxx.utils.CxxReportIssue;
-import org.sonar.cxx.utils.CxxReportLocation;
 
 public class CppcheckParser {
 
@@ -63,7 +62,7 @@ public class CppcheckParser {
        */
       @Override
       public void stream(SMHierarchicCursor rootCursor) throws XMLStreamException {
-        boolean parsed = false;
+        var parsed = false;
 
         try {
           rootCursor.advance();
@@ -119,21 +118,22 @@ public class CppcheckParser {
             info = null;
           }
 
-          final boolean isLocationInProject = isLocationInProject(file);
+          boolean isLocationInProject = isLocationInProject(file);
           if (issue == null) {
             // primary location
             // if primary location cannot be found in the current project (in
             // the current module) we are not interested in this <error>
             if (!isLocationInProject) {
-              LOG.debug("Cannot find the file '{}', skipping violations", file);
+              LOG.debug("Cppcheck issue outside of project, skipping issue: {}:{} {}:{}",
+                        file, line, id, msg);
               return;
             }
 
-            issue = new CxxReportIssue(id, file, line, issueText);
+            issue = new CxxReportIssue(id, file, line, null, issueText);
             // add the same <file>:<line> second time if there is additional
             // information about the flow/analysis
             if (info != null && !msg.equals(info)) {
-              issue.addLocation(file, line, info);
+              issue.addLocation(file, line, null, info);
             }
           } else if (info != null) {
             // secondary location
@@ -142,31 +142,32 @@ public class CppcheckParser {
             // we'll use a primary location and move the affected path to the
             // info
             if (isLocationInProject) {
-              issue.addLocation(file, line, info);
+              issue.addLocation(file, line, null, info);
             } else {
-              CxxReportLocation primaryLocation = issue.getLocations().get(0);
+              var primaryLocation = issue.getLocations().get(0);
               String primaryFile = primaryLocation.getFile();
               String primaryLine = primaryLocation.getLine();
 
               var extendedInfo = new StringBuilder(512);
               extendedInfo.append(makeRelativePath(file, primaryFile)).append(":").append(line).append(" ")
                 .append(info);
-              issue.addLocation(primaryFile, primaryLine, extendedInfo.toString());
+              issue.addLocation(primaryFile, primaryLine, null, extendedInfo.toString());
             }
           }
         }
 
         // no <location> tags: issue raised on the whole module/project
         if (issue == null) {
-          issue = new CxxReportIssue(id, null, null, issueText);
+          issue = new CxxReportIssue(id, null, null, null, issueText);
         }
         sensor.saveUniqueViolation(issue);
       }
 
       private String makeRelativePath(String path, String basePath) {
         try {
-          return Paths.get(basePath).relativize(Paths.get(path)).toString();
+          return Path.of(basePath).relativize(Path.of(path)).toString();
         } catch (IllegalArgumentException e) {
+          LOG.warn("Can't create relative path: basePath='{}', path='{}'", basePath, path);
           return path;
         }
       }

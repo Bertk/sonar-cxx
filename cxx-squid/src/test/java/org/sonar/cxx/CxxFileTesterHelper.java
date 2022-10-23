@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,39 +20,66 @@
 package org.sonar.cxx;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
+import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 
-/**
- *
- * @author jocs
- */
 public class CxxFileTesterHelper {
-
-  public static CxxFileTester CreateCxxFileTester(String fileName, String basePath, String module) throws
-    UnsupportedEncodingException, IOException {
-    CxxFileTester tester = new CxxFileTester();
-    tester.context = SensorContextTester.create(new File(basePath));
-
-    tester.context.fileSystem().add(TestInputFileBuilder.create(module, fileName).build());
-    tester.cxxFile = tester.context.fileSystem().inputFile(tester.context.fileSystem().predicates().hasPath(
-      fileName));
-
-    return tester;
-  }
-
-  public static CxxFileTester AddFileToContext(CxxFileTester tester, String fileName, String module) throws
-    UnsupportedEncodingException, IOException {
-    tester.context.fileSystem().add(TestInputFileBuilder.create(module, fileName).build());
-    tester.cxxFile = tester.context.fileSystem().inputFile(tester.context.fileSystem().predicates().hasPath(
-      fileName));
-    return tester;
-  }
 
   private CxxFileTesterHelper() {
     // utility class
+  }
+
+  public static CxxFileTester create(String fileName, String basePath, String moduleKey)
+    throws UnsupportedEncodingException, IOException {
+    var tester = new CxxFileTester();
+
+    tester.context = SensorContextTester.create(new File(basePath));
+    tester.cxxFile = createInputFile(moduleKey, fileName, basePath, Charset.defaultCharset());
+    tester.context.fileSystem().add(tester.cxxFile);
+
+    return tester;
+  }
+
+  public static CxxFileTester add(CxxFileTester tester, String fileName, String moduleKey)
+    throws UnsupportedEncodingException, IOException {
+
+    tester.cxxFile = createInputFile(moduleKey, fileName, "", Charset.defaultCharset());
+    tester.context.fileSystem().add(tester.cxxFile);
+
+    return tester;
+  }
+
+  private static DefaultInputFile createInputFile(String moduleKey, String fileName, String basePath, Charset charset)
+    throws IOException {
+    var fb = TestInputFileBuilder.create(moduleKey, fileName);
+
+    fb.setCharset(charset);
+    fb.setProjectBaseDir(Path.of(basePath));
+    fb.setContents(getSourceCode(Path.of(basePath, fileName).toFile(), charset));
+
+    return fb.build();
+  }
+
+  private static String getSourceCode(File filename, Charset defaultCharset) throws IOException {
+    try (var bomInputStream = new BOMInputStream(new FileInputStream(filename),
+                                             ByteOrderMark.UTF_8,
+                                             ByteOrderMark.UTF_16LE,
+                                             ByteOrderMark.UTF_16BE,
+                                             ByteOrderMark.UTF_32LE,
+                                             ByteOrderMark.UTF_32BE)) {
+      ByteOrderMark bom = bomInputStream.getBOM();
+      Charset charset = bom != null ? Charset.forName(bom.getCharsetName()) : defaultCharset;
+      byte[] bytes = bomInputStream.readAllBytes();
+      return new String(bytes, charset);
+    }
   }
 
 }

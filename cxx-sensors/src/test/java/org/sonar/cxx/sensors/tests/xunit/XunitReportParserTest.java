@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,20 +20,24 @@
 package org.sonar.cxx.sensors.tests.xunit;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.TreeMap;
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import static org.assertj.core.api.Assertions.*;
+import org.assertj.core.util.Strings;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.sensors.utils.StaxParser;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class XunitReportParserTest {
+class XunitReportParserTest {
 
   private XunitReportParser parserHandler = new XunitReportParser("");
   private StaxParser parser = new StaxParser(parserHandler, false);
   private final String pathPrefix = "/org/sonar/cxx/sensors/reports-project/xunit-reports/";
 
   @Test
-  public void testParse() throws javax.xml.stream.XMLStreamException {
+  void testParse() throws javax.xml.stream.XMLStreamException {
 
     var ioMap = new TreeMap<String, Integer>();
 
@@ -56,16 +60,43 @@ public class XunitReportParserTest {
       for (var testFile : parserHandler.getTestFiles()) {
         tests += testFile.getTests();
       }
-      assertEquals((long) entry.getValue(), tests);
+      assertThat(tests).isEqualTo((long) entry.getValue());
     }
   }
 
-  @Test(expected = javax.xml.stream.XMLStreamException.class)
-  public void shouldThrowWhenGivenInvalidTime() throws javax.xml.stream.XMLStreamException {
+  @Test
+  void shouldThrowWhenGivenInvalidTime() {
     parserHandler = new XunitReportParser("");
     parser = new StaxParser(parserHandler, false);
     File report = TestUtils.loadResource(pathPrefix + "invalid-time-xunit-report.xml");
-    parser.parse(report);
+
+    javax.xml.stream.XMLStreamException thrown = catchThrowableOfType(() -> {
+      parser.parse(report);
+    }, javax.xml.stream.XMLStreamException.class);
+    assertThat(thrown).isExactlyInstanceOf(javax.xml.stream.XMLStreamException.class);
   }
 
+  @Test
+  void testFilePaths() throws javax.xml.stream.XMLStreamException {
+    parserHandler = new XunitReportParser("");
+    parser = new StaxParser(parserHandler, false);
+    File report = TestUtils.loadResource(pathPrefix + "xunit-result-SAMPLE-inconsistent-case.xml");
+    parser.parse(report);
+
+    var actualPaths = parserHandler.getTestFiles()
+      .stream()
+      .map(TestFile::getFilename)
+      .filter(p -> !Strings.isNullOrEmpty(p))
+      .map(s -> Path.of(s))
+      .collect(Collectors.toList());
+
+    var expectPaths = Stream.of(
+      Path.of("/test/file.cpp"),
+      Path.of("/test/File.cpp"),
+      Path.of("/TEST/file.cpp"))
+      .distinct()
+      .toArray(n -> new Path[n]);
+
+    assertThat(actualPaths).containsExactlyInAnyOrder(expectPaths);
+  }
 }

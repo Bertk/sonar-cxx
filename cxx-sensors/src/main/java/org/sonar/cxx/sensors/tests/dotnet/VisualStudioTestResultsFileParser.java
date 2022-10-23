@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -49,7 +48,7 @@ public class VisualStudioTestResultsFileParser implements UnitTestResultsParser 
     private final File file;
     private final UnitTestResults unitTestResults;
     private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-    private final Pattern millisecondsPattern = Pattern.compile("(\\.([0-9]{0,3}))[0-9]*+");
+    private final Pattern millisecondsPattern = Pattern.compile("(\\.(\\d{0,3}))\\d*+");
 
     private boolean foundCounters;
 
@@ -88,24 +87,24 @@ public class VisualStudioTestResultsFileParser implements UnitTestResultsParser 
     private void handleCountersTag(XmlParserHelper xmlParserHelper) {
       foundCounters = true;
 
-      int passed = xmlParserHelper.getIntAttributeOrZero("passed");
-      int failed = xmlParserHelper.getIntAttributeOrZero("failed");
-      int errors = xmlParserHelper.getIntAttributeOrZero("error");
-      int timeout = xmlParserHelper.getIntAttributeOrZero("timeout");
-      int aborted = xmlParserHelper.getIntAttributeOrZero("aborted");
+      var passed = xmlParserHelper.getIntAttributeOrZero("passed");
+      var failed = xmlParserHelper.getIntAttributeOrZero("failed");
+      var errors = xmlParserHelper.getIntAttributeOrZero("error");
+      var timeout = xmlParserHelper.getIntAttributeOrZero("timeout");
+      var aborted = xmlParserHelper.getIntAttributeOrZero("aborted");
 
-      int inconclusive = xmlParserHelper.getIntAttributeOrZero("inconclusive");
+      var inconclusive = xmlParserHelper.getIntAttributeOrZero("inconclusive");
 
-      int tests = passed + failed + errors + timeout + aborted;
-      int skipped = inconclusive;
-      int failures = timeout + failed + aborted;
+      var tests = passed + failed + errors + timeout + aborted;
+      var skipped = inconclusive;
+      var failures = timeout + failed + aborted;
 
       unitTestResults.add(tests, passed, skipped, failures, errors, null);
     }
 
     private void handleTimesTag(XmlParserHelper xmlParserHelper) {
-      Date start = getRequiredDateAttribute(xmlParserHelper, "start");
-      Date finish = getRequiredDateAttribute(xmlParserHelper, "finish");
+      var start = getRequiredDateAttribute(xmlParserHelper, "start");
+      var finish = getRequiredDateAttribute(xmlParserHelper, "finish");
       long duration = finish.getTime() - start.getTime();
 
       unitTestResults.add(0, 0, 0, 0, 0, duration);
@@ -123,9 +122,9 @@ public class VisualStudioTestResultsFileParser implements UnitTestResultsParser 
     }
 
     private String keepOnlyMilliseconds(String value) {
-      var sb = new StringBuffer(256);
+      var sb = new StringBuilder(256);
 
-      Matcher matcher = millisecondsPattern.matcher(value);
+      var matcher = millisecondsPattern.matcher(value);
       var trailingZeros = new StringBuilder(128);
       while (matcher.find()) {
         String milliseconds = matcher.group(2);

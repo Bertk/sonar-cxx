@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,28 +22,27 @@ package org.sonar.cxx.prejobs;
 import java.io.File;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.internal.MapSettings;
-import org.sonar.api.utils.log.LogTester;
+import org.sonar.api.utils.log.LogTesterJUnit5;
 import org.sonar.api.utils.log.LoggerLevel;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class XlstSensorTest {
+class XlstSensorTest {
 
-  @Rule
-  public LogTester logTester = new LogTester();
+  @RegisterExtension
+  public LogTesterJUnit5 logTester = new LogTesterJUnit5();
 
   private FileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     fs = TestUtils.mockFileSystem(TestUtils.loadResource("/org/sonar/cxx"));
 
@@ -54,21 +53,21 @@ public class XlstSensorTest {
   }
 
   @Test
-  public void noLoggingIfNotUsed() {
+  void noLoggingIfNotUsed() {
     var context = SensorContextTester.create(fs.baseDir());
 
     var sensor = new XlstSensor();
     logTester.clear();
     sensor.execute(context);
 
-    Assert.assertTrue(logTester.logs(LoggerLevel.ERROR).isEmpty());
-    Assert.assertTrue(logTester.logs(LoggerLevel.WARN).isEmpty());
-    Assert.assertTrue(logTester.logs(LoggerLevel.INFO).isEmpty());
+    assertThat(logTester.logs(LoggerLevel.ERROR)).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.WARN)).isEmpty();
+    assertThat(logTester.logs(LoggerLevel.INFO)).isEmpty();
   }
 
   @Test
-  public void shouldReportNothingWhenNoReportFound() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportNothingWhenNoReportFound() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.STYLESHEET_KEY, "notexistingpath");
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "2" + XlstSensor.STYLESHEET_KEY, "notexistingpath");
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.INPUT_KEY, "notexistingpath");
@@ -80,12 +79,13 @@ public class XlstSensorTest {
     sensor.execute(context);
 
     var reportAfter = new File("notexistingpath");
-    Assert.assertFalse("The output file does exist!", reportAfter.exists() && reportAfter.isFile());
+    assertThat(reportAfter.exists() && reportAfter.isFile()).
+      withFailMessage("The output file does exist!").isFalse();
   }
 
   @Test
-  public void shouldNotCreateMessage() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldNotCreateMessage() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.STYLESHEET_KEY, "something");
     context.setSettings(settings);
 
@@ -93,12 +93,12 @@ public class XlstSensorTest {
     logTester.clear();
     sensor.execute(context);
 
-    assertThat(context.allIssues()).hasSize(0);
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void shouldCreateMissingStylesheetMessage() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldCreateMissingStylesheetMessage() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.STYLESHEET_KEY, "");
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.OUTPUT_KEY, "outputs");
     settings.setProperty("outputs", "outputs");
@@ -113,8 +113,8 @@ public class XlstSensorTest {
   }
 
   @Test
-  public void shouldCreateEmptyInputsMessage() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldCreateEmptyInputsMessage() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.STYLESHEET_KEY, "something");
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.INPUT_KEY, "");
     settings.setProperty("something", "something");
@@ -129,8 +129,8 @@ public class XlstSensorTest {
   }
 
   @Test
-  public void shouldCreateEmptyOutputsMessage() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldCreateEmptyOutputsMessage() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.STYLESHEET_KEY, "something");
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.INPUT_KEY, "something");
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.OUTPUT_KEY, "");
@@ -146,12 +146,12 @@ public class XlstSensorTest {
   }
 
   @Test
-  public void shouldTransformReportExternalXlst()
+  void shouldTransformReportExternalXlst()
     throws java.io.IOException, javax.xml.transform.TransformerException {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
-    String stylesheetFile = "prejobs" + File.separator + "xslt-stylesheet.xslt";
-    String inputFile = "prejobs" + File.separator + "xslt-input.xml";
-    String outputFile = "xslt-output.xml";
+    var context = SensorContextTester.create(fs.baseDir());
+    var stylesheetFile = "prejobs" + File.separator + "xslt-stylesheet.xslt";
+    var inputFile = "prejobs" + File.separator + "xslt-input.xml";
+    var outputFile = "xslt-output.xml";
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.STYLESHEET_KEY, stylesheetFile);
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.INPUT_KEY, inputFile);
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.OUTPUT_KEY, outputFile);
@@ -163,17 +163,19 @@ public class XlstSensorTest {
 
     var reportBefore = new File(fs.baseDir() + File.separator + inputFile);
     var reportAfter = new File(fs.baseDir() + File.separator + "prejobs" + File.separator + "xslt-output.xml");
-    Assert.assertTrue("The output file does not exist!", reportAfter.exists() && reportAfter.isFile());
-    Assert.assertTrue("The input and output file is equal!", !FileUtils.contentEquals(reportBefore, reportAfter));
+    assertThat(reportAfter.exists() && reportAfter.isFile())
+      .withFailMessage("The output file does not exist!").isTrue();
+    assertThat(!FileUtils.contentEquals(reportBefore, reportAfter))
+      .withFailMessage("The input and output file is equal!").isTrue();
   }
 
   @Test
-  public void shouldTransformReportInternalXlst()
+  void shouldTransformReportInternalXlst()
     throws java.io.IOException, javax.xml.transform.TransformerException {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
-    String stylesheetFile = "cppunit-1.x-to-junit-1.0.xsl";
-    String inputFile = "prejobs" + File.separator + "cppunit-report.xml";
-    String outputFile = "_*.after_xslt";
+    var context = SensorContextTester.create(fs.baseDir());
+    var stylesheetFile = "cppunit-1.x-to-junit-1.0.xsl";
+    var inputFile = "prejobs" + File.separator + "cppunit-report.xml";
+    var outputFile = "_*.after_xslt";
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.STYLESHEET_KEY, stylesheetFile);
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.INPUT_KEY, inputFile);
     settings.setProperty(XlstSensor.OTHER_XSLT_KEY + "1" + XlstSensor.OUTPUT_KEY, outputFile);
@@ -185,8 +187,10 @@ public class XlstSensorTest {
 
     var reportBefore = new File(fs.baseDir() + File.separator + inputFile);
     var reportAfter = new File(fs.baseDir() + File.separator + "prejobs" + File.separator + "_cppunit-report.after_xslt");
-    Assert.assertTrue("The output file does not exist!", reportAfter.exists() && reportAfter.isFile());
-    Assert.assertTrue("The input and output file is equal!", !FileUtils.contentEquals(reportBefore, reportAfter));
+    assertThat(reportAfter.exists() && reportAfter.isFile())
+      .withFailMessage("The output file does not exist!").isTrue();
+    assertThat(!FileUtils.contentEquals(reportBefore, reportAfter))
+      .withFailMessage("The input and output file is equal!").isTrue();
   }
 
 }

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,6 @@ import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
-import org.sonar.cxx.sensors.utils.ReportException;
 
 /**
  * Sensor for Infer - A static analyzer for Java, C, C++, and Objective-C
@@ -41,11 +40,10 @@ public class CxxInferSensor extends CxxIssuesReportSensor {
 
   public static List<PropertyDefinition> properties() {
     return List.of(PropertyDefinition.builder(REPORT_PATH_KEY)
-      .name("Infer JSON report(s)")
+      .name("Infer Report(s)")
       .description(
-        "Path to a <a href='https://fbinfer.com/>Infer</a> JSON report, relative to"
-          + " projects root. Only JSON format is supported. If necessary, <a href='https://"
-          + "ant.apache.org/manual/dirtasks.html'>Ant-style wildcards</a> are at your service."
+        "Comma-separated paths (absolute or relative to the project base directory) to `*.json` files with"
+          + " `Infer` issues. Ant patterns are accepted for relative paths."
       )
       .category("CXX External Analyzers")
       .subCategory("Infer")
@@ -58,16 +56,14 @@ public class CxxInferSensor extends CxxIssuesReportSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX Infer report import")
-      .onlyOnLanguage("cxx")
+      .onlyOnLanguages("cxx", "cpp", "c++", "c")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
       .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   @Override
-  protected void processReport(File report) throws ReportException {
-    LOG.debug("Processing 'Infer JSON' report '{}'", report.getName());
-
-    InferParser parser = new InferParser(this);
+  protected void processReport(File report) {
+    var parser = new InferParser(this);
     parser.parse(report);
   }
 

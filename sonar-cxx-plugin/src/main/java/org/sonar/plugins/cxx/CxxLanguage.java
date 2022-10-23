@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,13 +19,13 @@
  */
 package org.sonar.plugins.cxx;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.internal.google.common.base.Splitter;
-import org.sonar.api.internal.google.common.collect.Iterables;
 import org.sonar.api.resources.AbstractLanguage;
 import org.sonar.api.resources.Qualifiers;
 
@@ -52,7 +52,7 @@ public class CxxLanguage extends AbstractLanguage {
   /**
    * Default cxx files knows suffixes
    */
-  public static final String DEFAULT_FILE_SUFFIXES = ".cxx,.cpp,.cc,.c,.hxx,.hpp,.hh,.h";
+  public static final String DEFAULT_FILE_SUFFIXES = "-";
 
   /**
    * Settings of the plugin.
@@ -70,9 +70,11 @@ public class CxxLanguage extends AbstractLanguage {
         .defaultValue(DEFAULT_FILE_SUFFIXES)
         .name("File suffixes")
         .multiValues(true)
-        .description("Comma-separated list of suffixes for files to analyze. To turn off the CXX language,"
-                       + " set the value to 'sonar.cxx.file.suffixes=-'"
-                       + " (in the user interface set the first entry to '-').")
+        .description(
+          "List of suffixes for files to analyze (e.g. `.cxx,.cpp,.cc,.c,.hxx,.hpp,.hh,.h`)."
+            + " In the SonarQube UI, enter one file suffixe per field."
+            + " To turn off the CXX language, set the first entry to `-`."
+        )
         .category("CXX")
         .subCategory("(1) General")
         .onQualifiers(Qualifiers.PROJECT)
@@ -91,7 +93,8 @@ public class CxxLanguage extends AbstractLanguage {
       .filter(s -> s != null && !s.trim().isEmpty()).toArray(String[]::new);
     if (suffixes.length == 0) {
       suffixes = Iterables.toArray(Splitter.on(',').split(DEFAULT_FILE_SUFFIXES), String.class);
-    } else if ("-".equals(suffixes[0])) {
+    }
+    if ("-".equals(suffixes[0])) {
       suffixes = new String[]{"disabled"};
     }
     return suffixes;

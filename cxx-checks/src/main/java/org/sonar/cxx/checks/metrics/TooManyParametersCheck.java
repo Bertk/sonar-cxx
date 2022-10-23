@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,16 +19,16 @@
  */
 package org.sonar.cxx.checks.metrics;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
 import org.sonar.cxx.parser.CxxGrammarImpl;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.SqaleConstantRemediation;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 import org.sonar.cxx.tag.Tag;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.SqaleConstantRemediation;
-import org.sonar.squidbridge.checks.SquidCheck;
 
 @Rule(
   key = "TooManyParameters",
@@ -52,17 +52,17 @@ public class TooManyParametersCheck extends SquidCheck<Grammar> {
   @Override
   public void init() {
     subscribeTo(CxxGrammarImpl.parameterDeclarationClause,
-      CxxGrammarImpl.lambdaDeclarator,
-      CxxGrammarImpl.cliParameterArray);
+                CxxGrammarImpl.lambdaDeclarator,
+                CxxGrammarImpl.cliParameterArray);
   }
 
   @Override
   public void visitNode(AstNode node) {
-    AstNode parameterList = node.getFirstChild(CxxGrammarImpl.parameterDeclarationList);
+    var parameterList = node.getFirstChild(CxxGrammarImpl.parameterDeclarationList);
     if (parameterList != null) {
       int nbParameters = parameterList.getChildren(CxxGrammarImpl.parameterDeclaration).size();
       if (nbParameters > max) {
-        String message = "parameter list has {0} parameters, which is greater than the {1} authorized.";
+        var message = "parameter list has {0} parameters, which is greater than the {1} authorized.";
         getContext().createLineViolation(this, message, node, nbParameters, max);
       }
     }

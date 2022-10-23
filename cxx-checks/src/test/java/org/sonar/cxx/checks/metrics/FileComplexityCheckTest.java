@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,26 +22,25 @@ package org.sonar.cxx.checks.metrics;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Set;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.checks.CxxFileTester;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
+import org.sonar.cxx.squidbridge.api.SourceFile;
 import org.sonar.cxx.utils.CxxReportIssue;
 import org.sonar.cxx.utils.CxxReportLocation;
 import org.sonar.cxx.visitors.MultiLocatitionSquidCheck;
-import org.sonar.squidbridge.api.SourceFile;
 
-public class FileComplexityCheckTest {
+class FileComplexityCheckTest {
 
   @Test
-  public void check() throws UnsupportedEncodingException, IOException {
+  void check() throws UnsupportedEncodingException, IOException {
     var check = new FileComplexityCheck();
     check.setMaxComplexity(1);
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/functions.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/functions.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 
     Set<CxxReportIssue> issues = MultiLocatitionSquidCheck.getMultiLocationCheckMessages(file);
     assertThat(issues).isNotNull();
@@ -51,10 +50,11 @@ public class FileComplexityCheckTest {
     CxxReportIssue actualIssue = issues.iterator().next();
     softly.assertThat(actualIssue.getRuleId()).isEqualTo("FileComplexity");
     softly.assertThat(actualIssue.getLocations()).containsOnly(
-      new CxxReportLocation(null, "1",
+      new CxxReportLocation(null, "1", null,
                             "The Cyclomatic Complexity of this file is 2 which is greater than 1 authorized."),
-      new CxxReportLocation(null, "3", "+1: function definition"),
-      new CxxReportLocation(null, "5", "+1: function definition"));
+      new CxxReportLocation(null, "3", null, "+1: function definition"),
+      new CxxReportLocation(null, "5", null, "+1: function definition")
+    );
     softly.assertAll();
   }
 

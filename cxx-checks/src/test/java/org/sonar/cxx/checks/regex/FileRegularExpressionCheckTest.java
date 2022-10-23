@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,26 +21,24 @@ package org.sonar.cxx.checks.regex;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.CxxSquidConfiguration;
-import org.sonar.cxx.checks.CxxFileTester;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
-import org.sonar.squidbridge.api.SourceFile;
-import org.sonar.squidbridge.checks.CheckMessagesVerifier;
+import org.sonar.cxx.config.CxxSquidConfiguration;
+import org.sonar.cxx.squidbridge.api.SourceFile;
+import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class FileRegularExpressionCheckTest {
+class FileRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void fileRegExWithoutFilePattern() throws UnsupportedEncodingException, IOException {
+  void fileRegExWithoutFilePattern() throws UnsupportedEncodingException, IOException {
     var check = new FileRegularExpressionCheck();
     check.regularExpression = "stdafx\\.h";
     check.message = "Found 'stdafx.h' in file!";
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/FileRegEx.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/FileRegEx.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().withMessage(check.message)
@@ -49,17 +47,16 @@ public class FileRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void fileRegExInvertWithoutFilePattern() throws UnsupportedEncodingException, IOException {
+  void fileRegExInvertWithoutFilePattern() throws UnsupportedEncodingException, IOException {
     var check = new FileRegularExpressionCheck();
-    Charset charset = StandardCharsets.UTF_8;
-    var squidConfig = new CxxSquidConfiguration(charset);
+    var squidConfig = new CxxSquidConfiguration("", StandardCharsets.UTF_8);
     check.regularExpression = "stdafx\\.h";
     check.invertRegularExpression = true;
     check.message = "Found no 'stdafx.h' in file!";
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/FileRegExInvert.cc", ".");
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/FileRegExInvert.cc", ".");
 
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig, check);
+    SourceFile file = CxxAstScanner.scanSingleInputFileConfig(tester.asInputFile(), squidConfig, check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().withMessage(check.message)
       .noMore();
@@ -67,17 +64,16 @@ public class FileRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void fileRegExCodingErrorActionReplace() throws UnsupportedEncodingException, IOException {
+  void fileRegExCodingErrorActionReplace() throws UnsupportedEncodingException, IOException {
     var check = new FileRegularExpressionCheck();
-    Charset charset = StandardCharsets.US_ASCII;
-    var squidConfig = new CxxSquidConfiguration(charset);
+    var squidConfig = new CxxSquidConfiguration("", StandardCharsets.US_ASCII);
     check.regularExpression = "stdafx\\.h";
     check.message = "Found 'stdafx.h' in file!";
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/FileRegEx.cc", ".",
-                                                                   StandardCharsets.US_ASCII);
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/FileRegEx.cc", ".",
+                                        StandardCharsets.US_ASCII);
 
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig, check);
+    SourceFile file = CxxAstScanner.scanSingleInputFileConfig(tester.asInputFile(), squidConfig, check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().withMessage(check.message)
       .noMore();
@@ -85,16 +81,15 @@ public class FileRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void fileRegExWithFilePattern() throws UnsupportedEncodingException, IOException {
+  void fileRegExWithFilePattern() throws UnsupportedEncodingException, IOException {
     var check = new FileRegularExpressionCheck();
-    Charset charset = StandardCharsets.UTF_8;
-    var squidConfig = new CxxSquidConfiguration(charset);
+    var squidConfig = new CxxSquidConfiguration("", StandardCharsets.UTF_8);
     check.matchFilePattern = "/**/*.cc"; // all files with .cc file extension
     check.regularExpression = "#include\\s+\"stdafx\\.h\"";
     check.message = "Found '#include \"stdafx.h\"' in a .cc file!";
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/FileRegEx.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig, check);
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/FileRegEx.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFileConfig(tester.asInputFile(), squidConfig, check);
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().withMessage(check.message)
@@ -103,18 +98,17 @@ public class FileRegularExpressionCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void fileRegExInvertWithFilePatternInvert() throws UnsupportedEncodingException, IOException {
+  void fileRegExInvertWithFilePatternInvert() throws UnsupportedEncodingException, IOException {
     var check = new FileRegularExpressionCheck();
-    Charset charset = StandardCharsets.UTF_8;
-    var squidConfig = new CxxSquidConfiguration(charset);
+    var squidConfig = new CxxSquidConfiguration("", StandardCharsets.UTF_8);
     check.matchFilePattern = "/**/*.h"; // all files with not .h file extension
     check.invertFilePattern = true;
     check.regularExpression = "#include\\s+\"stdafx\\.h\"";
     check.invertRegularExpression = true;
     check.message = "Found no '#include \"stdafx.h\"' in a file with not '.h' file extension!";
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/FileRegExInvert.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig, check);
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/FileRegExInvert.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFileConfig(tester.asInputFile(), squidConfig, check);
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().withMessage(check.message)

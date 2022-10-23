@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,28 +19,26 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.groups.Tuple;
 import static org.assertj.core.groups.Tuple.tuple;
-import org.fest.assertions.Fail;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.CxxFileTester;
 import org.sonar.cxx.CxxFileTesterHelper;
-import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.squidbridge.api.SourceFile;
+import org.sonar.cxx.config.CxxSquidConfiguration;
+import org.sonar.cxx.squidbridge.api.SourceFile;
 
-public class CxxPublicApiVisitorTest {
+class CxxPublicApiVisitorTest {
 
   private static final org.sonar.api.utils.log.Logger LOG = Loggers.get(CxxPublicApiVisitorTest.class);
 
@@ -53,61 +51,67 @@ public class CxxPublicApiVisitorTest {
   }
 
   @Test
-  public void test_no_matching_suffix() throws IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/metrics/doxygen_example.h", ".",
-                                                                   "");
-    CxxSquidConfiguration squidConfig = new CxxSquidConfiguration();
-    squidConfig.setPublicApiFileSuffixes(new String[]{".hpp"});
+  void test_no_matching_suffix() throws IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/metrics/doxygen_example.h", ".",
+                                        "");
+    var squidConfig = new CxxSquidConfiguration();
+    squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.API_FILE_SUFFIXES,
+                    new String[]{".hpp"});
 
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig);
+    SourceFile file = CxxAstScanner.scanSingleInputFileConfig(tester.asInputFile(), squidConfig);
 
-    assertThat(file.getInt(CxxMetric.PUBLIC_API)).isEqualTo(0);
-    assertThat(file.getInt(CxxMetric.PUBLIC_UNDOCUMENTED_API)).isEqualTo(0);
+    assertThat(file.getInt(CxxMetric.PUBLIC_API)).isZero();
+    assertThat(file.getInt(CxxMetric.PUBLIC_UNDOCUMENTED_API)).isZero();
   }
 
   @Test
-  public void doxygen_example() throws IOException {
-    assertThat(testFile("src/test/resources/metrics/doxygen_example.h")).isEqualTo(tuple(13, 0));
+  void doxygen_example() throws IOException {
+    assertThat(verifyPublicApiOfFile("src/test/resources/metrics/doxygen_example.h")).isEqualTo(tuple(13, 0));
   }
 
   @Test
-  public void to_delete() throws IOException {
-    assertThat(testFile("src/test/resources/metrics/public_api.h")).isEqualTo(tuple(44, 0));
+  void to_delete() throws IOException {
+    assertThat(verifyPublicApiOfFile("src/test/resources/metrics/public_api.h")).isEqualTo(tuple(47, 0));
 
   }
 
   @Test
-  public void no_doc() throws IOException {
-    assertThat(testFile("src/test/resources/metrics/no_doc.h")).isEqualTo(tuple(22, 22));
+  void no_doc() throws IOException {
+    assertThat(verifyPublicApiOfFile("src/test/resources/metrics/no_doc.h")).isEqualTo(tuple(22, 22));
   }
 
   @Test
-  public void template() throws IOException {
-    assertThat(testFile("src/test/resources/metrics/template.h")).isEqualTo(tuple(13, 4));
+  void template() throws IOException {
+    assertThat(verifyPublicApiOfFile("src/test/resources/metrics/template.h")).isEqualTo(tuple(15, 4));
   }
 
   @Test
-  public void alias_function_template() throws IOException {
-    assertThat(testFile("src/test/resources/metrics/alias_in_template_func.h")).isEqualTo(tuple(4, 3));
+  void alias_function_template() throws IOException {
+    assertThat(verifyPublicApiOfFile("src/test/resources/metrics/alias_in_template_func.h")).isEqualTo(tuple(4, 3));
   }
 
   @Test
-  public void unnamed_class() throws IOException {
-    assertThat(testFile("src/test/resources/metrics/unnamed_class.h")).isEqualTo(tuple(3, 1));
+  void unnamed_class() throws IOException {
+    assertThat(verifyPublicApiOfFile("src/test/resources/metrics/unnamed_class.h")).isEqualTo(tuple(3, 1));
   }
 
   @Test
-  public void unnamed_enum() throws IOException {
-    assertThat(testFile("src/test/resources/metrics/unnamed_enum.h")).isEqualTo(tuple(1, 1));
+  void unnamed_enum() throws IOException {
+    assertThat(verifyPublicApiOfFile("src/test/resources/metrics/unnamed_enum.h")).isEqualTo(tuple(8, 0));
   }
 
   @Test
-  public void public_api() throws UnsupportedEncodingException, IOException {
-    String fileNme = "src/test/resources/metrics/public_api.h";
-    TestPublicApiVisitor visitor = new TestPublicApiVisitor(fileNme, true);
+  void multiline() throws IOException {
+    assertThat(verifyPublicApiOfFile("src/test/resources/metrics/multiline.h")).isEqualTo(tuple(9, 0));
+  }
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(fileNme, ".", "");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), visitor);
+  @Test
+  void public_api() throws UnsupportedEncodingException, IOException {
+    var fileNme = "src/test/resources/metrics/public_api.h";
+    var visitor = new TestPublicApiVisitor(fileNme, true);
+
+    var tester = CxxFileTesterHelper.create(fileNme, ".", "");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), visitor);
 
     var expectedIdCommentMap = new HashMap<String, String>();
 
@@ -161,7 +165,10 @@ public class CxxPublicApiVisitorTest {
 //        expectedIdCommentMap.put("operator=", "operator=");
     expectedIdCommentMap.put("testUnnamedStructVar", "testUnnamedStructVar");
     expectedIdCommentMap.put("globalFuncDef", "globalFuncDef");
-    expectedIdCommentMap.put("linkageSpecification", "linkageSpecification");
+    expectedIdCommentMap.put("linkageSpecification1", "linkageSpecification1");
+    expectedIdCommentMap.put("linkageSpecification2", "linkageSpecification2");
+    expectedIdCommentMap.put("linkageSpecification3", "linkageSpecification3");
+    expectedIdCommentMap.put("linkageSpecification4", "linkageSpecification4");
 
     // check completeness
     for (var id : expectedIdCommentMap.keySet()) {
@@ -196,20 +203,20 @@ public class CxxPublicApiVisitorTest {
   }
 
   /**
-   * Check that CxxPublicApiVisitor correctly counts API for given file.
+   * Check that CxxPublicApiVisitor correctly counts public API for given file.
    *
-   * @param fileName the file to use for test
-   * @param expectedApi expected number of API
-   * @param expectedUndoc expected number of undocumented API
+   * @param fileName file to verify
+   * @return tuple(found public API, thereof undocumented public API)
    */
-  private Tuple testFile(String fileName)
+  private Tuple verifyPublicApiOfFile(String fileName)
     throws UnsupportedEncodingException, IOException {
 
-    CxxSquidConfiguration squidConfig = new CxxSquidConfiguration();
-    squidConfig.setPublicApiFileSuffixes(new String[]{getFileExtension(fileName)});
+    var squidConfig = new CxxSquidConfiguration();
+    squidConfig.add(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES, CxxSquidConfiguration.API_FILE_SUFFIXES,
+                    new String[]{getFileExtension(fileName)});
 
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(fileName, ".", "");
-    SourceFile file = CxxAstScanner.scanSingleFileConfig(tester.asFile(), squidConfig);
+    var tester = CxxFileTesterHelper.create(fileName, ".", "");
+    SourceFile file = CxxAstScanner.scanSingleInputFileConfig(tester.asInputFile(), squidConfig);
 
     LOG.debug("#API: {} UNDOC: {}",
               file.getInt(CxxMetric.PUBLIC_API), file.getInt(CxxMetric.PUBLIC_UNDOCUMENTED_API));
@@ -230,7 +237,7 @@ public class CxxPublicApiVisitorTest {
     @Override
     protected void onPublicApi(AstNode node, String id, List<Token> comments) {
       if (checkDoubleIDs && idCommentMap.containsKey(id)) {
-        Fail.fail("DOUBLE ID: " + id);
+        fail("DOUBLE ID: " + id);
       }
       idCommentMap.put(id, comments);
     }

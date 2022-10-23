@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,10 @@
  */
 package org.sonar.cxx.sensors.tests.xunit;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.groups.Tuple.tuple;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
@@ -31,32 +31,32 @@ import org.sonar.api.measures.CoreMetrics;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxXunitSensorTest {
+class CxxXunitSensorTest {
 
   private FileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     fs = TestUtils.mockFileSystem();
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, false);
   }
 
   @Test
-  public void shouldReportNothingWhenNoReportFound() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportNothingWhenNoReportFound() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxXunitSensor.REPORT_PATH_KEY, "notexistingpath");
     context.setSettings(settings);
 
     var sensor = new CxxXunitSensor();
     sensor.execute(context);
 
-    assertThat(context.measures(context.project().key())).hasSize(0);
+    assertThat(context.measures(context.project().key())).isEmpty();
   }
 
   @Test
-  public void shouldReadXunitReport() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReadXunitReport() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxXunitSensor.REPORT_PATH_KEY, "xunit-reports/xunit-result-SAMPLE_with_fileName.xml");
     context.setSettings(settings);
 
@@ -74,18 +74,21 @@ public class CxxXunitSensorTest {
         tuple(CoreMetrics.TEST_EXECUTION_TIME_KEY, 0L));
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void shouldThrowWhenGivenInvalidTime() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  @Test
+  void shouldThrowWhenGivenInvalidTime() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxXunitSensor.REPORT_PATH_KEY, "xunit-reports/invalid-time-xunit-report.xml");
     context.setSettings(settings);
-
     var sensor = new CxxXunitSensor();
-    sensor.execute(context);
+
+    IllegalStateException thrown = catchThrowableOfType(() -> {
+      sensor.execute(context);
+    }, IllegalStateException.class);
+    assertThat(thrown).isExactlyInstanceOf(IllegalStateException.class);
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
     var sensor = new CxxXunitSensor();
     sensor.describe(descriptor);

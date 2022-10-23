@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -32,28 +32,38 @@ import javax.annotation.Nullable;
 public class CxxReportIssue {
 
   private final String ruleId;
-  private final List<CxxReportLocation> locations;
-  private final List<CxxReportLocation> flow;
+  private final List<String> aliasRuleIds = new ArrayList<>();
+  private final List<CxxReportLocation> locations = new ArrayList<>();
+  private final List<CxxReportLocation> flow = new ArrayList<>();
 
-  public CxxReportIssue(String ruleId, @Nullable String file, @Nullable String line, String info) {
-    super();
+  public CxxReportIssue(String ruleId, @Nullable String file, @Nullable String line, @Nullable String column,
+                        String info) {
     this.ruleId = ruleId;
-    this.locations = new ArrayList<>();
-    this.flow = new ArrayList<>();
-    addLocation(file, line, info);
+    addLocation(file, line, column, info);
   }
 
-  public final void addLocation(@Nullable String file, @Nullable String line, String info) {
-    locations.add(new CxxReportLocation(file, line, info));
+  public final void addLocation(@Nullable String file, @Nullable String line, @Nullable String column, String info) {
+    locations.add(new CxxReportLocation(file, line, column, info));
   }
 
-  public final void addFlowElement(@Nullable String file, @Nullable String line, String info) {
-    flow.add(0, new CxxReportLocation(file, line, info));
+  public final void addFlowElement(@Nullable String file, @Nullable String line, @Nullable String column, String info) {
+    flow.add(0, new CxxReportLocation(file, line, column, info));
   }
 
+  public final void addAliasRuleId(String aliasRuleId) {
+    aliasRuleIds.add(aliasRuleId);
+  }
 
   public String getRuleId() {
     return ruleId;
+  }
+
+  public boolean hasAliasRuleIds() {
+    return !aliasRuleIds.isEmpty();
+  }
+
+  public List<String> getAliasRuleIds() {
+    return Collections.unmodifiableList(aliasRuleIds);
   }
 
   public List<CxxReportLocation> getLocations() {
@@ -66,14 +76,18 @@ public class CxxReportIssue {
 
   @Override
   public String toString() {
+    String aliasIds = aliasRuleIds.stream().map(Object::toString).collect(Collectors.joining(", "));
     String locationsToString = locations.stream().map(Object::toString).collect(Collectors.joining(", "));
     String flowToString = flow.stream().map(Object::toString).collect(Collectors.joining(", "));
-    return "CxxReportIssue [ruleId=" + ruleId + ", locations=" + locationsToString + ", flow=" + flowToString + "]";
+    return "CxxReportIssue [ruleId=" + ruleId
+             + ", aliasIds=" + aliasIds
+             + ", locations=" + locationsToString
+             + ", flow=" + flowToString + "]";
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(locations, flow, ruleId);
+    return Objects.hash(ruleId, aliasRuleIds, locations, flow);
   }
 
   @Override
@@ -87,9 +101,11 @@ public class CxxReportIssue {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    CxxReportIssue other = (CxxReportIssue) obj;
-    return Objects.equals(locations, other.locations) && Objects.equals(flow, other.flow)
-        && Objects.equals(ruleId, other.ruleId);
+    var other = (CxxReportIssue) obj;
+    return Objects.equals(ruleId, other.ruleId)
+             && Objects.equals(aliasRuleIds, other.aliasRuleIds)
+             && Objects.equals(locations, other.locations)
+             && Objects.equals(flow, other.flow);
   }
 
 }

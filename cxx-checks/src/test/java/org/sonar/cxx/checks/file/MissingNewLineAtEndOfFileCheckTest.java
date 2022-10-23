@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,23 +21,21 @@ package org.sonar.cxx.checks.file;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.cxx.CxxAstScanner;
-import org.sonar.cxx.checks.CxxFileTester;
 import org.sonar.cxx.checks.CxxFileTesterHelper;
-import org.sonar.squidbridge.api.SourceFile;
-import org.sonar.squidbridge.checks.CheckMessagesVerifier;
+import org.sonar.cxx.squidbridge.api.SourceFile;
+import org.sonar.cxx.squidbridge.checks.CheckMessagesVerifier;
 
-public class MissingNewLineAtEndOfFileCheckTest {
+class MissingNewLineAtEndOfFileCheckTest {
 
   private final MissingNewLineAtEndOfFileCheck check = new MissingNewLineAtEndOfFileCheck();
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester(
-      "src/test/resources/checks/MissingNewLineAtEndOfFile.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+  void test() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/MissingNewLineAtEndOfFile.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
 
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().withMessage("Add a new line at the end of this file.")
@@ -46,9 +44,9 @@ public class MissingNewLineAtEndOfFileCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test2() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/EmptyFile.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+  void test2() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/EmptyFile.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .next().withMessage("Add a new line at the end of this file.")
       .noMore();
@@ -56,9 +54,9 @@ public class MissingNewLineAtEndOfFileCheckTest {
 
   @Test
   @SuppressWarnings("squid:S2699") // ... verify contains the assertion
-  public void test3() throws UnsupportedEncodingException, IOException {
-    CxxFileTester tester = CxxFileTesterHelper.CreateCxxFileTester("src/test/resources/checks/NonEmptyFile.cc", ".");
-    SourceFile file = CxxAstScanner.scanSingleFile(tester.asFile(), check);
+  void test3() throws UnsupportedEncodingException, IOException {
+    var tester = CxxFileTesterHelper.create("src/test/resources/checks/NonEmptyFile.cc", ".");
+    SourceFile file = CxxAstScanner.scanSingleInputFile(tester.asInputFile(), check);
     CheckMessagesVerifier.verify(file.getCheckMessages())
       .noMore();
   }

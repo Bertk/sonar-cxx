@@ -1,13 +1,12 @@
 <rules>
-    <rule>
-        <key>CustomRuleTemplate</key>
-        <cardinality>MULTIPLE</cardinality>
-        <name><![CDATA[Template for custom Custom rules]]></name>
-        <description><![CDATA[
+  <rule>
+    <key>CustomRuleTemplate</key>
+    <cardinality>MULTIPLE</cardinality>
+    <name>Rule template for Vera++ custom rules</name>
+    <description><![CDATA[
 <p>
-Follow these steps to make your custom Custom rules available in SonarQube:
+Follow these steps to make your custom rules available in SonarQube:
 </p>
-
 <ol>
   <ol>
     <li>Create a new rule in SonarQube by "copying" this rule template and specify the <code>CheckId</code> of your custom rule, a title, a description, and a default severity.</li>
@@ -16,8 +15,8 @@ Follow these steps to make your custom Custom rules available in SonarQube:
   <li>Relaunch an analysis on your projects, et voilà, your custom rules are executed!</li>
 </ol>
 ]]></description>
-        <severity>INFO</severity>
-    </rule>
+    <severity>INFO</severity>
+  </rule>
   <rule>
     <key>F001</key>
     <name>(CR) detected in isolation</name>
@@ -26,9 +25,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       single '\n' (LF) character or by two characters "\r\n" (CRLF).
       A single appearance of '\r' (CR) is discouraged.
     </description>
-    <internalKey>F001</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -42,9 +39,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       underscore. In addition, directory names should not contain dots
       and file names can have only one dot.
     </description>
-    <internalKey>F002</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -61,9 +56,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       the amount of whitespace is identical to the indent in the
       previous line.
     </description>
-    <internalKey>L001</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -75,9 +68,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       tools. Avoiding them ensures that the intended formatting of the
       code is preserved.
     </description>
-    <internalKey>L002</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -89,9 +80,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       (like head and tail) and artificially influence some source code
       metrics.
     </description>
-    <internalKey>L003</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -101,9 +90,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
     <description>
       The source code line should not exceed some reasonable length.
     </description>
-    <internalKey>L004</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -117,9 +104,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       Lines containing only whitespace are considered to be empty in
       this context.
     </description>
-    <internalKey>L005</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -130,9 +115,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       The source file should not exceed a reasonable length.
       Long source files can indicate an opportunity for refactoring.
     </description>
-    <internalKey>L006</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -153,9 +136,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       change the meaning of the program without being visible in the
       code.
     </description>
-    <internalKey>T001</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -177,9 +158,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       Apart from the use of underscore in macro names, preprocessor
       macros should not be used to redefine language keywords.
     </description>
-    <internalKey>T002</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -191,9 +170,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       "extern", "goto", "new", "struct", "union" and "using"
       should be followed by a single space for better readability.
     </description>
-    <internalKey>T003</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -205,9 +182,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       should be immediately followed by a colon, unless used in the
       list of base classes.
     </description>
-    <internalKey>T004</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -218,9 +193,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       The break and continue keywords should be immediately followed
       by a semicolon, with no other tokens in between.
     </description>
-    <internalKey>T005</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -232,9 +205,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       a semicolon or a single space. An exception to this rule is
       allowed for exception specifications.
     </description>
-    <internalKey>T006</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -246,9 +217,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       comments from the rest of the code. As an exception from this
       rule, semicolons surrounded by spaces are allowed in for loops:
     </description>
-    <internalKey>T007</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -259,9 +228,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       Keywords catch, for, if, switch and while should be followed by
       a single space and then an opening left parenthesis.
     </description>
-    <internalKey>T008</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -273,9 +240,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       not be preceded by whitespace on its left side, but should be
       followed by whitespace on its right side:
     </description>
-    <internalKey>T009</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -288,9 +253,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       identifier, because this would make them visually similar to
       numeric literals.
     </description>
-    <internalKey>T010</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -303,9 +266,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       scopes, but allows concise style of one-line definitions and
       empty blocks.
     </description>
-    <internalKey>T011</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -317,9 +278,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       the code due to its terseness. Prefer explicit logical
       comparisons or alternative tokens for increased readability:
     </description>
-    <internalKey>T012</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -334,9 +293,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       This rule verifies that at least one comment in the source file
       contains the "copyright" word.
     </description>
-    <internalKey>T013</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -351,9 +308,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       project that choose to use the Boost license. It is therefore
       not part of the default profile.
     </description>
-    <internalKey>T014</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -364,21 +319,17 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       The links embedded in comments and string literals should have
       correct form and should reference existing files.
     </description>
-    <internalKey>T015</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
   <rule>
     <key>T016</key>
-    <internalKey>T016</internalKey>
     <name>Min/max potential macro substitution problem</name>
     <description>
       The calls to min and max functions should be protected against accidental macro substitution.
     </description>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -396,9 +347,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       Use named namespaces in header files. Unnamed namespaces are
       allowed in implementation files only.
     </description>
-    <internalKey>T017</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -418,9 +367,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       inline function definition), but for the sake of consistency
       this is also discouraged.
     </description>
-    <internalKey>T018</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>
@@ -434,9 +381,7 @@ Follow these steps to make your custom Custom rules available in SonarQube:
       allows to avoid common pitfalls and makes the code visually more
       uniform.
     </description>
-    <internalKey>T019</internalKey>
     <severity>INFO</severity>
-    <type>CODE_SMELL</type>
     <remediationFunction>LINEAR</remediationFunction>
     <remediationFunctionGapMultiplier>1min</remediationFunctionGapMultiplier>
   </rule>

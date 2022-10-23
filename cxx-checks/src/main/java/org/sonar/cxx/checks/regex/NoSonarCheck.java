@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +19,18 @@
  */
 package org.sonar.cxx.checks.regex;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.util.regex.Pattern;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.NoSqale;
-import org.sonar.squidbridge.checks.SquidCheck;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.NoSqale;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 
 /**
- * Note that {@link com.sonar.sslr.squid.checks.AbstractNoSonarCheck} can't be used because of bug SSLRSQBR-16.
+ * Note that {@link com.sonar.cxx.sslr.squid.checks.AbstractNoSonarCheck} can't be used because of bug SSLRSQBR-16.
  */
 @Rule(
   key = "NoSonar",
@@ -52,9 +52,10 @@ public class NoSonarCheck extends SquidCheck<Grammar> implements AstAndTokenVisi
 
         for (var commentLine : commentLines) {
           if (commentLine.contains("NOSONAR")) {
-            getContext().createLineViolation(this,
-                                             "Is //NOSONAR used to exclude false-positive or to hide real quality flaw ?",
-                                             line);
+            getContext().createLineViolation(
+              this,
+              "Is //NOSONAR used to exclude false-positive or to hide real quality flaw ?",
+              line);
           }
           line++;
         }

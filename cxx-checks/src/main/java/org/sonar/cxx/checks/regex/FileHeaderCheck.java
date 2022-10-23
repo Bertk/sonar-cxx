@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,25 +19,18 @@
  */
 package org.sonar.cxx.checks.regex;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.check.RuleProperty;
 import org.sonar.cxx.checks.utils.CheckUtils;
-import org.sonar.cxx.visitors.CxxCharsetAwareVisitor;
-import org.sonar.squidbridge.annotations.ActivatedByDefault;
-import org.sonar.squidbridge.annotations.SqaleConstantRemediation;
-import org.sonar.squidbridge.checks.SquidCheck;
+import org.sonar.cxx.squidbridge.annotations.ActivatedByDefault;
+import org.sonar.cxx.squidbridge.annotations.SqaleConstantRemediation;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 
 /**
  * FileHeaderCheck - similar Vera++ rule T013 "No copyright notice found"
@@ -50,7 +43,7 @@ import org.sonar.squidbridge.checks.SquidCheck;
   tags = {})
 @ActivatedByDefault
 @SqaleConstantRemediation("5min")
-public class FileHeaderCheck extends SquidCheck<Grammar> implements CxxCharsetAwareVisitor {
+public class FileHeaderCheck extends SquidCheck<Grammar> {
 
   private static final String DEFAULT_HEADER_FORMAT = "";
   private static final String MESSAGE = "Add or update the header of this file.";
@@ -74,58 +67,64 @@ public class FileHeaderCheck extends SquidCheck<Grammar> implements CxxCharsetAw
     defaultValue = "false")
   public boolean isRegularExpression = false;
 
-  private Charset charset = StandardCharsets.UTF_8;
   private String[] expectedLines = null;
   private Pattern searchPattern = null;
-
-  private static boolean matches(String[] expectedLines, BufferedReader br) throws IOException {
-    for (var expectedLine : expectedLines) {
-      var line = br.readLine();
-      if (!expectedLine.equals(line)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @Override
-  public void setCharset(Charset charset) {
-    this.charset = charset;
-  }
 
   @Override
   public void init() {
     if (isRegularExpression) {
-      searchPattern = CheckUtils.compileUserRegexp(headerFormat, Pattern.DOTALL);
+      if (searchPattern == null) {
+        searchPattern = CheckUtils.compileUserRegexp(getHeaderFormat(), Pattern.DOTALL);
+      }
     } else {
-      expectedLines = headerFormat.split("\\R");
+      expectedLines = headerFormat.split("(?:\r)?\n|\r");
     }
   }
 
   @Override
   public void visitFile(AstNode astNode) {
-
-    // use onMalformedInput(CodingErrorAction.REPLACE) / onUnmappableCharacter(CodingErrorAction.REPLACE)
-    try (var br = new BufferedReader(new InputStreamReader(new FileInputStream(getContext().getFile()), charset))) {
-
-      if (isRegularExpression) {
-        String fileContent = br.lines().collect(Collectors.joining(System.lineSeparator()));
-        checkRegularExpression(fileContent);
-      } else {
-        if (!matches(expectedLines, br)) {
-          getContext().createFileViolation(this, MESSAGE);
-        }
+    if (isRegularExpression) {
+      String fileContent = getContext().getInputFileContent();
+      checkRegularExpression(fileContent);
+    } else {
+      if (!matches(expectedLines, getContext().getInputFileLines())) {
+        getContext().createFileViolation(this, MESSAGE);
       }
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
     }
   }
 
+  private String getHeaderFormat() {
+    String format = headerFormat;
+    if (format.charAt(0) != '^') {
+      format = "^" + format;
+    }
+    return format;
+  }
+
   private void checkRegularExpression(String fileContent) {
-    Matcher matcher = searchPattern.matcher(fileContent);
+    var matcher = searchPattern.matcher(fileContent);
     if (!matcher.find() || matcher.start() != 0) {
       getContext().createFileViolation(this, MESSAGE);
     }
+  }
+
+  private static boolean matches(String[] expectedLines, List<String> lines) {
+    var result = false;
+
+    if (expectedLines.length <= lines.size()) {
+      result = true;
+
+      Iterator<String> it = lines.iterator();
+      for (var expectedLine : expectedLines) {
+        String line = it.next();
+        if (!line.equals(expectedLine)) {
+          result = false;
+          break;
+        }
+      }
+    }
+
+    return result;
   }
 
 }

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,49 +20,83 @@
 package org.sonar.cxx.postjobs;
 
 import java.io.File;
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
+import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mockito;
 import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.utils.log.LogTester;
+import org.sonar.api.utils.log.LogTesterJUnit5;
 import org.sonar.api.utils.log.LoggerLevel;
 import org.sonar.cxx.CxxAstScanner;
 import org.sonar.cxx.preprocessor.CxxPreprocessor;
 import org.sonar.cxx.visitors.CxxParseErrorLoggerVisitor;
 
-public class FinalReportTest {
+class FinalReportTest {
 
-  @org.junit.Rule
-  public LogTester logTester = new LogTester();
+  @RegisterExtension
+  public LogTesterJUnit5 logTester = new LogTesterJUnit5();
+
   private PostJobContext postJobContext;
 
-  @Before
+  @BeforeEach
   public void scanFile() {
     postJobContext = Mockito.mock(PostJobContext.class);
   }
 
   @Test
-  public void finalReportTest() {
+  void finalReportTest() throws IOException {
     var dir = "src/test/resources/org/sonar/cxx/postjobs";
     var context = SensorContextTester.create(new File(dir));
-    InputFile inputFile = TestInputFileBuilder.create("", dir + "/syntaxerror.cc").build();
+    InputFile inputFile = createInputFile(dir + "/syntaxerror.cc", ".", Charset.defaultCharset());
     context.fileSystem().add(inputFile);
 
     CxxParseErrorLoggerVisitor.resetReport();
     CxxPreprocessor.resetReport();
-    CxxAstScanner.scanSingleFile(new File(inputFile.uri().getPath()));
+    CxxAstScanner.scanSingleInputFile(inputFile);
 
     var postjob = new FinalReport();
     postjob.execute(postJobContext);
 
     var log = logTester.logs(LoggerLevel.WARN);
-    assertThat(log.size()).isEqualTo(2);
+    assertThat(log).hasSize(2);
     assertThat(log.get(0)).contains("include directive error(s)");
     assertThat(log.get(1)).contains("syntax error(s) detected");
+  }
+
+  private static DefaultInputFile createInputFile(String fileName, String basePath, Charset charset)
+    throws IOException {
+    var fb = TestInputFileBuilder.create("", fileName);
+
+    fb.setCharset(charset);
+    fb.setProjectBaseDir(Path.of(basePath));
+    fb.setContents(getSourceCode(Path.of(basePath, fileName).toFile(), charset));
+
+    return fb.build();
+  }
+
+  private static String getSourceCode(File filename, Charset defaultCharset) throws IOException {
+    try (var bomInputStream = new BOMInputStream(new FileInputStream(filename),
+                                             ByteOrderMark.UTF_8,
+                                             ByteOrderMark.UTF_16LE,
+                                             ByteOrderMark.UTF_16BE,
+                                             ByteOrderMark.UTF_32LE,
+                                             ByteOrderMark.UTF_32BE)) {
+      ByteOrderMark bom = bomInputStream.getBOM();
+      Charset charset = bom != null ? Charset.forName(bom.getCharsetName()) : defaultCharset;
+      byte[] bytes = bomInputStream.readAllBytes();
+      return new String(bytes, charset);
+    }
   }
 
 }

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@ package org.sonar.cxx.sensors.utils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,9 +39,6 @@ public abstract class CxxReportSensor implements ProjectSensor {
 
   public static final String ERROR_RECOVERY_KEY = "sonar.cxx.errorRecoveryEnabled";
   private static final Logger LOG = Loggers.get(CxxReportSensor.class);
-
-  protected static final String USE_ANT_STYLE_WILDCARDS
-                                  = " Use <a href='https://ant.apache.org/manual/dirtasks.html'>Ant-style wildcards</a> if neccessary.";
 
   private final Set<String> notFoundFiles = new HashSet<>();
 
@@ -85,7 +81,7 @@ public abstract class CxxReportSensor implements ProjectSensor {
         inputFile = getInputFileTryRealPath(path);
 
         if (inputFile == null) {
-          LOG.warn("Cannot find the file '{}' in project '{}' with baseDir '{}', skipping.",
+          LOG.warn("Cannot find the file '{}' in project '{}' with baseDir '{}', skipping",
                    path, context.project().key(), context.fileSystem().baseDir());
           notFoundFiles.add(path);
         }
@@ -119,10 +115,10 @@ public abstract class CxxReportSensor implements ProjectSensor {
   private InputFile getInputFileTryRealPath(String path) {
 
     // create absolute path (relative to baseDir)
-    Path absPath = context.fileSystem().baseDir().toPath().resolve(path);
+    var absPath = context.fileSystem().baseDir().toPath().resolve(path);
     try {
       // resolve symbolic links
-      Path realPath = absPath.toRealPath(LinkOption.NOFOLLOW_LINKS);
+      var realPath = absPath.toRealPath(LinkOption.NOFOLLOW_LINKS);
 
       // if the real path is equal to the given one - skip search: we already tried such path
       // IMPORTANT: SQ works with string paths, so the equality of strings is important
@@ -131,8 +127,7 @@ public abstract class CxxReportSensor implements ProjectSensor {
           context.fileSystem().predicates().hasAbsolutePath(realPath.toString()));
       }
     } catch (IOException | RuntimeException e) {
-      LOG.debug("Unable to get the real path: project='{}' baseDir='{}' path='{}' absPath='{}' exception='{}'",
-                context.project().key(), context.fileSystem().baseDir(), path, absPath, e.toString());
+      // ...
     }
     return null;
   }

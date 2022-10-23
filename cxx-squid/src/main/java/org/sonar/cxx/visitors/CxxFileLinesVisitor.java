@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,20 +19,19 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.GenericTokenType;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
-import com.sonar.sslr.api.TokenType;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.util.ArrayList;
 import java.util.List;
 import org.sonar.api.measures.CoreMetrics;
-import org.sonar.cxx.api.CxxKeyword;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.cxx.api.CxxPunctuator;
 import org.sonar.cxx.parser.CxxGrammarImpl;
-import org.sonar.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.parser.CxxKeyword;
+import org.sonar.cxx.parser.CxxPunctuator;
+import org.sonar.cxx.squidbridge.SquidAstVisitor;
 
 /**
  * Visitor that computes {@link CoreMetrics#NCLOC_DATA_KEY} and {@link CoreMetrics#EXECUTABLE_LINES_DATA} metrics used
@@ -45,7 +44,7 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
   private int isWithinFunctionDefinition;
 
   private static boolean isDefaultOrDeleteFunctionBody(AstNode astNode) {
-    AstNode node = astNode.getFirstChild(CxxGrammarImpl.functionBody);
+    var node = astNode.getFirstChild(CxxGrammarImpl.functionBody);
     if ((node != null)) {
       List<AstNode> functionBody = node.getChildren();
 
@@ -63,7 +62,7 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
   }
 
   static boolean isCodeToken(Token token) {
-    final TokenType type = token.getType();
+    var type = token.getType();
     if (!(type instanceof CxxPunctuator)) {
       return true;
     }
@@ -84,7 +83,7 @@ public class CxxFileLinesVisitor extends SquidAstVisitor<Grammar> implements Ast
   }
 
   static boolean isExecutableToken(Token token) {
-    final TokenType type = token.getType();
+    var type = token.getType();
     return !CxxPunctuator.CURLBR_LEFT.equals(type) && !CxxKeyword.DEFAULT.equals(type) && !CxxKeyword.CASE.equals(type);
   }
 

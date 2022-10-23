@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -36,8 +35,9 @@ import org.sonar.cxx.sensors.utils.CxxUtils;
 public final class DrMemoryParser {
 
   private static final Logger LOG = Loggers.get(DrMemoryParser.class);
-  private static final Pattern RX_MESSAGE_FINDER = Pattern.compile("^Error #\\d+:(.*)");
-  private static final Pattern RX_FILE_FINDER = Pattern.compile("^.*\\[(.*):(\\d+)\\]$");
+  private static final Pattern RX_MESSAGE_FINDER = Pattern.compile("^Error #\\d{1,6}:(.*)");
+  private static final Pattern RX_FILE_FINDER = Pattern.compile(
+    "\\s*+#[^\\[]++\\[((?>[a-zA-Z]:[\\\\/])??[^:]++):(\\d{1,5})\\]");
   private static final int TOP_COUNT = 4;
 
   private DrMemoryParser() {
@@ -47,17 +47,17 @@ public final class DrMemoryParser {
    * DrMemory parser
    *
    * @param file with findings
-   * @param charset file encoding character set
+   * @param encoding file encoding character set
    * @return list of issues extracted from file
    */
-  public static List<DrMemoryError> parse(File file, String charset) {
+  public static List<DrMemoryError> parse(File file, String encoding) {
 
     var result = new ArrayList<DrMemoryError>();
 
-    List<String> elements = getElements(file, charset);
+    List<String> elements = getElements(file, encoding);
 
     for (var element : elements) {
-      Matcher m = RX_MESSAGE_FINDER.matcher(element);
+      var m = RX_MESSAGE_FINDER.matcher(element);
 
       if (m.find()) {
         var error = new DrMemoryError();
@@ -65,7 +65,7 @@ public final class DrMemoryParser {
         String[] elementSplitted = CxxUtils.EOL_PATTERN.split(element);
         error.message = elementSplitted[0];
         for (var elementPart : elementSplitted) {
-          Matcher locationMatcher = RX_FILE_FINDER.matcher(elementPart);
+          var locationMatcher = RX_FILE_FINDER.matcher(elementPart);
           if (locationMatcher.find()) {
             var location = new Location();
             location.file = locationMatcher.group(1);
@@ -85,18 +85,18 @@ public final class DrMemoryParser {
    * get all DrMemory elements from file
    *
    * @param file with findings
-   * @param charset file encoding character set
+   * @param encoding file encoding character set
    * @return list of elements from report file
    */
-  public static List<String> getElements(File file, String charset) {
+  public static List<String> getElements(File file, String encoding) {
 
     var list = new ArrayList<String>();
     try (var br = new BufferedReader(
-      new InputStreamReader(java.nio.file.Files.newInputStream(file.toPath()), charset))) {
+      new InputStreamReader(java.nio.file.Files.newInputStream(file.toPath()), encoding))) {
       var sb = new StringBuilder(4096);
       String line;
-      int cnt = 0;
-      final Pattern whitespacesOnly = Pattern.compile("^\\s*$");
+      var cnt = 0;
+      var whitespacesOnly = Pattern.compile("^\\s*$");
 
       while ((line = br.readLine()) != null) {
         if (cnt > (TOP_COUNT)) {
@@ -115,8 +115,8 @@ public final class DrMemoryParser {
         list.add(sb.toString());
       }
     } catch (IOException e) {
-      var msg = new StringBuilder(512).append("Cannot feed the data into sonar, details: '")
-        .append(e)
+      var msg = new StringBuilder(512).append("Cannot feed the data into SonarQube, details: '")
+        .append(e.getMessage())
         .append("'").toString();
       LOG.error(msg);
     }

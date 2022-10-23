@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,10 +38,8 @@ import org.sonar.cxx.sensors.utils.CxxIssuesReportSensor;
 import org.sonar.cxx.sensors.utils.CxxUtils;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
-import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.sensors.utils.StaxParser;
 import org.sonar.cxx.utils.CxxReportIssue;
-import org.sonar.cxx.utils.CxxReportLocation;
 
 /**
  * PC-lint is an equivalent to pmd but for C++ The first version of the tool was release 1985 and the tool analyzes
@@ -63,16 +60,18 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
 
   private static final String PREFIX_DURING_SPECIFIC_WALK_MSG = "during specific walk";
 
-  private static final Pattern SUPPLEMENTAL_MSG_PATTERN
-                                 = Pattern.compile(PREFIX_DURING_SPECIFIC_WALK_MSG + "\\s+(.+):(\\d+):(\\d+)\\s+.+");
+  private static final Pattern SUPPLEMENTAL_MSG_PATTERN = Pattern.compile(
+    PREFIX_DURING_SPECIFIC_WALK_MSG + "\\s+([^:]++):(\\d{1,5}):(\\d{1,5}).+");
 
   public static List<PropertyDefinition> properties() {
     return Collections.unmodifiableList(Arrays.asList(
       PropertyDefinition.builder(REPORT_PATH_KEY)
-        .name("PC-lint XML report(s)")
+        .name("PC-lint Report(s)")
         .description(
-          "Path to <a href='http://www.gimpel.com/html/pcl.htm'>PC-lint</a> XML reports(s), relative to projects"
-            + "  root." + USE_ANT_STYLE_WILDCARDS)
+          "Comma-separated paths (absolute or relative to the project base directory) to `*.xml` files with"
+            + " `PC-lint` issues. Ant patterns are accepted for relative paths."
+            + " In the SonarQube UI, enter one entry per field."
+        )
         .category("CXX External Analyzers")
         .subCategory("PC-lint")
         .onQualifiers(Qualifiers.PROJECT)
@@ -85,15 +84,13 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
   public void describe(SensorDescriptor descriptor) {
     descriptor
       .name("CXX PC-lint report import")
-      .onlyOnLanguage("cxx")
+      .onlyOnLanguages("cxx", "cpp", "c++", "c")
       .createIssuesForRuleRepository(getRuleRepositoryKey())
       .onlyWhenConfiguration(conf -> conf.hasKey(getReportPathsKey()));
   }
 
   @Override
-  protected void processReport(File report) throws ReportException {
-    LOG.debug("Processing 'PC-Lint' report '{}'", report.getName());
-
+  protected void processReport(File report) {
     var parser = new StaxParser(new StaxParser.XmlStreamHandler() {
       /**
        * {@inheritDoc}
@@ -144,10 +141,9 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
                 saveUniqueViolation(currentIssue);
               }
 
-              currentIssue = new CxxReportIssue(id, file, line, msg);
+              currentIssue = new CxxReportIssue(id, file, line, null, msg);
             } else {
-              LOG.warn("PC-lint warning ignored: {}", msg);
-              LOG.debug("File: {}, Line: {}, ID: {}, msg: {}", file, line, id, msg);
+              LOG.debug("PC-lint warning ignored: file='{}', line={}, id={}, msg='{}'", file, line, id, msg);
             }
           }
 
@@ -172,7 +168,7 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
         }
 
         if (file != null && file.isEmpty() && msg != null) {
-          Matcher matcher = SUPPLEMENTAL_MSG_PATTERN.matcher(msg);
+          var matcher = SUPPLEMENTAL_MSG_PATTERN.matcher(msg);
 
           if (matcher.matches()) {
             file = matcher.group(1);
@@ -186,9 +182,9 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
 
         // Due to SONAR-9929, even the API supports the extra/flow in different file,
         // the UI is not ready. For this case, use the parent issue's file and line for now.
-        CxxReportLocation primaryLocation = currentIssue.getLocations().get(0);
+        var primaryLocation = currentIssue.getLocations().get(0);
         if (!primaryLocation.getFile().equals(file)) {
-          if (!msg.startsWith(PREFIX_DURING_SPECIFIC_WALK_MSG)) {
+          if (msg != null && !msg.startsWith(PREFIX_DURING_SPECIFIC_WALK_MSG)) {
             msg = String.format("%s %s:%s %s", PREFIX_DURING_SPECIFIC_WALK_MSG, file, line, msg);
           }
 
@@ -196,7 +192,7 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
           line = primaryLocation.getLine();
         }
 
-        currentIssue.addFlowElement(file, line, msg);
+        currentIssue.addFlowElement(file, line, null, msg);
       }
 
       private boolean isInputValid(@Nullable String file, @Nullable String line,
@@ -217,7 +213,7 @@ public class CxxPCLintSensor extends CxxIssuesReportSensor {
        * Concatenate M with the MISRA rule number to get the new rule id to save the violation to.
        */
       private String mapMisraRulesToUniqueSonarRules(String msg, boolean isMisra2012) {
-        Matcher matcher = MISRA_RULE_PATTERN.matcher(msg);
+        var matcher = MISRA_RULE_PATTERN.matcher(msg);
         if (matcher.find()) {
           String misraRule = matcher.group(1);
           String newKey;

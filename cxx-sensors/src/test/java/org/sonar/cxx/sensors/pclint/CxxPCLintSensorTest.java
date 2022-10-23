@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -20,10 +20,10 @@
 package org.sonar.cxx.sensors.pclint;
 
 import java.util.ArrayList;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
@@ -33,20 +33,20 @@ import org.sonar.api.config.internal.MapSettings;
 import org.sonar.cxx.sensors.utils.CxxReportSensor;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxPCLintSensorTest {
+class CxxPCLintSensorTest {
 
   private DefaultFileSystem fs;
   private final MapSettings settings = new MapSettings();
 
-  @Before
+  @BeforeEach
   public void setUp() {
     fs = TestUtils.mockFileSystem();
     settings.setProperty(CxxReportSensor.ERROR_RECOVERY_KEY, true);
   }
 
   @Test
-  public void shouldReportCorrectViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportCorrectViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/pclint-result-SAMPLE.xml");
     context.setSettings(settings);
 
@@ -64,8 +64,8 @@ public class CxxPCLintSensorTest {
   }
 
   @Test
-  public void shouldReportCorrectMisra2004Violations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportCorrectMisra2004Violations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/pclint-result-MISRA2004-SAMPLE1.xml");
     context.setSettings(settings);
 
@@ -79,8 +79,8 @@ public class CxxPCLintSensorTest {
   }
 
   @Test
-  public void shouldReportCorrectMisra2004PcLint9Violations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportCorrectMisra2004PcLint9Violations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/pclint-result-MISRA2004-SAMPLE2.xml");
     context.setSettings(settings);
 
@@ -94,8 +94,8 @@ public class CxxPCLintSensorTest {
   }
 
   @Test
-  public void shouldReportCorrectMisraCppViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportCorrectMisraCppViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/pclint-result-MISRACPP.xml");
     context.setSettings(settings);
 
@@ -112,23 +112,23 @@ public class CxxPCLintSensorTest {
   }
 
   @Test
-  public void shouldNotSaveIssuesWhenMisra2004DescIsWrong() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldNotSaveIssuesWhenMisra2004DescIsWrong() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/incorrect-pclint-MISRA2004-desc.xml");
     context.setSettings(settings);
 
     context.fileSystem().add(TestInputFileBuilder.create("ProjectKey", "test.c").setLanguage("cxx").initMetadata(
       "asd\nasdas\nasda\n").build());
 
-    CxxPCLintSensor sensor = new CxxPCLintSensor();
+    var sensor = new CxxPCLintSensor();
     sensor.execute(context);
 
-    assertThat(context.allIssues()).hasSize(0);
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void shouldNotSaveAnythingWhenMisra2004RuleDoNotExist() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldNotSaveAnythingWhenMisra2004RuleDoNotExist() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY,
                          "pclint-reports/incorrect-pclint-MISRA2004-rule-do-not-exist.xml");
     context.setSettings(settings);
@@ -139,12 +139,12 @@ public class CxxPCLintSensorTest {
     var sensor = new CxxPCLintSensor();
     sensor.execute(context);
 
-    assertThat(context.allIssues()).hasSize(0);
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void shouldNotRemapMisra1998Rules() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldNotRemapMisra1998Rules() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/pclint-result-MISRA1998-SAMPLE.xml");
     context.setSettings(settings);
 
@@ -158,8 +158,8 @@ public class CxxPCLintSensorTest {
   }
 
   @Test
-  public void shouldReportProjectLevelViolations() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldReportProjectLevelViolations() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/pclint-result-projectlevelviolation.xml");
     context.setSettings(settings);
 
@@ -170,33 +170,33 @@ public class CxxPCLintSensorTest {
   }
 
   @Test
-  public void shouldThrowExceptionInvalidChar() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldThrowExceptionInvalidChar() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/pclint-result-invalid-char.xml");
     context.setSettings(settings);
 
     var sensor = new CxxPCLintSensor();
     sensor.execute(context);
 
-    assertThat(context.allIssues().size()).isZero();
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
     var sensor = new CxxPCLintSensor();
     sensor.describe(descriptor);
 
     var softly = new SoftAssertions();
     softly.assertThat(descriptor.name()).isEqualTo("CXX PC-lint report import");
-    softly.assertThat(descriptor.languages()).containsOnly("cxx");
+    softly.assertThat(descriptor.languages()).containsOnly("cxx", "cpp", "c++", "c");
     softly.assertThat(descriptor.ruleRepositories()).containsOnly(CxxPCLintRuleRepository.KEY);
     softly.assertAll();
   }
 
   @Test
-  public void loadSupplementalMsg() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void loadSupplementalMsg() {
+    var context = SensorContextTester.create(fs.baseDir());
     settings.setProperty(CxxPCLintSensor.REPORT_PATH_KEY, "pclint-reports/pclint-result-with-supplemental.xml");
     context.setSettings(settings);
 
@@ -208,16 +208,16 @@ public class CxxPCLintSensorTest {
     var sensor = new CxxPCLintSensor();
     sensor.execute(context);
 
-    assertThat(context.allIssues().size()).isEqualTo(2);
+    assertThat(context.allIssues()).hasSize(2);
 
     var allIssues = new ArrayList<Issue>(context.allIssues());
 
     Issue firstIssue = allIssues.get(0);
-    assertThat(firstIssue.flows().size()).isEqualTo(1);
-    assertThat(firstIssue.flows().get(0).locations().size()).isEqualTo(3);
+    assertThat(firstIssue.flows()).hasSize(1);
+    assertThat(firstIssue.flows().get(0).locations()).hasSize(3);
 
     Issue secondIssue = allIssues.get(1);
-    assertThat(secondIssue.flows().size()).isEqualTo(1);
-    assertThat(secondIssue.flows().get(0).locations().size()).isEqualTo(1);
+    assertThat(secondIssue.flows()).hasSize(1);
+    assertThat(secondIssue.flows().get(0).locations()).hasSize(1);
   }
 }

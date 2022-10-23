@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,9 @@
  */
 package org.sonar.cxx.checks.regex;
 
-import com.sonar.sslr.api.Token;
-import java.util.regex.Matcher;
+import com.sonar.cxx.sslr.api.Token;
 import java.util.regex.Pattern;
-import org.sonar.squidbridge.checks.SquidCheck;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
 
 class CommentContainsPatternChecker {
 
@@ -56,7 +55,7 @@ class CommentContainsPatternChecker {
       if (!trivia.isComment()) {
         continue;
       }
-      Token triviaToken = trivia.getToken();
+      var triviaToken = trivia.getToken();
       String comment = triviaToken.getOriginalValue();
       int line = triviaToken.getLine();
       if (indexOfIgnoreCase(comment) != -1) {
@@ -73,15 +72,15 @@ class CommentContainsPatternChecker {
   }
 
   private int indexOfIgnoreCase(String str) {
-    Matcher m = p.matcher(str);
+    var m = p.matcher(str);
     return m.find() ? m.start() : -1;
   }
 
   private boolean isLetterAround(String line, int start) {
     int end = start + pattern.length();
 
-    boolean pre = start > 0 ? Character.isLetter(line.charAt(start - 1)) : false;
-    boolean post = end < line.length() - 1 ? Character.isLetter(line.charAt(end)) : false;
+    var pre = start > 0 ? Character.isLetter(line.charAt(start - 1)) : false;
+    var post = end < line.length() - 1 ? Character.isLetter(line.charAt(end)) : false;
 
     return pre || post;
   }

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import javax.annotation.CheckForNull;
 
-public class TestUtils {
+public final class TestUtils {
 
   public static File loadResource(String resourceName) {
     URL resource = TestUtils.class.getResource(resourceName);

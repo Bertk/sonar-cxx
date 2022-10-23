@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,41 +19,44 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
-import static org.sonar.sslr.tests.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
-public class OverloadingTest extends ParserBaseTestHelper {
+class OverloadingTest extends ParserBaseTestHelper {
 
   @Test
-  public void operatorFunctionId_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.operatorFunctionId));
+  void operatorFunctionId_reallife() {
+    setRootRule(CxxGrammarImpl.operatorFunctionId);
 
-    assertThat(p).matches("operator()");
+    assertThatParser()
+      .matches("operator()");
   }
 
   @Test
-  public void operator() {
-    p.setRootRule(g.rule(CxxGrammarImpl.overloadableOperator));
+  void operator() {
+    setRootRule(CxxGrammarImpl.operator);
 
-    assertThat(p).matches("new");
-    assertThat(p).matches("new[]");
-    assertThat(p).matches("delete[]");
-    assertThat(p).matches("()");
-    assertThat(p).matches("[]");
+    assertThatParser()
+      .matches("new")
+      .matches("delete")
+      .matches("new[]")
+      .matches("delete[]")
+      .matches("co_await")
+      .matches("()")
+      .matches("[]");
   }
 
   @Test
-  public void literalOperatorId_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.literalOperatorId));
-    
-    // operator "" identifier
-    //    the identifier to use as the ud-suffix
-    assertThat(p).matches("operator \"\" _ud_suffix");
-    
-    // operator user-defined-string-literal (since C++14) 	
-    //   the character sequence "" followed, without a space, by the character
-    //   sequence that becomes the ud-suffix
-    assertThat(p).matches("operator \"\"if");
-    assertThat(p).matches("operator \"\"_ud_suffix");
+  void literalOperatorId_reallife() {
+    setRootRule(CxxGrammarImpl.literalOperatorId);
+
+    assertThatParser()
+      // operator "" identifier
+      //    the identifier to use as the ud-suffix
+      .matches("operator \"\" _ud_suffix")
+      // operator user-defined-string-literal (since C++14)
+      //   the character sequence "" followed, without a space, by the character
+      //   sequence that becomes the ud-suffix
+      .matches("operator \"\"if")
+      .matches("operator \"\"_ud_suffix");
   }
 }

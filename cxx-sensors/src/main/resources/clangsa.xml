@@ -1,462 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <rules>
+  <rule>
+    <key>CustomRuleTemplate</key>
+    <cardinality>MULTIPLE</cardinality>
+    <name>Rule template for Clang Static Analyzer custom rules</name>
+    <description>
+      <![CDATA[  
+<p>
+Follow these steps to make your custom rules available in SonarQube:
+</p>
+<ol>
+  <ol>
+    <li>Create a new rule in SonarQube by "copying" this rule template and specify the <code>CheckId</code> of your custom rule, a title, a description, and a default severity.</li>
+    <li>Enable the newly created rule in your quality profile</li>
+  </ol>
+  <li>Relaunch an analysis on your projects, et voilà, your custom rules are executed!</li>
+</ol>     
+    ]]>
+    </description>
+  </rule>
   <!-- C and C++ rules for Clang Static Analyzer. https://clang-analyzer.llvm.org/
-Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -->
-  <rule>
-    <key>alpha.clone.CloneChecker</key>
-    <name>alpha.clone.CloneChecker</name>
-    <description>
-<![CDATA[
-<p>Reports similar pieces of code.
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.BoolAssignment</key>
-    <name>alpha.core.BoolAssignment</name>
-    <description>
-<![CDATA[
-<p>Warn about assigning non-{0,1} values to Boolean variables
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.CallAndMessageUnInitRefArg</key>
-    <name>alpha.core.CallAndMessageUnInitRefArg</name>
-    <description>
-<![CDATA[
-<p>Check for logical errors for function calls and Objective-C message expressions (e.g., uninitialized arguments, null function pointers, and pointer to undefined variables)
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.CastSize</key>
-    <name>alpha.core.CastSize</name>
-    <description>
-<![CDATA[
-<p>Check when casting a malloc'ed type T, whether the size is a multiple of the size of T
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.CastToStruct</key>
-    <name>alpha.core.CastToStruct</name>
-    <description>
-<![CDATA[
-<p>Check for cast from non-struct pointer to struct pointer
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.Conversion</key>
-    <name>alpha.core.Conversion</name>
-    <description>
-<![CDATA[
-<p>Loss of sign/precision in implicit conversions
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.DynamicTypeChecker</key>
-    <name>alpha.core.DynamicTypeChecker</name>
-    <description>
-<![CDATA[
-<p>Check for cases where the dynamic and the static type of an object are unrelated.
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.FixedAddr</key>
-    <name>alpha.core.FixedAddr</name>
-    <description>
-<![CDATA[
-<p>Check for assignment of a fixed address to a pointer
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.IdenticalExpr</key>
-    <name>alpha.core.IdenticalExpr</name>
-    <description>
-<![CDATA[
-<p>Warn about unintended use of identical expressions in operators
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.PointerArithm</key>
-    <name>alpha.core.PointerArithm</name>
-    <description>
-<![CDATA[
-<p>Check for pointer arithmetic on locations other than array elements
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.PointerSub</key>
-    <name>alpha.core.PointerSub</name>
-    <description>
-<![CDATA[
-<p>Check for pointer subtractions on two pointers pointing to different memory chunks
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.SizeofPtr</key>
-    <name>alpha.core.SizeofPtr</name>
-    <description>
-<![CDATA[
-<p>Warn about unintended use of sizeof() on pointer expressions
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.core.TestAfterDivZero</key>
-    <name>alpha.core.TestAfterDivZero</name>
-    <description>
-<![CDATA[
-<p>Check for division by variable that is later compared against 0. Either the comparison is useless or there is division by zero.
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.cplusplus.IteratorRange</key>
-    <name>alpha.cplusplus.IteratorRange</name>
-    <description>
-<![CDATA[
-<p>Check for iterators used outside their valid ranges
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.cplusplus.MisusedMovedObject</key>
-    <name>alpha.cplusplus.MisusedMovedObject</name>
-    <description>
-<![CDATA[
-<p>Method calls on a moved-from object and copying a moved-from object will be reported
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.deadcode.UnreachableCode</key>
-    <name>alpha.deadcode.UnreachableCode</name>
-    <description>
-<![CDATA[
-<p>Check unreachable code
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.osx.cocoa.DirectIvarAssignment</key>
-    <name>alpha.osx.cocoa.DirectIvarAssignment</name>
-    <description>
-<![CDATA[
-<p>Check for direct assignments to instance variables
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.osx.cocoa.DirectIvarAssignmentForAnnotatedFunctions</key>
-    <name>alpha.osx.cocoa.DirectIvarAssignmentForAnnotatedFunctions</name>
-    <description>
-<![CDATA[
-<p>Check for direct assignments to instance variables in the methods annotated with objc_no_direct_instance_variable_assignment
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.osx.cocoa.InstanceVariableInvalidation</key>
-    <name>alpha.osx.cocoa.InstanceVariableInvalidation</name>
-    <description>
-<![CDATA[
-<p>Check that the invalidatable instance variables are invalidated in the methods annotated with objc_instance_variable_invalidator
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.osx.cocoa.MissingInvalidationMethod</key>
-    <name>alpha.osx.cocoa.MissingInvalidationMethod</name>
-    <description>
-<![CDATA[
-<p>Check that the invalidation methods are present in classes that contain invalidatable instance variables
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.osx.cocoa.localizability.PluralMisuseChecker</key>
-    <name>alpha.osx.cocoa.localizability.PluralMisuseChecker</name>
-    <description>
-<![CDATA[
-<p>Warns against using one vs. many plural pattern in code when generating localized strings.
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.security.ArrayBound</key>
-    <name>alpha.security.ArrayBound</name>
-    <description>
-<![CDATA[
-<p>Warn about buffer overflows (older checker)
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.security.ArrayBoundV2</key>
-    <name>alpha.security.ArrayBoundV2</name>
-    <description>
-<![CDATA[
-<p>Warn about buffer overflows (newer checker)
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.security.MallocOverflow</key>
-    <name>alpha.security.MallocOverflow</name>
-    <description>
-<![CDATA[
-<p>Check for overflows in the arguments to malloc()
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.security.ReturnPtrRange</key>
-    <name>alpha.security.ReturnPtrRange</name>
-    <description>
-<![CDATA[
-<p>Check for an out-of-bound pointer being returned to callers
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.security.taint.TaintPropagation</key>
-    <name>alpha.security.taint.TaintPropagation</name>
-    <description>
-<![CDATA[
-<p>Generate taint information used by other checkers
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.unix.BlockInCriticalSection</key>
-    <name>alpha.unix.BlockInCriticalSection</name>
-    <description>
-<![CDATA[
-<p>Check for calls to blocking functions inside a critical section
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.unix.Chroot</key>
-    <name>alpha.unix.Chroot</name>
-    <description>
-<![CDATA[
-<p>Check improper use of chroot
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.unix.PthreadLock</key>
-    <name>alpha.unix.PthreadLock</name>
-    <description>
-<![CDATA[
-<p>Simple lock -> unlock checker
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.unix.SimpleStream</key>
-    <name>alpha.unix.SimpleStream</name>
-    <description>
-<![CDATA[
-<p>Check for misuses of stream APIs
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.unix.Stream</key>
-    <name>alpha.unix.Stream</name>
-    <description>
-<![CDATA[
-<p>Check stream handling functions
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.unix.cstring.BufferOverlap</key>
-    <name>alpha.unix.cstring.BufferOverlap</name>
-    <description>
-<![CDATA[
-<p>Checks for overlap in two buffer arguments
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.unix.cstring.NotNullTerminated</key>
-    <name>alpha.unix.cstring.NotNullTerminated</name>
-    <description>
-<![CDATA[
-<p>Check for arguments which are not null-terminating strings
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>alpha.unix.cstring.OutOfBounds</key>
-    <name>alpha.unix.cstring.OutOfBounds</name>
-    <description>
-<![CDATA[
-<p>Check for out-of-bounds access in string functions
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>alpha</tag>
-  </rule>
-  <rule>
-    <key>apiModeling.google.GTest</key>
-    <name>apiModeling.google.GTest</name>
-    <description>
-<![CDATA[
-<p>Model gtest assertion APIs
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>apimodeling</tag>
-  </rule>
+Rules list was generated based on clang version 11.0.1 -->
   <rule>
     <key>core.CallAndMessage</key>
     <name>core.CallAndMessage</name>
@@ -468,6 +32,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -481,19 +47,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
-    <tag>core</tag>
-  </rule>
-  <rule>
-    <key>core.DynamicTypePropagation</key>
-    <name>core.DynamicTypePropagation</name>
-    <description>
-<![CDATA[
-<p>Generate dynamic type information
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -507,6 +62,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -520,6 +77,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -533,6 +92,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -546,6 +107,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -559,32 +122,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
-    <tag>core</tag>
-  </rule>
-  <rule>
-    <key>core.builtin.BuiltinFunctions</key>
-    <name>core.builtin.BuiltinFunctions</name>
-    <description>
-<![CDATA[
-<p>Evaluate compiler builtin functions (e.g., alloca())
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
-    <tag>core</tag>
-  </rule>
-  <rule>
-    <key>core.builtin.NoReturnFunctions</key>
-    <name>core.builtin.NoReturnFunctions</name>
-    <description>
-<![CDATA[
-<p>Evaluate "panic" functions that are known to not return to the caller
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -598,6 +137,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -611,6 +152,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -624,6 +167,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -637,6 +182,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
   </rule>
   <rule>
@@ -650,7 +197,39 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>core</tag>
+  </rule>
+  <rule>
+    <key>cplusplus.InnerPointer</key>
+    <name>cplusplus.InnerPointer</name>
+    <description>
+<![CDATA[
+<p>Check for inner pointers of C++ containers used after re/deallocation
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>cplusplus</tag>
+  </rule>
+  <rule>
+    <key>cplusplus.Move</key>
+    <name>cplusplus.Move</name>
+    <description>
+<![CDATA[
+<p>Find use-after-move bugs in C++
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>cplusplus</tag>
   </rule>
   <rule>
     <key>cplusplus.NewDelete</key>
@@ -663,6 +242,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>cplusplus</tag>
   </rule>
   <rule>
@@ -676,19 +257,53 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>cplusplus</tag>
   </rule>
   <rule>
-    <key>cplusplus.SelfAssignment</key>
-    <name>cplusplus.SelfAssignment</name>
+    <key>cplusplus.PlacementNew</key>
+    <name>cplusplus.PlacementNew</name>
     <description>
 <![CDATA[
-<p>Checks C++ copy and move assignment operators for self assignment
+<p>Check if default placement new is provided with pointers to sufficient storage capacity
 </p>
  <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>cplusplus</tag>
+  </rule>
+  <rule>
+    <key>cplusplus.PureVirtualCall</key>
+    <name>cplusplus.PureVirtualCall</name>
+    <description>
+<![CDATA[
+<p>Check pure virtual function calls during construction/destruction
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>cplusplus</tag>
+  </rule>
+  <rule>
+    <key>cplusplus.StringChecker</key>
+    <name>cplusplus.StringChecker</name>
+    <description>
+<![CDATA[
+<p>Checks C++ std::string bugs
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>cplusplus</tag>
   </rule>
   <rule>
@@ -702,20 +317,24 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>deadcode</tag>
   </rule>
   <rule>
-    <key>llvm.Conventions</key>
-    <name>llvm.Conventions</name>
+    <key>fuchsia.HandleChecker</key>
+    <name>fuchsia.HandleChecker</name>
     <description>
 <![CDATA[
-<p>Check code for LLVM codebase conventions
+<p>A Checker that detect leaks related to Fuchsia handles
 </p>
  <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
-    <tag>llvm</tag>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>fuchsia</tag>
   </rule>
   <rule>
     <key>nullability.NullPassedToNonnull</key>
@@ -728,6 +347,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>nullability</tag>
   </rule>
   <rule>
@@ -741,6 +362,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>nullability</tag>
   </rule>
   <rule>
@@ -754,6 +377,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>nullability</tag>
   </rule>
   <rule>
@@ -767,6 +392,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>nullability</tag>
   </rule>
   <rule>
@@ -780,19 +407,38 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>nullability</tag>
+  </rule>
+  <rule>
+    <key>optin.cplusplus.UninitializedObject</key>
+    <name>optin.cplusplus.UninitializedObject</name>
+    <description>
+<![CDATA[
+<p>Reports uninitialized fields after object construction
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>optin</tag>
   </rule>
   <rule>
     <key>optin.cplusplus.VirtualCall</key>
     <name>optin.cplusplus.VirtualCall</name>
     <description>
 <![CDATA[
-<p>Check virtual function calls during construction or destruction
+<p>Check virtual function calls during construction/destruction
 </p>
  <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>optin</tag>
   </rule>
   <rule>
@@ -806,6 +452,23 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>optin</tag>
+  </rule>
+  <rule>
+    <key>optin.osx.OSObjectCStyleCast</key>
+    <name>optin.osx.OSObjectCStyleCast</name>
+    <description>
+<![CDATA[
+<p>Checker for C-style casts of OSObjects
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>optin</tag>
   </rule>
   <rule>
@@ -819,6 +482,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>optin</tag>
   </rule>
   <rule>
@@ -832,6 +497,23 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>optin</tag>
+  </rule>
+  <rule>
+    <key>optin.performance.GCDAntipattern</key>
+    <name>optin.performance.GCDAntipattern</name>
+    <description>
+<![CDATA[
+<p>Check for performance anti-patterns when using Grand Central Dispatch
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>optin</tag>
   </rule>
   <rule>
@@ -845,6 +527,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>optin</tag>
   </rule>
   <rule>
@@ -858,6 +542,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>optin</tag>
   </rule>
   <rule>
@@ -871,6 +557,23 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>osx</tag>
+  </rule>
+  <rule>
+    <key>osx.MIG</key>
+    <name>osx.MIG</name>
+    <description>
+<![CDATA[
+<p>Find violations of the Mach Interface Generator calling convention
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -884,6 +587,23 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>osx</tag>
+  </rule>
+  <rule>
+    <key>osx.OSObjectRetainCount</key>
+    <name>osx.OSObjectRetainCount</name>
+    <description>
+<![CDATA[
+<p>Check for leaks and improper reference count management for OSObject
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -897,6 +617,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -910,6 +632,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -923,6 +647,23 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>osx</tag>
+  </rule>
+  <rule>
+    <key>osx.cocoa.AutoreleaseWrite</key>
+    <name>osx.cocoa.AutoreleaseWrite</name>
+    <description>
+<![CDATA[
+<p>Warn about potentially crashing writes to autoreleasing objects from different autoreleasing pools in Objective-C
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -936,6 +677,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -949,6 +692,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -962,6 +707,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -975,6 +722,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -988,6 +737,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1001,6 +752,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1014,6 +767,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1027,6 +782,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1040,6 +797,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1053,6 +812,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1066,6 +827,23 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>osx</tag>
+  </rule>
+  <rule>
+    <key>osx.cocoa.RunLoopAutoreleaseLeak</key>
+    <name>osx.cocoa.RunLoopAutoreleaseLeak</name>
+    <description>
+<![CDATA[
+<p>Check for leaked memory in autorelease pools that will never be drained
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1079,6 +857,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1092,6 +872,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1105,6 +887,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1118,6 +902,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1131,6 +917,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1144,6 +932,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1157,6 +947,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1170,6 +962,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1183,6 +977,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>osx</tag>
   </rule>
   <rule>
@@ -1196,6 +992,23 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>security</tag>
+  </rule>
+  <rule>
+    <key>security.insecureAPI.DeprecatedOrUnsafeBufferHandling</key>
+    <name>security.insecureAPI.DeprecatedOrUnsafeBufferHandling</name>
+    <description>
+<![CDATA[
+<p>Warn on uses of unsecure or deprecated buffer manipulating functions
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1209,6 +1022,68 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>security</tag>
+  </rule>
+  <rule>
+    <key>security.insecureAPI.bcmp</key>
+    <name>security.insecureAPI.bcmp</name>
+    <description>
+<![CDATA[
+<p>Warn on uses of the 'bcmp' function
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>security</tag>
+  </rule>
+  <rule>
+    <key>security.insecureAPI.bcopy</key>
+    <name>security.insecureAPI.bcopy</name>
+    <description>
+<![CDATA[
+<p>Warn on uses of the 'bcopy' function
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>security</tag>
+  </rule>
+  <rule>
+    <key>security.insecureAPI.bzero</key>
+    <name>security.insecureAPI.bzero</name>
+    <description>
+<![CDATA[
+<p>Warn on uses of the 'bzero' function
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>security</tag>
+  </rule>
+  <rule>
+    <key>security.insecureAPI.decodeValueOfObjCType</key>
+    <name>security.insecureAPI.decodeValueOfObjCType</name>
+    <description>
+<![CDATA[
+<p>Warn on uses of the '-decodeValueOfObjCType:at:' method
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1222,6 +1097,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1235,6 +1112,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1248,6 +1127,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1261,6 +1142,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1274,6 +1157,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1287,6 +1172,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1300,6 +1187,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>security</tag>
   </rule>
   <rule>
@@ -1313,6 +1202,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>unix</tag>
   </rule>
   <rule>
@@ -1326,6 +1217,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>unix</tag>
   </rule>
   <rule>
@@ -1339,6 +1232,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>unix</tag>
   </rule>
   <rule>
@@ -1352,19 +1247,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
-    <tag>unix</tag>
-  </rule>
-  <rule>
-    <key>unix.StdCLibraryFunctions</key>
-    <name>unix.StdCLibraryFunctions</name>
-    <description>
-<![CDATA[
-<p>Improve modeling of the C standard library functions
-</p>
- <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
-]]>    </description>
-    <severity>MAJOR</severity>
-    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>unix</tag>
   </rule>
   <rule>
@@ -1378,6 +1262,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>unix</tag>
   </rule>
   <rule>
@@ -1391,6 +1277,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>unix</tag>
   </rule>
   <rule>
@@ -1404,6 +1292,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>unix</tag>
   </rule>
   <rule>
@@ -1417,6 +1307,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>valist</tag>
   </rule>
   <rule>
@@ -1430,6 +1322,8 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>valist</tag>
   </rule>
   <rule>
@@ -1443,6 +1337,53 @@ Rules list was generated based on clang version 5.0.0 (tags/RELEASE_500/final) -
 ]]>    </description>
     <severity>MAJOR</severity>
     <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
     <tag>valist</tag>
+  </rule>
+  <rule>
+    <key>webkit.NoUncountedMemberChecker</key>
+    <name>webkit.NoUncountedMemberChecker</name>
+    <description>
+<![CDATA[
+<p>Check for no uncounted member variables.
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>webkit</tag>
+  </rule>
+  <rule>
+    <key>webkit.RefCntblBaseVirtualDtor</key>
+    <name>webkit.RefCntblBaseVirtualDtor</name>
+    <description>
+<![CDATA[
+<p>Check for any ref-countable base class having virtual destructor.
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>webkit</tag>
+  </rule>
+  <rule>
+    <key>webkit.UncountedLambdaCapturesChecker</key>
+    <name>webkit.UncountedLambdaCapturesChecker</name>
+    <description>
+<![CDATA[
+<p>Check uncounted lambda captures.
+</p>
+ <h2>References</h2> <p><a href="https://clang-analyzer.llvm.org/" target="_blank">clang-analyzer.llvm.org</a></p> 
+]]>    </description>
+    <severity>MAJOR</severity>
+    <type>BUG</type>
+    <remediationFunction>LINEAR</remediationFunction>
+    <remediationFunctionGapMultiplier>5min</remediationFunctionGapMultiplier>
+    <tag>webkit</tag>
   </rule>
 </rules>

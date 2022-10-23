@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -60,12 +60,12 @@ public class AggregateMeasureComputer implements MeasureComputer {
   }
 
   private static void compute(MeasureComputerContext context, String metricKey) {
-    final Component component = context.getComponent();
+    var component = context.getComponent();
     if (component.getType() == Component.Type.FILE) {
       // FILE doesn't required any aggregation. Relevant metrics should be provided by the sensor.
       return;
     }
-    final Measure existingMeasure = context.getMeasure(metricKey);
+    var existingMeasure = context.getMeasure(metricKey);
     if (existingMeasure != null) {
       // For all other component types (e.g. PROJECT, MODULE, DIRECTORY) the
       // measurement <metricKey> should not be calculated manually (e.g. in the sensors).
@@ -82,7 +82,7 @@ public class AggregateMeasureComputer implements MeasureComputer {
       // So don't complain about the missing data, but just ignore such components.
       return;
     }
-    int aggregation = 0;
+    var aggregation = 0;
     for (var childMeasure : childrenMeasures) {
       if (childMeasure != null) {
         aggregation += childMeasure.getIntValue();

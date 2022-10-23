@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,21 +19,22 @@
  */
 package org.sonar.cxx.checks.utils;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.GenericTokenType;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import org.sonar.cxx.api.CxxKeyword;
-import org.sonar.cxx.api.CxxPunctuator;
+import javax.annotation.Nonnull;
 import org.sonar.cxx.parser.CxxGrammarImpl;
+import org.sonar.cxx.parser.CxxKeyword;
+import org.sonar.cxx.parser.CxxPunctuator;
 
-public class CheckUtils {
+public final class CheckUtils {
 
   private CheckUtils() {
   }
 
-  public static Pattern compileUserRegexp(String regexp, int flags) {
+  public static Pattern compileUserRegexp(@Nonnull String regexp, int flags) {
     Objects.requireNonNull(regexp, "regular expression has to be non null");
     if (regexp.isEmpty()) {
       throw new IllegalStateException("Empty regular expression");
@@ -65,13 +66,23 @@ public class CheckUtils {
 
   public static boolean isParenthesisedExpression(AstNode node) {
     return (node.is(CxxGrammarImpl.primaryExpression) && node.getParent().is(CxxGrammarImpl.expression)
-      && node.getFirstChild().is(CxxPunctuator.BR_LEFT) && node.getLastChild().is(CxxPunctuator.BR_RIGHT)
-      && !node.isCopyBookOrGeneratedNode());
+            && node.getFirstChild().is(CxxPunctuator.BR_LEFT) && node.getLastChild().is(CxxPunctuator.BR_RIGHT)
+            && !node.isCopyBookOrGeneratedNode());
   }
 
   public static boolean isIdentifierLabel(AstNode node) {
     if (node.is(CxxGrammarImpl.labeledStatement)) {
       return node.getToken().getType().equals(GenericTokenType.IDENTIFIER);
+    }
+    return false;
+  }
+
+  public static boolean isFunctionDefinition(AstNode node) {
+    if (node.is(CxxGrammarImpl.functionDefinition)) {
+      var decl = node.getFirstDescendant(CxxGrammarImpl.declarator);
+      if (decl != null && decl.hasDescendant(CxxGrammarImpl.parametersAndQualifiers)) {
+        return true;
+      }
     }
     return false;
   }

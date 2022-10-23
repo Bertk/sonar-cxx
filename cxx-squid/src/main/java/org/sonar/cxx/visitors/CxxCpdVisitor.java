@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,19 +19,19 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstAndTokenVisitor;
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.GenericTokenType;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.sonar.cxx.sslr.api.AstAndTokenVisitor;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.GenericTokenType;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
-import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.cxx.api.CxxTokenType;
+import org.sonar.cxx.parser.CxxTokenType;
+import org.sonar.cxx.config.CxxSquidConfiguration;
 import org.sonar.cxx.parser.CxxGrammarImpl;
-import org.sonar.squidbridge.SquidAstVisitor;
+import org.sonar.cxx.squidbridge.SquidAstVisitor;
 
 public class CxxCpdVisitor extends SquidAstVisitor<Grammar> implements AstAndTokenVisitor {
 
@@ -42,8 +42,10 @@ public class CxxCpdVisitor extends SquidAstVisitor<Grammar> implements AstAndTok
   private List<CpdToken> cpdTokens = null;
 
   public CxxCpdVisitor(CxxSquidConfiguration squidConfig) {
-    this.ignoreLiterals = squidConfig.getCpdIgnoreLiteral();
-    this.ignoreIdentifiers = squidConfig.getCpdIgnoreIdentifier();
+    this.ignoreLiterals = squidConfig.getBoolean(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES,
+                                                 CxxSquidConfiguration.CPD_IGNORE_LITERALS).orElse(Boolean.FALSE);
+    this.ignoreIdentifiers = squidConfig.getBoolean(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES,
+                                                    CxxSquidConfiguration.CPD_IGNORE_IDENTIFIERS).orElse(Boolean.FALSE);
   }
 
   @Override

@@ -1,5 +1,5 @@
-# Sonar C++ Plugin (Community)
-# Copyright (C) 2010-2019 SonarOpenCommunity
+# C++ Community Plugin (cxx plugin)
+# Copyright (C) 2010-2022 SonarOpenCommunity
 # http://github.com/SonarOpenCommunity/sonar-cxx
 #
 # This program is free software; you can redistribute it and/or
@@ -84,14 +84,14 @@ def error_to_rule(error):
 
     if cweNr is not None:
         et.SubElement(rule, 'tag').text = "cwe"
-    if sonarQubeIssueType == "BUG":
-        et.SubElement(rule, 'tag').text = "bug"
 
-    et.SubElement(rule, 'internalKey').text = errId
-    et.SubElement(rule, 'severity').text = sonarQubeIssueSeverity
-    et.SubElement(rule, 'type').text = sonarQubeIssueType
-    et.SubElement(rule, 'remediationFunction').text = "LINEAR"
-    et.SubElement(rule, 'remediationFunctionGapMultiplier').text = "5min"
+    if sonarQubeIssueSeverity != 'MAJOR': # MAJOR is the default
+        et.SubElement(rule, 'severity').text = sonarQubeIssueSeverity
+    if sonarQubeIssueType != 'CODE_SMELL': # CODE_SMELL is the default
+        et.SubElement(rule, 'type').text = sonarQubeIssueType
+    if sonarQubeIssueSeverity != 'INFO': # INFO has no effort
+        et.SubElement(rule, 'remediationFunction').text = "LINEAR"
+        et.SubElement(rule, 'remediationFunctionGapMultiplier').text = "5min"
 
     return rule
 
@@ -127,8 +127,8 @@ def load_cwe(path):
 
 def print_usage_and_exit():
     script_name = os.path.basename(sys.argv[0])
-    print """Usage: %s rules <cwec_vN.N.xml> < cppcheck --errorlist --xml-version=2 --library=<lib0.cfg> --library=<lib1.cfg>
-       see generate_cppcheck_resources.sh for more details""" % (script_name)
+    print("""Usage: %s rules <cwec_vN.N.xml> < cppcheck --errorlist --xml-version=2 --library=<lib0.cfg> --library=<lib1.cfg>
+       see generate_cppcheck_resources.sh/.cmd for more details""" % (script_name))
     sys.exit(1)
 
 

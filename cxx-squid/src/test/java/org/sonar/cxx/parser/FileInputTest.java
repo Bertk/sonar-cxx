@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +19,17 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
-import static org.sonar.sslr.tests.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
-public class FileInputTest extends ParserBaseTestHelper {
+class FileInputTest extends ParserBaseTestHelper {
 
   @Test
-  public void translationUnit() {
-    p.setRootRule(g.rule(CxxGrammarImpl.translationUnit));
+  void translationUnit() {
+    setRootRule(CxxGrammarImpl.translationUnit);
 
     mockRule(CxxGrammarImpl.declaration);
 
-    assertThat(p)
+    assertThatParser()
       .matches("declaration")
       .matches("declaration declaration")
       .matches("declaration\ndeclaration")

@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,24 +19,24 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.sonar.api.utils.AnnotationUtils;
+import org.sonar.cxx.squidbridge.SquidAstVisitorContext;
+import org.sonar.cxx.squidbridge.api.SourceFile;
+import org.sonar.cxx.squidbridge.checks.SquidCheck;
+import org.sonar.cxx.squidbridge.measures.CalculatedMetricFormula;
+import org.sonar.cxx.squidbridge.measures.MetricDef;
 import org.sonar.cxx.utils.CxxReportIssue;
-import org.sonar.squidbridge.SquidAstVisitorContext;
-import org.sonar.squidbridge.api.SourceFile;
-import org.sonar.squidbridge.checks.SquidCheck;
-import org.sonar.squidbridge.measures.CalculatedMetricFormula;
-import org.sonar.squidbridge.measures.MetricDef;
 
 /**
  * Derivation of {@link SquidCheck}, which can create issues with multiple locations (1 primary location, arbitrary
  * number of secondary locations
  *
- * See also org.sonar.squidbridge.SquidAstVisitorContext.createLineViolation
+ * See also org.sonar.cxx.squidbridge.SquidAstVisitorContext.createLineViolation
  *
  * @param <G>
  */
@@ -69,7 +69,7 @@ public class MultiLocatitionSquidCheck<G extends Grammar> extends SquidCheck<G> 
   }
 
   private SourceFile getSourceFile() {
-    final SquidAstVisitorContext<G> c = getContext();
+    SquidAstVisitorContext<G> c = getContext();
     if (c.peekSourceCode() instanceof SourceFile) {
       return (SourceFile) c.peekSourceCode();
     } else if (c.peekSourceCode().getParent(SourceFile.class) != null) {
@@ -85,7 +85,7 @@ public class MultiLocatitionSquidCheck<G extends Grammar> extends SquidCheck<G> 
    * @see org.sonar.check.Rule
    */
   protected String getRuleKey() {
-    org.sonar.check.Rule ruleAnnotation = AnnotationUtils.getAnnotation(this, org.sonar.check.Rule.class);
+    var ruleAnnotation = AnnotationUtils.getAnnotation(this, org.sonar.check.Rule.class);
     if (ruleAnnotation != null && ruleAnnotation.key() != null) {
       return ruleAnnotation.key();
     }

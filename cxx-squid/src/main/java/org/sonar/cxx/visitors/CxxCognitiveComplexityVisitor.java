@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,20 +19,20 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.AstNodeType;
-import static com.sonar.sslr.api.GenericTokenType.IDENTIFIER;
-import com.sonar.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.AstNodeType;
+import static com.sonar.cxx.sslr.api.GenericTokenType.IDENTIFIER;
+import com.sonar.cxx.sslr.api.Grammar;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import org.sonar.cxx.api.CxxKeyword;
+import org.sonar.cxx.parser.CxxKeyword;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.cxx.api.CxxPunctuator;
+import org.sonar.cxx.parser.CxxPunctuator;
 import org.sonar.cxx.parser.CxxGrammarImpl;
-import org.sonar.squidbridge.api.SourceCode;
+import org.sonar.cxx.squidbridge.api.SourceCode;
 
 public class CxxCognitiveComplexityVisitor<G extends Grammar> extends MultiLocatitionSquidCheck<G> {
 

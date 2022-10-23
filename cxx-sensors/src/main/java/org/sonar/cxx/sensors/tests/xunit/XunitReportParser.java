@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,11 +19,13 @@
  */
 package org.sonar.cxx.sensors.tests.xunit;
 
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import javax.xml.stream.XMLStreamException;
 import org.codehaus.staxmate.in.ElementFilter;
 import org.codehaus.staxmate.in.SMHierarchicCursor;
@@ -39,7 +41,7 @@ import org.sonar.cxx.sensors.utils.StaxParser.XmlStreamHandler;
 public class XunitReportParser implements XmlStreamHandler {
 
   private final String baseDir;
-  private final Map<String, TestFile> testFiles = new HashMap<>();
+  private final Map<Path, TestFile> testFiles = new HashMap<>();
 
   public XunitReportParser(String baseDir) {
     this.baseDir = baseDir;
@@ -87,23 +89,22 @@ public class XunitReportParser implements XmlStreamHandler {
     String tcFilename = testCaseCursor.getAttrValue("filename");
     String name = parseTestCaseName(testCaseCursor);
     Double time = parseTime(testCaseCursor);
-    String status = "ok";
-    String stack = "";
-    String msg = "";
-    final String SKIPPED_STATUS = "skipped";
+    var status = "ok";
+    var stack = "";
+    var msg = "";
 
     // Googletest-reports mark the skipped tests with status="notrun"
     String statusattr = testCaseCursor.getAttrValue("status");
     if ("notrun".equals(statusattr)) {
-      status = SKIPPED_STATUS;
+      status = "skipped";
     } else {
       SMInputCursor childCursor = testCaseCursor.childElementCursor();
       if (childCursor.getNext() != null) {
         String elementName = childCursor.getLocalName();
         if (null != elementName) {
           switch (elementName) {
-            case SKIPPED_STATUS:
-              status = SKIPPED_STATUS;
+            case "skipped":
+              status = "skipped";
               break;
             case "failure":
               status = "failure";
@@ -123,20 +124,20 @@ public class XunitReportParser implements XmlStreamHandler {
     }
 
     String filename = tcFilename != null ? tcFilename : tsFilename;
-    TestFile file = getTestFile(filename);
+    var file = getTestFile(filename);
     file.add(new TestCase(name, time.intValue(), status, stack, msg, classname, filename, tsName));
   }
 
   private TestFile getTestFile(String filename) {
-    String absolute = CxxUtils.resolveAntPath(baseDir, filename);
-    if (absolute != null) {
-      absolute = absolute.toLowerCase();
-    }
-    TestFile file = testFiles.get(absolute);
+    var absolute = Optional.ofNullable(CxxUtils.resolveAntPath(baseDir, filename))
+      .map(p -> Path.of(p));
+
+    var file = testFiles.get(absolute.orElse(null));
     if (file == null) {
-      file = new TestFile(absolute);
-      testFiles.put(absolute, file);
+      file = new TestFile(absolute.map(Object::toString).orElse(null));
+      testFiles.put(absolute.orElse(null), file);
     }
+
     return file;
   }
 
@@ -151,7 +152,7 @@ public class XunitReportParser implements XmlStreamHandler {
 
   private double parseTime(SMInputCursor testCaseCursor)
     throws XMLStreamException {
-    double time = 0.0;
+    var time = 0.0;
     try {
       String sTime = testCaseCursor.getAttrValue("time");
       if (sTime != null && !sTime.isEmpty()) {

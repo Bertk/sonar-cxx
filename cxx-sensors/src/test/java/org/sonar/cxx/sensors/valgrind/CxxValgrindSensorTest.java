@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -21,10 +21,10 @@ package org.sonar.cxx.sensors.valgrind;
 
 import java.util.Collections;
 import java.util.HashSet;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,28 +34,28 @@ import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.cxx.sensors.utils.TestUtils;
 
-public class CxxValgrindSensorTest {
+class CxxValgrindSensorTest {
 
   private DefaultFileSystem fs;
   private CxxValgrindSensor sensor;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     fs = TestUtils.mockFileSystem();
     sensor = new CxxValgrindSensor();
   }
 
   @Test
-  public void shouldNotThrowWhenGivenValidData() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldNotThrowWhenGivenValidData() {
+    var context = SensorContextTester.create(fs.baseDir());
     sensor.execute(context);
 
-    assertThat(context.allAnalysisErrors().isEmpty()).isTrue();
+    assertThat(context.allAnalysisErrors()).isEmpty();
   }
 
   @Test
-  public void shouldSaveViolationIfErrorIsInside() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldSaveViolationIfErrorIsInside() {
+    var context = SensorContextTester.create(fs.baseDir());
     context.fileSystem().add(
       TestInputFileBuilder.create("myProjectKey", "dir/file")
         .setLanguage("cxx")
@@ -70,24 +70,24 @@ public class CxxValgrindSensorTest {
   }
 
   @Test
-  public void shouldNotSaveViolationIfErrorIsOutside() {
-    SensorContextTester context = SensorContextTester.create(fs.baseDir());
+  void shouldNotSaveViolationIfErrorIsOutside() {
+    var context = SensorContextTester.create(fs.baseDir());
     sensor.execute(context); // set context
     var valgrindErrors = new HashSet<ValgrindError>();
     valgrindErrors.add(mockValgrindError(false));
     sensor.saveErrors(valgrindErrors);
 
-    assertThat(context.allIssues()).hasSize(0);
+    assertThat(context.allIssues()).isEmpty();
   }
 
   @Test
-  public void sensorDescriptor() {
+  void sensorDescriptor() {
     var descriptor = new DefaultSensorDescriptor();
     sensor.describe(descriptor);
 
     var softly = new SoftAssertions();
     softly.assertThat(descriptor.name()).isEqualTo("CXX Valgrind report import");
-    softly.assertThat(descriptor.languages()).containsOnly("cxx");
+    softly.assertThat(descriptor.languages()).containsOnly("cxx", "cpp", "c++", "c");
     softly.assertThat(descriptor.ruleRepositories()).containsOnly(CxxValgrindRuleRepository.KEY);
     softly.assertAll();
   }

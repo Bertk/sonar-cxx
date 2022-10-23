@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 
-public class TestUtils {
+public final class TestUtils {
 
   public static File loadResource(String resourceName) {
     URL resource = TestUtils.class.getResource(resourceName);
@@ -70,7 +70,7 @@ public class TestUtils {
   public static DefaultInputFile buildInputFile(File baseDir, String fileName) throws IOException {
     var target = new File(baseDir, fileName);
     String content = Files.contentOf(target, StandardCharsets.UTF_8);
-    DefaultInputFile inputFile = TestInputFileBuilder.create("ProjectKey", baseDir, target)
+    var inputFile = TestInputFileBuilder.create("ProjectKey", baseDir, target)
       .setContents(content)
       .setCharset(StandardCharsets.UTF_8)
       .setLanguage("cxx")

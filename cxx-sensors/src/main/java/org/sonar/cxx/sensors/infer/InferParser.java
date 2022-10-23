@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,6 @@ import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.cxx.sensors.utils.EmptyReportException;
 import org.sonar.cxx.sensors.utils.InvalidReportException;
-import org.sonar.cxx.sensors.utils.ReportException;
 import org.sonar.cxx.utils.CxxReportIssue;
 
 /**
@@ -47,11 +46,11 @@ public class InferParser {
     this.sensor = sensor;
   }
 
-  public void parse(File report) throws ReportException {
+  public void parse(File report) {
     InferIssue[] inferIssues;
 
     try {
-      try ( JsonReader reader = new JsonReader(new FileReader(report))) {
+      try ( var reader = new JsonReader(new FileReader(report))) {
         inferIssues = new Gson().fromJson(reader, InferIssue[].class);
         if (inferIssues == null) {
           throw new EmptyReportException("The 'Infer JSON' report is empty");
@@ -61,12 +60,10 @@ public class InferParser {
       throw new InvalidReportException("The 'Infer JSON' report is invalid", e);
     }
 
-    for (InferIssue issue : inferIssues) {
-      LOG.debug("Read: {}", issue.toString());
+    for (var issue : inferIssues) {
       if (issue.getFile() != null) {
-        CxxReportIssue cxxReportIssue = new CxxReportIssue(
-          issue.getBugType(), issue.getFile(),
-          String.valueOf(issue.getLine()), issue.getQualifier());
+        var cxxReportIssue = new CxxReportIssue(
+          issue.getBugType(), issue.getFile(), String.valueOf(issue.getLine()), null, issue.getQualifier());
         sensor.saveUniqueViolation(cxxReportIssue);
       } else {
         LOG.debug("Invalid infer issue '{}', skipping", issue.toString());

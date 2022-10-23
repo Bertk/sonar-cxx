@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,55 +19,59 @@
  */
 package org.sonar.cxx.parser;
 
-import org.junit.Test;
-import static org.sonar.sslr.tests.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
-public class SpecialMemberFunctionsTest extends ParserBaseTestHelper {
+class SpecialMemberFunctionsTest extends ParserBaseTestHelper {
 
   @Test
-  public void ctorInitializer_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.ctorInitializer));
+  void ctorInitializer_reallife() {
+    setRootRule(CxxGrammarImpl.ctorInitializer);
 
-    assertThat(p).matches(": theValue(v)");
+    assertThatParser()
+      .matches(": theValue(v)");
   }
 
   @Test
-  public void memInitializerList() {
-    p.setRootRule(g.rule(CxxGrammarImpl.memInitializerList));
+  void memInitializerList() {
+    setRootRule(CxxGrammarImpl.memInitializerList);
 
     mockRule(CxxGrammarImpl.memInitializer);
 
-    assertThat(p).matches("memInitializer");
-    assertThat(p).matches("memInitializer ...");
-    assertThat(p).matches("memInitializer , memInitializer");
-    assertThat(p).matches("memInitializer , memInitializer ...");
+    assertThatParser()
+      .matches("memInitializer")
+      .matches("memInitializer ...")
+      .matches("memInitializer , memInitializer")
+      .matches("memInitializer , memInitializer ...");
   }
 
   @Test
-  public void memInitializer() {
-    p.setRootRule(g.rule(CxxGrammarImpl.memInitializer));
+  void memInitializer() {
+    setRootRule(CxxGrammarImpl.memInitializer);
 
     mockRule(CxxGrammarImpl.memInitializerId);
     mockRule(CxxGrammarImpl.expressionList);
     mockRule(CxxGrammarImpl.bracedInitList);
 
-    assertThat(p).matches("memInitializerId ( )");
-    assertThat(p).matches("memInitializerId ( expressionList )");
-    assertThat(p).matches("memInitializerId bracedInitList");
+    assertThatParser()
+      .matches("memInitializerId ( )")
+      .matches("memInitializerId ( expressionList )")
+      .matches("memInitializerId bracedInitList");
   }
 
   @Test
-  public void memInitializer_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.memInitializer));
+  void memInitializer_reallife() {
+    setRootRule(CxxGrammarImpl.memInitializer);
 
-    assertThat(p).matches("theValue(v)");
+    assertThatParser()
+      .matches("theValue(v)");
   }
 
   @Test
-  public void memInitializerId_reallife() {
-    p.setRootRule(g.rule(CxxGrammarImpl.memInitializerId));
+  void memInitializerId_reallife() {
+    setRootRule(CxxGrammarImpl.memInitializerId);
 
-    assertThat(p).matches("theValue");
+    assertThatParser()
+      .matches("theValue");
   }
 
 }

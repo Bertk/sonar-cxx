@@ -1,6 +1,6 @@
 /*
- * Sonar C++ Plugin (Community)
- * Copyright (C) 2010-2020 SonarOpenCommunity
+ * C++ Community Plugin (cxx plugin)
+ * Copyright (C) 2010-2022 SonarOpenCommunity
  * http://github.com/SonarOpenCommunity/sonar-cxx
  *
  * This program is free software; you can redistribute it and/or
@@ -19,15 +19,18 @@
  */
 package org.sonar.cxx.visitors;
 
-import com.sonar.sslr.api.AstNode;
-import com.sonar.sslr.api.Grammar;
-import com.sonar.sslr.api.Token;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import com.sonar.cxx.sslr.api.AstNode;
+import com.sonar.cxx.sslr.api.Grammar;
+import com.sonar.cxx.sslr.api.Token;
+import java.util.Arrays;
 import java.util.List;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
-import org.sonar.cxx.CxxSquidConfiguration;
 import org.sonar.cxx.api.CxxMetric;
-import org.sonar.squidbridge.api.SourceFile;
+import org.sonar.cxx.config.CxxSquidConfiguration;
+import org.sonar.cxx.squidbridge.api.SourceFile;
 
 /**
  * Visitor that counts documented and undocumented API items.<br>
@@ -61,6 +64,16 @@ import org.sonar.squidbridge.api.SourceFile;
  */
 public class CxxPublicApiVisitor<G extends Grammar> extends AbstractCxxPublicApiVisitor<G> {
 
+  /**
+   * Key of the file suffix parameter
+   */
+  public static final String API_FILE_SUFFIXES_KEY = "sonar.cxx.metric.api.file.suffixes";
+
+  /**
+   * Default API files knows suffixes
+   */
+  public static final String API_DEFAULT_FILE_SUFFIXES = ".hxx,.hpp,.hh,.h";
+
   private static final Logger LOG = Loggers.get(CxxPublicApiVisitor.class);
 
   private int publicApiCounter;
@@ -68,7 +81,15 @@ public class CxxPublicApiVisitor<G extends Grammar> extends AbstractCxxPublicApi
 
   public CxxPublicApiVisitor(CxxSquidConfiguration squidConfig) {
     super();
-    withHeaderFileSuffixes(squidConfig.getPublicApiFileSuffixes());
+    String[] suffixes = squidConfig.getValues(CxxSquidConfiguration.SONAR_PROJECT_PROPERTIES,
+                                              CxxSquidConfiguration.API_FILE_SUFFIXES)
+      .stream()
+      .filter(s -> s != null && !s.trim().isEmpty()).toArray(String[]::new);
+    if (suffixes.length == 0) {
+      suffixes = Iterables.toArray(Splitter.on(',').split(API_DEFAULT_FILE_SUFFIXES), String.class);
+    }
+    withHeaderFileSuffixes(suffixes);
+    LOG.debug(API_FILE_SUFFIXES_KEY + ": {}", Arrays.toString(suffixes));
   }
 
   @Override
@@ -82,17 +103,18 @@ public class CxxPublicApiVisitor<G extends Grammar> extends AbstractCxxPublicApi
   public void leaveFile(AstNode astNode) {
     super.leaveFile(astNode);
 
-    SourceFile sourceFile = (SourceFile) getContext().peekSourceCode();
-    sourceFile.setMeasure(CxxMetric.PUBLIC_API, publicApiCounter);
-    sourceFile.setMeasure(CxxMetric.PUBLIC_UNDOCUMENTED_API, undocumentedApiCounter);
+    if (!skipFile) {
+      var sourceFile = (SourceFile) getContext().peekSourceCode();
+      sourceFile.setMeasure(CxxMetric.PUBLIC_API, publicApiCounter);
+      sourceFile.setMeasure(CxxMetric.PUBLIC_UNDOCUMENTED_API, undocumentedApiCounter);
+      LOG.debug("'Public API' metric for '{}': total={}, undocumented={}",
+                sourceFile.getName(), publicApiCounter, undocumentedApiCounter);
+    }
   }
 
   @Override
   protected void onPublicApi(AstNode node, String id, List<Token> comments) {
-    final boolean commented = !comments.isEmpty();
-    LOG.debug("node: {} line: {} id: '{}' documented: {}", node.getType(), node.getTokenLine(), id, commented);
-
-    if (!commented) {
+    if (comments.isEmpty()) {
       undocumentedApiCounter++;
     }
 
